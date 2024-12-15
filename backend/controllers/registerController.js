@@ -2,7 +2,7 @@ const db = require("../model/db"); // Import your DB connection
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const handleNewUser = async (req, res) => {
-  const { username, password, active, role } = req.body; // Ensure birth and role are passed if required
+  const { username, password } = req.body; // Ensure username, password are passed if required
 
   // Ensure the required fields are present
   if (!username || !password) {
