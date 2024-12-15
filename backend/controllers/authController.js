@@ -15,8 +15,9 @@ const login = async (req, res) => {
   }
 
   const foundUser = await db.getUserByUsername(username);
+  console.log(foundUser);
 
-  if (!foundUser || !foundUser[0].active) {
+  if (!foundUser || foundUser.length == 0 || !foundUser[0].active) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
