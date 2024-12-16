@@ -10,6 +10,18 @@ const Navbar = () => {
     logout();
   };
 
+  const handleClickDashBoard = () => {
+    console.log("dashboard");
+  };
+
+  const handleClickSchedule = () => {
+    console.log("schedule");
+  };
+
+  const handleClickReport = () => {
+    console.log("report");
+  };
+
   return (
     <header>
       <div className="container">
@@ -19,6 +31,9 @@ const Navbar = () => {
         <nav>
           {user && (
             <div>
+              <button onClick={handleClickDashBoard}>Dashboard</button>
+              <button onClick={handleClickSchedule}>Schedule</button>
+              <button onClick={handleClickReport}>Report</button>
               <span>{user.email}</span>
               <Link to="/signup">Create new account</Link>
               <button onClick={handleClick}>Log out</button>
