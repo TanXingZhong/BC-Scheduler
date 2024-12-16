@@ -1,5 +1,4 @@
-const User = require("../models/User");
-const Note = require("../models/Note");
+const db = require("../model/db"); // Import your DB connection
 const bcrypt = require("bcrypt");
 
 // @desc Get all users

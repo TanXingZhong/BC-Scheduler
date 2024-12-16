@@ -1,32 +1,28 @@
-import { useAuthContext } from './useAuthContext'
+import { useAuthContext } from "./useAuthContext";
 
 export const useLogout = () => {
-  const { dispatch } = useAuthContext()
+  const { dispatch } = useAuthContext();
 
   const logout = async () => {
-    
-    const response = await fetch('http://localhost:8080/auth/logout', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+    try {
+      const response = await fetch("http://localhost:8080/auth/logout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         credentials: "include", // Required to include cookies in the request
-    })
+      });
 
-    const text = await response.json();
-
-    if (!response.ok) {
-    console.error('HTTP error:', response.status, response.statusText);
-    return;
-    } else {
+      if (!response.ok) {
+        console.error("HTTP error:", response.status, response.statusText);
+        return;
+      } else {
         console.log(response);
+      }
+      // dispatch logout action
+      dispatch({ type: "LOGOUT" });
+    } catch (error) {
+      console.log("Error logging out", error);
     }
+  };
 
-    // remove user from storage
-    // localStorage.removeItem('user')
-
-    // dispatch logout action
-    dispatch({ type: 'LOGOUT' })
-    
-  }
-
-  return { logout }
-}
+  return { logout };
+};
