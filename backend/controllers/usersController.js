@@ -6,8 +6,13 @@ const bcrypt = require("bcrypt");
 // @access Private
 const getAllUsers = async (req, res) => {
   // Get all users from SQL
-  const allUsers = await db.getAllUsers();
-  res.status(200).json(allUsers);
+  try {
+    const allUsers = await db.getAllUsers(); 
+    res.status(200).json({rows : allUsers});
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Error fetching users." });
+  }
   // If no users
   
 };
@@ -33,9 +38,10 @@ const createNewUser = async (req, res) => {
     return res.status(500).json({ message: "Error checking for duplicated user." });
   }
   // Create and store new user
+  const hashedPwd = await bcrypt.hash(password, 10);
 
   try {
-    const result = await db.addUser(username, password, roles);
+    const result = await db.addUser(username, hashedPwd);
     return res.status(201).json({ message: `New user ${username} created!` });
 
   } catch (err) {
@@ -48,10 +54,11 @@ const createNewUser = async (req, res) => {
 // @route PATCH /users
 // @access Private
 const updateUser = async (req, res) => {
-  const { id, username, roles, active, password } = req.body;
+  const { username, roles, active, password } = req.body;
+  const hashedPwd = await bcrypt.hash(password, 10);
 
   // Confirm data
-  if(!id || !username || !roles || !password) {
+  if(!username || !roles || !password) {
     return res.status(400).json({ message: "ID, username, roles, active, and password required." });
   }
 
@@ -68,13 +75,12 @@ const updateUser = async (req, res) => {
 
   // Allow updates to the original user
   try {
-    const result = await db.updateUser(username, password, roles, active);
+    const result = await db.updateUser(username, hashedPwd, roles, active);
     return res.status(200).json({ message: `User ${username} updated!` });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Error updating user." });
   }
-
 };
 
 // @desc Delete a user
@@ -85,13 +91,13 @@ const deleteUser = async (req, res) => {
 
   // Confirm data
   if(!username) {
-    return res.status(400).json({ message: "ID required." });
+    return res.status(400).json({ message: "username required." });
   }
   // Does the user still have assigned notes?
   
   // Does the user exist to delete?
   try {
-    const exist = await db.getUserByUsername(username);
+    const exist = await db.checkUserExists(username);
     if (!exist) {
       return res.status(404).json({ message: "User not found." });
     }

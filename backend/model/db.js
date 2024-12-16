@@ -77,9 +77,9 @@ async function checkUserExists(username) {
 }
 
 // Add new user to the database
-async function addUser(username, password, roles) {
-  const query = "INSERT INTO users (username, password, roles) VALUES (?, ?, ?)";
-  const values = [username, password, roles];
+async function addUser(username, password) {
+  const query = "INSERT INTO users (username, password) VALUES (?, ?)";
+  const values = [username, password];
 
   try {
     const [result] = await pool.execute(query, values);
@@ -93,7 +93,7 @@ async function addUser(username, password, roles) {
 
 async function updateUser(username, password, roles, active) {
   const query = "UPDATE users SET password = ?, roles = ?, active = ? WHERE username = ?";
-  const values = [password, roles, username];
+  const values = [password, roles, active, username];
 
   try {
     const [result] = await pool.execute(query, values);

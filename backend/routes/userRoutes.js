@@ -3,7 +3,6 @@ const router = express.Router();
 const usersController = require("../controllers/usersController");
 const verifyJWT = require("../middleware/verifyJWT");
 
-router.use(verifyJWT.verifyJWT);
 router.use(verifyJWT.verifyAdmin);
 
 router
