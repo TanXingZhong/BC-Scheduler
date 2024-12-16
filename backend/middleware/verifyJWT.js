@@ -9,8 +9,14 @@ const verifyJWT = (req, res, next) => {
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
     if (err) return res.sendStatus(403); //invalid token
     req.user = decoded.username;
+    req.roles = decoded.roles;
     next();
   });
 };
 
-module.exports = verifyJWT;
+const verifyAdmin = (req, res, next) => {
+  if (req.roles !== "admin") return res.sendStatus(403);
+  next();
+};
+
+module.exports = {verifyJWT, verifyAdmin};
