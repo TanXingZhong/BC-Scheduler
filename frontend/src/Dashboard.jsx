@@ -4,10 +4,10 @@ import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import AppNavbar from "./components/AppNavbar";
 import Header from "./components/Header";
-import HomeGrid from "./components/HomeGrid";
 import SideMenu from "./components/SideMenu";
 import AppTheme from "../shared-theme/AppTheme";
 import { dataGridCustomizations } from "./theme/customizations";
+import { Outlet } from "react-router-dom";
 
 const xThemeComponents = {
   dataGridCustomizations,
@@ -41,7 +41,7 @@ export default function Dashboard(props) {
             }}
           >
             <Header />
-            <HomeGrid />
+            <Outlet />
           </Stack>
         </Box>
       </Box>

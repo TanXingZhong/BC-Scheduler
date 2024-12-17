@@ -3,8 +3,10 @@ import { useAuthContext } from "./hooks/useAuthContext";
 
 // pages & components
 import Login from "./pages/Login";
+import SignIn from "./pages/SignIn";
 import Signup from "./pages/Signup";
 import Dashboard from "./Dashboard";
+import HomeGrid from "./components/HomeGrid";
 
 function App() {
   const { user } = useAuthContext();
@@ -14,14 +16,13 @@ function App() {
         <Route
           path="/"
           element={user ? <Dashboard /> : <Navigate to="/login" />}
-        />
+        >
+          <Route index element={<HomeGrid />} />
+          <Route path="signup" element={<Signup />} />
+        </Route>
         <Route
           path="/login"
-          element={!user ? <Login /> : <Navigate to="/" />}
-        />
-        <Route
-          path="/signup"
-          element={user ? <Signup /> : <Navigate to="/login" />}
+          element={!user ? <SignIn /> : <Navigate to="/" />}
         />
       </Routes>
     </BrowserRouter>

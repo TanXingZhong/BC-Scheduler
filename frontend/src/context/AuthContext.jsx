@@ -1,5 +1,5 @@
 import { createContext, useReducer, useEffect } from "react";
-
+import { jwtDecode } from "jwt-decode";
 export const AuthContext = createContext();
 
 export const authReducer = (state, action) => {
@@ -29,9 +29,10 @@ export const AuthContextProvider = ({ children }) => {
 
       if (response.ok) {
         const json = await response.json();
-
-        // Save user to state
-        dispatch({ type: "LOGIN", payload: json });
+        const decoded = jwtDecode(json.accessToken);
+        const { username, roles } = decoded.UserInfo;
+        console.log(username, roles);
+        dispatch({ type: "LOGIN", payload: decoded });
       } else {
         // If the refresh token is invalid or expired
         console.error("Failed to refresh access token");
