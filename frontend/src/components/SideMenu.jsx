@@ -7,6 +7,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import MenuContent from "./MenuContent";
 import LogoutButton from "./LogoutButton";
+import { useAuthContext } from "../hooks/useAuthContext";
 
 const drawerWidth = 240;
 
@@ -22,6 +23,9 @@ const Drawer = styled(MuiDrawer)({
 });
 
 export default function SideMenu() {
+  const { user } = useAuthContext();
+  const { name } = user || {};
+  const { username } = user || {};
   return (
     <Drawer
       variant="permanent"
@@ -67,10 +71,10 @@ export default function SideMenu() {
             variant="body2"
             sx={{ fontWeight: 500, lineHeight: "16px" }}
           >
-            Riley Carter
+            {name}
           </Typography>
           <Typography variant="caption" sx={{ color: "text.secondary" }}>
-            riley@email.com
+            {username}
           </Typography>
         </Box>
         <LogoutButton />

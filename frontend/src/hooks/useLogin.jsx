@@ -33,7 +33,6 @@ export const useLogin = () => {
         // update the auth context
         const decoded = jwtDecode(json.accessToken);
         const { name, username, roles } = decoded.UserInfo;
-        console.log(name, username, roles);
         is_FullTimer = roles.includes("Full_timer");
         isAdmin = roles.includes("Admin");
 

@@ -4,6 +4,9 @@ import { useAuthContext } from "./hooks/useAuthContext";
 // pages & components
 import SignIn from "./pages/SignIn";
 import Signup from "./pages/Signup";
+import Calendar from "./pages/Calendar";
+import EditSchedule from "./pages/EditSchedule";
+import Users from "./pages/Users";
 import Dashboard from "./Dashboard";
 import HomeGrid from "./components/HomeGrid";
 
@@ -18,6 +21,9 @@ function App() {
         >
           <Route index element={<HomeGrid />} />
           <Route path="signup" element={<Signup />} />
+          <Route path="calendar" element={<Calendar />} />
+          <Route path="edit-schedule" element={<EditSchedule />} />
+          <Route path="users" element={<Users />} />
         </Route>
         <Route
           path="/login"
