@@ -8,11 +8,13 @@ import Typography from "@mui/material/Typography";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import NotificationsRoundedIcon from "@mui/icons-material/NotificationsRounded";
 import { useLogout } from "../hooks/useLogout";
-
+import { useAuthContext } from "../hooks/useAuthContext";
 import MenuButton from "./MenuButton";
 import MenuContent from "./MenuContent";
 
 function SideMenuMobile({ open, toggleDrawer }) {
+  const { user } = useAuthContext();
+  const { name } = user || {};
   const { logout } = useLogout();
 
   const handleClick = () => {
@@ -50,7 +52,7 @@ function SideMenuMobile({ open, toggleDrawer }) {
               sx={{ width: 24, height: 24 }}
             />
             <Typography component="p" variant="h6">
-              Riley Carter
+              {name}
             </Typography>
           </Stack>
           <MenuButton showBadge>
