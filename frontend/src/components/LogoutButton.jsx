@@ -1,4 +1,3 @@
-import * as React from "react";
 import PropTypes from "prop-types";
 import Badge, { badgeClasses } from "@mui/material/Badge";
 import IconButton from "@mui/material/IconButton";
@@ -13,7 +12,8 @@ function LogoutButton({ showBadge = false, ...props }) {
   };
 
   return (
-    <Badge onClick={handleClick}
+    <Badge
+      onClick={handleClick}
       color="error"
       variant="dot"
       invisible={!showBadge}

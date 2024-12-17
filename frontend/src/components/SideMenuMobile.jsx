@@ -1,4 +1,3 @@
-import * as React from "react";
 import PropTypes from "prop-types";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
@@ -19,7 +18,7 @@ function SideMenuMobile({ open, toggleDrawer }) {
   const handleClick = () => {
     logout();
   };
-  
+
   return (
     <Drawer
       anchor="right"
@@ -65,7 +64,8 @@ function SideMenuMobile({ open, toggleDrawer }) {
         </Stack>
 
         <Stack sx={{ p: 2 }}>
-          <Button onClick={handleClick}
+          <Button
+            onClick={handleClick}
             variant="outlined"
             fullWidth
             startIcon={<LogoutRoundedIcon />}
