@@ -17,8 +17,8 @@ export const AuthContextProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, {
     user: null, // User initially null, will be loaded on token refresh.
   });
-
   console.log("AuthContext state:", state);
+
   // Function to refresh the access token
   const refreshAccessToken = async () => {
     try {
@@ -45,7 +45,7 @@ export const AuthContextProvider = ({ children }) => {
 
   useEffect(() => {
     // Attempt to refresh token on app load
-    refreshAccessToken();
+    if (state.user == null) refreshAccessToken();
   }, []);
 
   return (
