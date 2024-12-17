@@ -7,7 +7,7 @@ export const useSignup = () => {
   const { dispatch } = useAuthContext();
   const { user } = useAuthContext();
 
-  const signup = async (username, password) => {
+  const signup = async (name, username, password) => {
     setIsLoading(true);
     setError(null);
 
@@ -18,7 +18,7 @@ export const useSignup = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${user.accessToken}`,
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ name, username, password }),
       });
 
       const json = await response.json();
@@ -29,7 +29,7 @@ export const useSignup = () => {
       }
       if (response.ok) {
         // update loading state
-        console.log(json.success);
+        console.log("Account created", json.success);
         setIsLoading(false);
       }
     } catch (error) {

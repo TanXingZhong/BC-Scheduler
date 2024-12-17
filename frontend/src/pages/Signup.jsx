@@ -105,12 +105,12 @@ export default function SignUp(props) {
       event.preventDefault();
       return;
     }
-
+    const name = document.getElementById("name").value;
     const username = document.getElementById("email").value;
     const password = document.getElementById("password").value;
-    const name = document.getElementById("name");
+
     event.preventDefault();
-    await signup(username, password);
+    await signup(name, username, password);
   };
 
   return (

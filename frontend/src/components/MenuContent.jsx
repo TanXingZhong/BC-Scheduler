@@ -1,3 +1,4 @@
+import { useState } from "react";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
@@ -22,16 +23,23 @@ const secondaryListItems = [
 ];
 
 export default function MenuContent() {
+  const [selectedIndex, setSelectedIndex] = useState(0); // State to track the selected item
+
+  const handleListItemClick = (index) => {
+    setSelectedIndex(index); // Update the selected item index
+  };
+
   return (
     <Stack sx={{ flexGrow: 1, p: 1, justifyContent: "space-between" }}>
       <List dense>
         {mainListItems.map((item, index) => (
           <ListItem key={index} disablePadding sx={{ display: "block" }}>
-            {/* Use Link for navigation */}
-            <ListItemButton 
-              component={item.path ? Link : "div"} 
+            <ListItemButton
+              component={item.path ? Link : "div"}
               to={item.path || undefined}
-              selected={index === 0}>
+              selected={selectedIndex === index} // Highlight the selected item
+              onClick={() => handleListItemClick(index)} // Handle click to set selected
+            >
               <ListItemIcon>{item.icon}</ListItemIcon>
               <ListItemText primary={item.text} />
             </ListItemButton>

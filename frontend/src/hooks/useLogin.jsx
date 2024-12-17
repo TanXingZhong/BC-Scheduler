@@ -10,6 +10,9 @@ export const useLogin = () => {
   const login = async (username, password) => {
     setIsLoading(true);
     setError(null);
+    let is_FullTimer = false;
+    let isAdmin = false;
+    let status = "Part_timer";
     try {
       const response = await fetch("http://localhost:8080/auth", {
         method: "POST",
@@ -29,7 +32,18 @@ export const useLogin = () => {
       if (response.ok) {
         // update the auth context
         const decoded = jwtDecode(json.accessToken);
-        dispatch({ type: "LOGIN", payload: decoded });
+        const { name, username, roles } = decoded.UserInfo;
+        console.log(name, username, roles);
+        is_FullTimer = roles.includes("Full_timer");
+        isAdmin = roles.includes("Admin");
+
+        if (is_FullTimer) status = "Full_timer";
+        if (isAdmin) status = "Admin";
+
+        dispatch({
+          type: "LOGIN",
+          payload: { name, username, roles, status, is_FullTimer, isAdmin },
+        });
 
         // update loading state
         setIsLoading(false);

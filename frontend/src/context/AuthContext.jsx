@@ -28,11 +28,24 @@ export const AuthContextProvider = ({ children }) => {
       });
 
       if (response.ok) {
+        let is_FullTimer = false;
+        let isAdmin = false;
+        let status = "Part_timer";
+
         const json = await response.json();
         const decoded = jwtDecode(json.accessToken);
-        const { username, roles } = decoded.UserInfo;
-        console.log(username, roles);
-        dispatch({ type: "LOGIN", payload: decoded });
+        const { name, username, roles } = decoded.UserInfo;
+
+        is_FullTimer = roles.includes("Full_timer");
+        isAdmin = roles.includes("Admin");
+
+        if (is_FullTimer) status = "Full_timer";
+        if (isAdmin) status = "Admin";
+
+        dispatch({
+          type: "LOGIN",
+          payload: { name, username, roles, status, is_FullTimer, isAdmin },
+        });
       } else {
         // If the refresh token is invalid or expired
         console.error("Failed to refresh access token");
