@@ -13,6 +13,7 @@ export const useLogin = () => {
     let is_FullTimer = false;
     let isAdmin = false;
     let status = "Part_timer";
+
     try {
       const response = await fetch("http://localhost:8080/auth", {
         method: "POST",
@@ -43,7 +44,6 @@ export const useLogin = () => {
           type: "LOGIN",
           payload: { name, username, roles, status, is_FullTimer, isAdmin },
         });
-
         // update loading state
         setIsLoading(false);
       }

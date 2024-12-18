@@ -15,7 +15,6 @@ const login = async (req, res) => {
   }
 
   const foundUser = await db.getUserByUsername(username);
-  console.log(foundUser);
 
   if (!foundUser || foundUser.length == 0 || !foundUser[0].active) {
     return res.status(401).json({ message: "Unauthorized" });
@@ -74,12 +73,14 @@ const refresh = (req, res) => {
       if (err) return res.status(403).json({ message: "Forbidden" });
 
       const foundUser = await db.getUserByUsername(decoded.username);
+      console.log(foundUser[0].username, foundUser[0].roles);
 
       if (!foundUser) return res.status(401).json({ message: "Unauthorized" });
 
       const accessToken = jwt.sign(
         {
           UserInfo: {
+>>>>>>> testing
             name: foundUser[0].name,
             username: foundUser[0].username,
             roles: foundUser[0].roles,
@@ -88,7 +89,6 @@ const refresh = (req, res) => {
         process.env.ACCESS_TOKEN_SECRET,
         { expiresIn: "15m" }
       );
-
       res.json({ accessToken });
     }
   );

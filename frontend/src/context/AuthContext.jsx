@@ -18,7 +18,6 @@ export const AuthContextProvider = ({ children }) => {
     user: null, // User initially null, will be loaded on token refresh.
   });
   console.log("AuthContext state:", state);
-
   // Function to refresh the access token
   const refreshAccessToken = async () => {
     try {
@@ -46,6 +45,7 @@ export const AuthContextProvider = ({ children }) => {
           type: "LOGIN",
           payload: { name, username, roles, status, is_FullTimer, isAdmin },
         });
+       
       } else {
         // If the refresh token is invalid or expired
         console.error("Failed to refresh access token");

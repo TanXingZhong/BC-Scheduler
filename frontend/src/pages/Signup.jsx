@@ -78,7 +78,6 @@ export default function SignUp(props) {
       setEmailError(false);
       setEmailErrorMessage("");
     }
-
     if (!password.value || password.value.length < 6) {
       setPasswordError(true);
       setPasswordErrorMessage("Password must be at least 6 characters long.");

@@ -6,4 +6,4 @@ const registerController = require("../controllers/registerController");
 // router.use(verifyJWT);
 router.post("/", registerController.handleNewUser);
 
-module.exports = router;
+module.exports = router
