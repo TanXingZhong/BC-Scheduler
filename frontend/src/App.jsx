@@ -9,7 +9,6 @@ import EditSchedule from "./pages/EditSchedule";
 import Users from "./pages/Users";
 import Dashboard from "./Dashboard";
 import HomeGrid from "./components/HomeGrid";
-import Signup from "./pages/Signup";
 import Admin from "./pages/Admin";
 import Delete from "./pages/delete";
 
@@ -27,14 +26,14 @@ function App() {
           <Route path="calendar" element={<Calendar />} />
           <Route path="edit-schedule" element={<EditSchedule />} />
           <Route path="users" element={<Users />} />
-             <Route
-              path="/admin"
-              element={user ? <Admin /> : <Navigate to="/admin" />}
-            />
-                  <Route
-              path="/delete"
-              element={user ? <Delete /> : <Navigate to="/delete" />}
-            />
+          <Route
+            path="/admin"
+            element={user ? <Admin /> : <Navigate to="/admin" />}
+          />
+          <Route
+            path="/delete"
+            element={user ? <Delete /> : <Navigate to="/delete" />}
+          />
         </Route>
         <Route
           path="/login"

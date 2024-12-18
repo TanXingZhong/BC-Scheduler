@@ -80,7 +80,6 @@ const refresh = (req, res) => {
       const accessToken = jwt.sign(
         {
           UserInfo: {
->>>>>>> testing
             name: foundUser[0].name,
             username: foundUser[0].username,
             roles: foundUser[0].roles,
