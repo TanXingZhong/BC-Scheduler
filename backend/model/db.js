@@ -1,7 +1,6 @@
 require("dotenv").config();
 const mysql = require("mysql2");
 const bcrypt = require("bcrypt");
-const { validate } = require("uuid");
 
 //To Shift to Config
 // Create a MySQL connection pool
@@ -13,16 +12,6 @@ const pool = mysql
     database: process.env.DB_DATABASE,
   })
   .promise(); // Use promise-based pool
-
-// Hash password
-// async function hashPassword(password) {
-//   try {
-//     const hashedPwd = await bcrypt.hash(password, 10); // salt rounds
-//     return hashedPwd;
-//   } catch (err) {
-//     throw new Error(err);
-//   }
-// }
 
 // Compare password
 async function comparePassword(password, hash) {
@@ -36,12 +25,12 @@ async function comparePassword(password, hash) {
 
 // Get all users from SQL
 async function getAllUsers() {
-  const query = "SELECT * FROM users"
+  const query = "SELECT * FROM users";
 
   try {
     // Execute query using promise pool
     const [rows, fields] = await pool.execute(query);
-    
+
     // log the result to inspect
     console.log("Database query result:", rows);
 
@@ -52,9 +41,9 @@ async function getAllUsers() {
 }
 
 // Get user by username
-async function getUserByUsername(username) {
-  const query = "SELECT * FROM users WHERE username = ?";
-  const values = [username];
+async function getUserByEmail(email) {
+  const query = "SELECT * FROM users WHERE email = ?";
+  const values = [email];
 
   try {
     // Execute query using promise pool
@@ -71,15 +60,46 @@ async function getUserByUsername(username) {
 }
 
 // Check if user exists
-async function checkUserExists(username) {
-  const user = await getUserByUsername(username);
+async function checkUserExists(email) {
+  const user = await getUserByEmail(email);
   return user.length > 0;
 }
 
 // Add new user to the database
-async function addUser(name, username, password) {
-  const query = "INSERT INTO users (name, username, password) VALUES (?, ?, ?)";
-  const values = [name, username, password];
+async function addUser(
+  name,
+  nric,
+  email,
+  password,
+  phonenumber,
+  sex,
+  dob,
+  bankName,
+  bankAccountNo,
+  address,
+  workplace,
+  occupation,
+  driverLicense,
+  firstAid
+) {
+  const query =
+    "INSERT INTO users (name, nric, email, password, phonenumber, sex, dob, bankName, bankAccountNo, address, workPlace, occupation, driverLicense, firstAid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+  const values = [
+    name,
+    nric,
+    email,
+    password,
+    phonenumber,
+    sex,
+    dob,
+    bankName,
+    bankAccountNo,
+    address,
+    workplace,
+    occupation,
+    driverLicense,
+    firstAid,
+  ];
 
   try {
     const [result] = await pool.execute(query, values);
@@ -91,9 +111,44 @@ async function addUser(name, username, password) {
   }
 }
 
-async function updateUser(username, password, roles, active) {
-  const query = "UPDATE users SET password = ?, roles = ?, active = ? WHERE username = ?";
-  const values = [password, roles, active, username];
+async function updateUser(
+  name,
+  nric,
+  email,
+  phonenumber,
+  sex,
+  dob,
+  bankName,
+  bankAccountNo,
+  address,
+  workplace,
+  occupation,
+  driverLicense,
+  firstAid,
+  joinDate,
+  roles,
+  active
+) {
+  const query =
+    "UPDATE users SET name = ?, nric = ? , phonenumber = ?, sex = ?, dob = ?, bankName = ?, bankAccountNo = ?, address = ?, workplace = ?, occupation = ?, driverLicense = ?, firstAid = ?, joinDate = ?, roles = ?, active = ? WHERE email = ?";
+  const values = [
+    name,
+    nric,
+    phonenumber,
+    sex,
+    dob,
+    bankName,
+    bankAccountNo,
+    address,
+    workplace,
+    occupation,
+    driverLicense,
+    firstAid,
+    joinDate,
+    roles,
+    active,
+    email,
+  ];
 
   try {
     const [result] = await pool.execute(query, values);
@@ -105,9 +160,9 @@ async function updateUser(username, password, roles, active) {
   }
 }
 
-async function deleteUser(username) {
-  const query = "DELETE FROM users WHERE username = ?";
-  const values = [username];
+async function deleteUser(email) {
+  const query = "DELETE FROM users WHERE email = ?";
+  const values = [email];
 
   try {
     const [result] = await pool.execute(query, values);
@@ -122,7 +177,7 @@ async function deleteUser(username) {
 module.exports = {
   comparePassword,
   getAllUsers,
-  getUserByUsername,
+  getUserByEmail,
   checkUserExists,
   addUser,
   updateUser,

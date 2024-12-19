@@ -7,14 +7,14 @@ require("dotenv").config();
 // @route POST /auth
 // @access Public
 const login = async (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) {
+  const { email, password } = req.body;
+  if (!email || !password) {
     return res
       .status(400)
-      .json({ message: "Username and password are required." });
+      .json({ message: "Email and password are required." });
   }
 
-  const foundUser = await db.getUserByUsername(username);
+  const foundUser = await db.getUserByEmail(email);
 
   if (!foundUser || foundUser.length == 0 || !foundUser[0].active) {
     return res.status(401).json({ message: "Unauthorized" });
@@ -28,7 +28,7 @@ const login = async (req, res) => {
     {
       UserInfo: {
         name: foundUser[0].name,
-        username: foundUser[0].username,
+        email: foundUser[0].email,
         roles: foundUser[0].roles,
       },
     },
@@ -37,7 +37,7 @@ const login = async (req, res) => {
   );
 
   const refreshToken = jwt.sign(
-    { username: foundUser[0].username },
+    { email: foundUser[0].email },
     process.env.REFRESH_TOKEN_SECRET,
     { expiresIn: "7d" }
   );
@@ -61,7 +61,6 @@ const login = async (req, res) => {
 const refresh = (req, res) => {
   console.log("Refreshing");
   const cookies = req.cookies;
-  console.log(cookies);
   if (!cookies?.jwt) return res.status(401).json({ message: "Unauthorized" });
 
   const refreshToken = cookies.jwt;
@@ -72,16 +71,15 @@ const refresh = (req, res) => {
     async (err, decoded) => {
       if (err) return res.status(403).json({ message: "Forbidden" });
 
-      const foundUser = await db.getUserByUsername(decoded.username);
-      console.log(foundUser[0].username, foundUser[0].roles);
-
-      if (!foundUser) return res.status(401).json({ message: "Unauthorized" });
+      const foundUser = await db.getUserByEmail(decoded.email);
+      if (!foundUser || foundUser.length == 0 || !foundUser[0].active)
+        return res.status(401).json({ message: "Unauthorized" });
 
       const accessToken = jwt.sign(
         {
           UserInfo: {
             name: foundUser[0].name,
-            username: foundUser[0].username,
+            email: foundUser[0].email,
             roles: foundUser[0].roles,
           },
         },

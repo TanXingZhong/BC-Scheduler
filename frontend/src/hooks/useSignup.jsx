@@ -4,10 +4,24 @@ import { useAuthContext } from "./useAuthContext";
 export const useSignup = () => {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(null);
-  const { dispatch } = useAuthContext();
   const { user } = useAuthContext();
 
-  const signup = async (name, username, password) => {
+  const signup = async (
+    name,
+    nric,
+    email,
+    password,
+    phonenumber,
+    sex,
+    dob,
+    bankName,
+    bankAccountNo,
+    address,
+    workplace,
+    occupation,
+    driverLicense,
+    firstAid
+  ) => {
     setIsLoading(true);
     setError(null);
 
@@ -18,7 +32,22 @@ export const useSignup = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${user.accessToken}`,
         },
-        body: JSON.stringify({ name, username, password }),
+        body: JSON.stringify({
+          name,
+          nric,
+          email,
+          password,
+          phonenumber,
+          sex,
+          dob,
+          bankName,
+          bankAccountNo,
+          address,
+          workplace,
+          occupation,
+          driverLicense,
+          firstAid,
+        }),
       });
 
       const json = await response.json();
