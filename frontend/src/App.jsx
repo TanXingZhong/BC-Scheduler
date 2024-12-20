@@ -4,7 +4,7 @@ import { useAuthContext } from "./hooks/useAuthContext";
 // pages & components
 import SignIn from "./pages/SignIn";
 import Signup from "./pages/Signup";
-import Calendar from "./pages/Calendar";
+import MyCalendar from "./pages/MyCalendar";
 import EditSchedule from "./pages/EditSchedule";
 import Users from "./pages/Users";
 import Dashboard from "./Dashboard";
@@ -17,7 +17,7 @@ function App() {
       <Route path="/" element={user ? <Dashboard /> : <Navigate to="/login" />}>
         <Route index element={<HomeGrid />} />
         <Route path="signup" element={<Signup />} />
-        <Route path="calendar" element={<Calendar />} />
+        <Route path="calendar" element={<MyCalendar />} />
         <Route path="edit-schedule" element={<EditSchedule />} />
         <Route path="users" element={<Users />} />
       </Route>
