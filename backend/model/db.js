@@ -25,7 +25,7 @@ async function comparePassword(password, hash) {
 
 // Get all users from SQL
 async function getAllUsers() {
-  const query = "SELECT * FROM users";
+  const query = "SELECT id, name, nric, email, phonenumber, sex, dob, bankName, bankAccountNo, address, workplace, occupation, driverLicense, firstAid, roles, joinDate FROM users";
 
   try {
     // Execute query using promise pool
