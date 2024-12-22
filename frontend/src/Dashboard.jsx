@@ -6,17 +6,25 @@ import AppNavbar from "./components/AppNavbar";
 import Header from "./components/Header";
 import SideMenu from "./components/SideMenu";
 import AppTheme from "../shared-theme/AppTheme";
-import { dataGridCustomizations } from "./theme/customizations";
 import { Outlet } from "react-router-dom";
+import { Suspense } from "react";
+import {
+  chartsCustomizations,
+  dataGridCustomizations,
+  datePickersCustomizations,
+} from "./theme/customizations";
 
 const xThemeComponents = {
-  dataGridCustomizations,
+  ...chartsCustomizations,
+  ...dataGridCustomizations,
+  ...datePickersCustomizations,
 };
 
 export default function Dashboard(props) {
   return (
     <AppTheme {...props} themeComponents={xThemeComponents}>
       <CssBaseline enableColorScheme />
+
       <Box sx={{ display: "flex" }}>
         <SideMenu />
         <AppNavbar />
@@ -41,7 +49,9 @@ export default function Dashboard(props) {
             }}
           >
             <Header />
-            <Outlet />
+            <Suspense fallback={<div>Loading...</div>}>
+              <Outlet />
+            </Suspense>
           </Stack>
         </Box>
       </Box>

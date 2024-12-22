@@ -1,4 +1,4 @@
-const db = require("../model/db"); // Import your DB connection
+const db = require("../model/db");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
@@ -29,7 +29,8 @@ const login = async (req, res) => {
       UserInfo: {
         name: foundUser[0].name,
         email: foundUser[0].email,
-        roles: foundUser[0].roles,
+        role_id: foundUser[0].role_id,
+        admin: foundUser[0].admin,
       },
     },
     process.env.ACCESS_TOKEN_SECRET,
@@ -80,7 +81,8 @@ const refresh = (req, res) => {
           UserInfo: {
             name: foundUser[0].name,
             email: foundUser[0].email,
-            roles: foundUser[0].roles,
+            role_id: foundUser[0].role_id,
+            admin: foundUser[0].admin,
           },
         },
         process.env.ACCESS_TOKEN_SECRET,

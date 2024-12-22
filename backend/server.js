@@ -2,7 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const app = express();
 const path = require("path");
-const { logger, logEvents } = require("./middleware/logEvents");
+const { logger } = require("./middleware/logEvents");
 const errorHandler = require("./middleware/errorHandler");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
@@ -41,7 +41,9 @@ app.use("/", require("./routes/root"));
 app.use("/register", require("./routes/register"));
 app.use("/auth", require("./routes/authRoutes"));
 app.use("/users", require("./routes/userRoutes"));
-app.use("/schedule", require("./routes/schedulerRoutes"));
+app.use("/roles", require("./routes/roleRoutes"));
+app.use("/schedules", require("./routes/schedulerRoutes"));
+
 
 app.all("*", (req, res) => {
   res.status(404);

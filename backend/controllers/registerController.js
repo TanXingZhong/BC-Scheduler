@@ -1,4 +1,5 @@
-const db = require("../model/db"); // Import your DB connection
+const db = require("../model/db");
+const db_roles = require("../model/db_roles");
 const bcrypt = require("bcrypt");
 const handleNewUser = async (req, res) => {
   const {
@@ -45,6 +46,7 @@ const handleNewUser = async (req, res) => {
     //Encrypt the password
     const hashedPwd = await bcrypt.hash(password, 10); // salt rounds
 
+    const role_id = await db_roles.findDefaultRoleId();
     //Add new user to db
     await db.addUser(
       name,
@@ -60,7 +62,8 @@ const handleNewUser = async (req, res) => {
       workplace ? workplace : "NA",
       occupation ? occupation : "NA",
       driverLicense ? driverLicense : false,
-      firstAid ? firstAid : false
+      firstAid ? firstAid : false,
+      role_id
     );
 
     //Respond with a success message

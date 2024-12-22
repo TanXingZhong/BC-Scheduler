@@ -1,43 +1,35 @@
 import { useState } from "react";
-import { useAuthContext } from "./useAuthContext";
-import { useUserContext } from "./useUserContext";
+import { useAuthContext } from "../useAuthContext";
 
-export const useGetUsersInfo = () => {
+export const useCreateRole = () => {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(null);
   const { user } = useAuthContext();
-  const { dispatch } = useUserContext();
 
-  const getUsersInfo = async () => {
+  const createRole = async (role_name) => {
     setIsLoading(true);
     setError(null);
-
     try {
-      const response = await fetch("http://localhost:8080/users", {
-        method: "GET",
+      const response = await fetch("http://localhost:8080/roles", {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${user.accessToken}`,
         },
+        body: JSON.stringify({ role_name }),
       });
-
       const json = await response.json();
       if (!response.ok) {
         setIsLoading(false);
         setError(json.message);
       }
       if (response.ok) {
-        // update loading state
         setIsLoading(false);
-        dispatch({
-          type: "GET_DATA",
-          payload: { allDatas: json.rows, allRoles: json.allRoles },
-        });
       }
     } catch (error) {
-      console.log("Error getting userData", error);
+      console.log("Error updating role", error);
     }
   };
 
-  return { getUsersInfo, isLoading, error };
+  return { createRole, isLoading, error };
 };

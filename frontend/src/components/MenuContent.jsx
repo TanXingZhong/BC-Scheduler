@@ -8,7 +8,7 @@ import Stack from "@mui/material/Stack";
 import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
 import AnalyticsRoundedIcon from "@mui/icons-material/AnalyticsRounded";
 import PeopleRoundedIcon from "@mui/icons-material/PeopleRounded";
-import { BrowserRouter, Routes, Route, Navigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const mainListItems = [
   { text: "Home", icon: <HomeRoundedIcon />, path: "/" },
@@ -20,18 +20,14 @@ const mainListItems = [
   },
   { text: "Users", icon: <AnalyticsRoundedIcon />, path: "/users" },
   { text: "Create Account", icon: <PeopleRoundedIcon />, path: "/signup" },
-  { text: "Admin", icon: <PeopleRoundedIcon />, path: "/admin" },
-];
-
-const secondaryListItems = [
-  //empty for now
+  { text: "Roles", icon: <PeopleRoundedIcon />, path: "/roles" },
 ];
 
 export default function MenuContent() {
-  const [selectedIndex, setSelectedIndex] = useState(0); // State to track the selected item
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   const handleListItemClick = (index) => {
-    setSelectedIndex(index); // Update the selected item index
+    setSelectedIndex(index);
   };
 
   return (
@@ -40,22 +36,12 @@ export default function MenuContent() {
         {mainListItems.map((item, index) => (
           <ListItem key={index} disablePadding sx={{ display: "block" }}>
             <ListItemButton
-              component={item.path ? Link : "div"}
-              to={item.path || undefined}
-              selected={selectedIndex === index} // Highlight the selected item
-              onClick={() => handleListItemClick(index)} // Handle click to set selected
+              component={Link}
+              href={item.path}
+              to={item.path}
+              selected={selectedIndex === index}
+              onClick={() => handleListItemClick(index)}
             >
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.text} />
-            </ListItemButton>
-          </ListItem>
-        ))}
-      </List>
-
-      <List dense>
-        {secondaryListItems.map((item, index) => (
-          <ListItem key={index} disablePadding sx={{ display: "block" }}>
-            <ListItemButton>
               <ListItemIcon>{item.icon}</ListItemIcon>
               <ListItemText primary={item.text} />
             </ListItemButton>

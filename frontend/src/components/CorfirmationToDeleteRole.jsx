@@ -6,17 +6,22 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 
-function Comfirmation({ open, handleClose, handleContinue, email }) {
+function CorfirmationToDeleteRole({
+  open,
+  handleClose,
+  handleContinue,
+  role_name,
+}) {
   return (
     <Dialog
       open={open}
       onClose={handleClose}
-      aria-labelledby="confirm-dialog-title"
+      aria-labelledby="delete-role-dialog-title"
       PaperProps={{
         component: "form",
         onSubmit: (event) => {
           event.preventDefault(); // Prevent form submission
-          handleContinue(email); // Pass name to handleContinue when form is submitted
+          handleContinue(role_name); // Pass name to handleContinue when form is submitted
           handleClose(); // Close the dialog
         },
         sx: { backgroundImage: "none" },
@@ -36,11 +41,11 @@ function Comfirmation({ open, handleClose, handleContinue, email }) {
   );
 }
 
-Comfirmation.propTypes = {
+CorfirmationToDeleteRole.propTypes = {
   handleClose: PropTypes.func.isRequired,
   open: PropTypes.bool.isRequired,
   handleContinue: PropTypes.func.isRequired, // Add handleContinue prop validation
-  email: PropTypes.string.isRequired, // Add name prop validation
+  role_name: PropTypes.string.isRequired, // Add name prop validation
 };
 
-export default Comfirmation;
+export default CorfirmationToDeleteRole;

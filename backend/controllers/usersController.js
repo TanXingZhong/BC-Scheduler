@@ -1,4 +1,5 @@
 const db = require("../model/db");
+const db_roles = require("../model/db_roles");
 const bcrypt = require("bcrypt");
 
 // @desc Get all users
@@ -8,7 +9,7 @@ const getAllUsers = async (req, res) => {
   // Get all users from SQL
   try {
     const allUsers = await db.getAllUsers();
-    const allRoles = await db.getAllRoles();
+    const allRoles = await db_roles.getAllRoles();
     return res.status(200).json({ rows: allUsers, allRoles: allRoles });
   } catch (err) {
     console.error(err);
@@ -21,7 +22,6 @@ const getAllUsers = async (req, res) => {
 // @access Private
 const createNewUser = async (req, res) => {
   const { username, password, roles } = req.body;
-
   // Confirm data
   if (!username || !password || !roles) {
     return res
@@ -43,8 +43,10 @@ const createNewUser = async (req, res) => {
   // Create and store new user
   const hashedPwd = await bcrypt.hash(password, 10);
 
+  //Find ID for default role "user"
+  const role_id = await db_roles.findOne({ where: { role_name: "User" } });
   try {
-    const result = await db.addUser(username, hashedPwd);
+    await db.addUser(username, hashedPwd, role_id);
     return res.status(201).json({ message: `New user ${username} created!` });
   } catch (err) {
     console.error(err);
@@ -56,32 +58,33 @@ const createNewUser = async (req, res) => {
 // @route PATCH /users
 // @access Private
 const updateUser = async (req, res) => {
-  const {
-    name,
-    nric,
-    email,
-    phonenumber,
-    sex,
-    dob,
-    bankName,
-    bankAccountNo,
-    address,
-    workplace,
-    occupation,
-    driverLicense,
-    firstAid,
-    joinDate,
-    roles,
-    active,
-  } = req.body;
+  const data = req.body;
   // Confirm data
-  if (!name) {
+  if (
+    !data.name ||
+    !data.nric ||
+    !data.email ||
+    !data.phonenumber ||
+    !data.sex ||
+    !data.dob ||
+    !data.bankName ||
+    !data.bankAccountNo ||
+    !data.address ||
+    !data.workplace ||
+    !data.occupation ||
+    data.driverLicense == null ||
+    data.firstAid == null ||
+    !data.joinDate ||
+    !data.role_id ||
+    data.active == null ||
+    data.admin == null
+  ) {
     return res.status(400).json({ message: "Missing Informations" });
   }
 
   // Does the user exist to update?
   try {
-    const exist = await db.getUserByEmail(email);
+    const exist = await db.getUserByEmail(data.email);
     if (!exist) {
       return res.status(404).json({ message: "User not found." });
     }
@@ -92,25 +95,8 @@ const updateUser = async (req, res) => {
 
   // Allow updates to the original user
   try {
-    await db.updateUser(
-      name,
-      nric,
-      email,
-      phonenumber,
-      sex,
-      dob,
-      bankName,
-      bankAccountNo,
-      address,
-      workplace,
-      occupation,
-      driverLicense,
-      firstAid,
-      joinDate,
-      roles,
-      active
-    );
-    return res.status(200).json({ message: `User ${email} updated!` });
+    await db.updateUser(data);
+    return res.status(200).json({ message: `User ${data.email} updated!` });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Error updating user." });

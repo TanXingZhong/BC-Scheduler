@@ -17,7 +17,7 @@ const verifyAdmin = (req, res, next) => {
   const token = authHeader.split(" ")[1];
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
     if (err) return res.sendStatus(403); // Invalid token
-    if (decoded.UserInfo.roles !== "Admin") {
+    if (!decoded.UserInfo || !decoded.UserInfo.admin) {
       return res.status(401).json({ message: "Unauthorized" });
     }
     next();
