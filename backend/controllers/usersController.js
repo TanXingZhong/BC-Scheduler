@@ -8,12 +8,12 @@ const getAllUsers = async (req, res) => {
   // Get all users from SQL
   try {
     const allUsers = await db.getAllUsers();
-    return res.status(200).json({ rows: allUsers });
+    const allRoles = await db.getAllRoles();
+    return res.status(200).json({ rows: allUsers, allRoles: allRoles });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Error fetching users." });
   }
-  // If no users
 };
 
 // @desc Create new user

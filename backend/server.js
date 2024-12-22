@@ -41,6 +41,7 @@ app.use("/", require("./routes/root"));
 app.use("/register", require("./routes/register"));
 app.use("/auth", require("./routes/authRoutes"));
 app.use("/users", require("./routes/userRoutes"));
+app.use("/schedule", require("./routes/schedulerRoutes"));
 
 app.all("*", (req, res) => {
   res.status(404);
