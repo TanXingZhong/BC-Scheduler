@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { DataGrid } from "@mui/x-data-grid";
+import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { CircularProgress, Typography, Box, Link } from "@mui/material";
 import { useGetUsersInfo } from "../hooks/useGetUsersInfo";
 import { useUserContext } from "../hooks/useUserContext";
@@ -286,6 +286,9 @@ const Users = () => {
           "& .MuiDataGrid-columnHeaders": {
             backgroundColor: "secondary.main",
           },
+        }}
+        slots={{
+          toolbar: GridToolbar,
         }}
       />
     </Box>

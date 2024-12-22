@@ -12,6 +12,7 @@ export const EditSchedule = lazy(() => import("./pages/EditSchedule"));
 export const Users = lazy(() => import("./pages/Users"));
 export const HomeGrid = lazy(() => import("./components/HomeGrid"));
 export const Roles = lazy(() => import("./pages/Roles"));
+import Crazy from "./pages/crazy";
 
 const CenteredBox = styled(Box)(({ theme }) => ({
   display: "flex",

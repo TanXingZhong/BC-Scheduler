@@ -2,88 +2,120 @@ import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import Box from "@mui/material/Box";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-import DialogActions from "@mui/material/DialogActions";
 import Button from "@mui/material/Button";
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useGetCalendar } from "../hooks/Calendar/useGetCalendar";
 import { toSGTime } from "../../config/convertTimeToSGT";
+import { Grid2, Checkbox, FormControlLabel } from "@mui/material";
+
 const localizer = momentLocalizer(moment);
 
 export default function MyCalendar() {
-  const events = [
-    {
-      id: 7,
-      title: "Lunch",
-      start: new Date(2024, 11, 12, 12, 0, 0, 0),
-      end: new Date(2024, 11, 12, 12, 12, 0, 0),
-      desc: "Power lunch",
-    },
-  ];
-  const [myEvents, setEvents] = useState([]);
+  const { fetchSchedule, isLoading, error } = useGetCalendar();
   const [schedule, setSchedule] = useState([]);
+
+  // Load schedule data when the component mounts
   const onLoad = async () => {
     try {
       const val = await fetchSchedule();
-      console.log(val);
       setSchedule(val);
     } catch (err) {
       console.error("Error loading schedules:", err);
     }
   };
+
   useEffect(() => {
     onLoad();
   }, []);
 
+  // Transform the schedule data into a format that the Calendar accepts
   const transformedDataArray = schedule.map((data) => {
-    const descString = ` Outlet: ${data.outlet_name} ${toSGTime(
-      data.start_time
-    )} - ${toSGTime(data.end_time)}, Vacancy: ${data.vacancy}`;
+    console.log(data);
+    const descString = `${toSGTime(data.start_time)} - ${toSGTime(
+      data.end_time
+    )}, Vacancy: ${data.vacancy}`;
     return {
       title: descString,
       start: new Date(data.start_time),
       end: new Date(data.end_time),
       desc: descString,
+      schedule_id: data.schedule_id, // Added for filtering
+      outlet_name: data.outlet_name, // Added for filtering
     };
   });
 
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedDateEvents, setSelectedDateEvents] = useState([]);
-  const { fetchSchedule, isLoading, error } = useGetCalendar();
-
+  // Handle clicking on a day with events
   const handleShowMore = (events, date) => {
     setSelectedDateEvents(events);
     setModalOpen(true);
   };
 
-  const handleSelectSlot = useCallback(
-    ({ start, end }) => {
-      const title = window.prompt("New Event name");
-      if (title) {
-        setEvents((prev) => [...prev, { start, end, title }]);
-      }
-    },
-    [setEvents]
-  );
-
+  // Handle selecting an event
   const handleSelectEvent = useCallback(
     (event) => window.alert(event.title),
     []
   );
 
-  const CustomEventWrapper = ({ event, children }) => {
-    return (
-      <div
-        style={{
-          border: "1px solid #007bff",
-        }}
-      >
-        <strong>{event.title}</strong>
-      </div>
-    );
+  // Custom event wrapper for better event display
+  const CustomEventWrapper = ({ children, event }) => (
+    <div
+      style={{
+        fontSize: "10px",
+      }}
+    >
+      {children}
+    </div>
+  );
+
+  // Filter state and logic
+  const [filters, setFilters] = useState({ column: "", values: [] });
+  const [uniqueValues, setUniqueValues] = useState([]);
+  const [showFilterOptions, setShowFilterOptions] = useState(false); // To control the dropdown visibility
+
+  useEffect(() => {
+    if (filters.column) {
+      const unique = [...new Set(schedule.map((row) => row[filters.column]))];
+      setUniqueValues(unique);
+      setFilters((prevFilters) => ({
+        ...prevFilters,
+        values: unique, // Automatically check all filter options by default
+      }));
+    } else {
+      setUniqueValues([]);
+    }
+  }, [filters.column, schedule]);
+
+  const handleCheckboxChange = (value) => {
+    setFilters((prevFilters) => {
+      const newValues = prevFilters.values.includes(value)
+        ? prevFilters.values.filter((v) => v !== value)
+        : [...prevFilters.values, value];
+      return { ...prevFilters, values: newValues };
+    });
   };
+
+  const handleClearFilters = () => {
+    setFilters({ column: "", values: [] });
+    setShowFilterOptions(false); // Hide options when filters are cleared
+  };
+
+  const handleFilterColumnClick = (column) => {
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      column,
+      values: [], // Reset values for new filter column
+    }));
+    setShowFilterOptions(true); // Show filter options when a column is selected
+  };
+
+  // Filtered data based on the selected filter and its values
+  const filteredDataArray = filters.column
+    ? filters.values.length === 0
+      ? [] // Show no data if no filter values are selected
+      : transformedDataArray.filter((event) =>
+          filters.values.includes(event[filters.column])
+        )
+    : transformedDataArray;
 
   return (
     <Box
@@ -93,49 +125,84 @@ export default function MyCalendar() {
         height: "100vh",
       }}
     >
+      <Box sx={{ marginBottom: "10px" }}>
+        <Grid2 container spacing={2} justifyContent="space-between">
+          <Grid2>
+            <Button
+              variant={
+                filters.column === "schedule_id" ? "contained" : "outlined"
+              }
+              onClick={() => handleFilterColumnClick("schedule_id")}
+            >
+              Schedule ID
+            </Button>
+          </Grid2>
+          <Grid2>
+            <Button
+              variant={
+                filters.column === "outlet_name" ? "contained" : "outlined"
+              }
+              onClick={() => handleFilterColumnClick("outlet_name")}
+            >
+              Outlet Name
+            </Button>
+          </Grid2>
+          <Grid2>
+            <Button
+              variant={filters.column === "start" ? "contained" : "outlined"}
+              onClick={() => handleFilterColumnClick("start")}
+            >
+              Start
+            </Button>
+          </Grid2>
+          <Grid2>
+            <Button variant="outlined" onClick={handleClearFilters}>
+              Clear Filter
+            </Button>
+          </Grid2>
+
+          {/* Extreme Right Button */}
+          <Grid2 sx={{ marginLeft: "auto" }}>
+            <Button variant="outlined">Publish</Button>
+          </Grid2>
+        </Grid2>
+      </Box>
+
+      {/* Show Available Filter Options as Checkboxes */}
+      {showFilterOptions && filters.column && (
+        <Box sx={{ marginBottom: "20px" }}>
+          <Grid2 container spacing={2}>
+            {uniqueValues.map((value) => (
+              <Grid2 item key={value}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={filters.values.includes(value)}
+                      onChange={() => handleCheckboxChange(value)}
+                      name={value}
+                    />
+                  }
+                  label={value}
+                />
+              </Grid2>
+            ))}
+          </Grid2>
+        </Box>
+      )}
+
+      {/* Calendar Component */}
       <Calendar
         localizer={localizer}
-        events={transformedDataArray}
+        events={filteredDataArray} // Use filtered data
         defaultView="month"
-        style={{ height: "100%" }}
+        style={{ height: "90%" }}
         views={["month"]}
         onShowMore={handleShowMore}
-        selectable
         onSelectEvent={handleSelectEvent}
-        onSelectSlot={handleSelectSlot}
         components={{
           eventWrapper: CustomEventWrapper,
         }}
       />
-      <Dialog
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        fullWidth
-        maxWidth="sm"
-      >
-        <DialogTitle>Event Details</DialogTitle>
-        <DialogContent>
-          <h2>
-            Events on{" "}
-            {selectedDateEvents.length > 0 &&
-              moment(selectedDateEvents[0]?.start).format("MMMM Do YYYY")}
-          </h2>
-          <ul>
-            {selectedDateEvents.map((event, index) => (
-              <li key={index}>
-                <strong>{event.title}</strong>:{" "}
-                {moment(event.start).format("h:mm A")} -{" "}
-                {moment(event.end).format("h:mm A")}
-              </li>
-            ))}
-          </ul>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setModalOpen(false)} color="primary">
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Box>
   );
 }

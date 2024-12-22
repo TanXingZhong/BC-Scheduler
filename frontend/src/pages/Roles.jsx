@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { DataGrid } from "@mui/x-data-grid";
+import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import {
   CircularProgress,
   Typography,
@@ -290,6 +290,9 @@ const Roles = () => {
           "& .MuiDataGrid-columnHeaders": {
             backgroundColor: "secondary.main",
           },
+        }}
+        slots={{
+          toolbar: GridToolbar,
         }}
       />
     </Box>
