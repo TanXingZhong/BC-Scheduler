@@ -6,27 +6,9 @@ export const useUpdateUser = () => {
   const [isLoading, setIsLoading] = useState(null);
   const { user } = useAuthContext();
 
-  const updateUser = async (
-    name,
-    nric,
-    email,
-    phonenumber,
-    sex,
-    dob,
-    bankName,
-    bankAccountNo,
-    address,
-    workplace,
-    occupation,
-    driverLicense,
-    firstAid,
-    joinDate,
-    roles,
-    active
-  ) => {
+  const updateUser = async (data) => {
     setIsLoading(true);
     setError(null);
-
     try {
       const response = await fetch("http://localhost:8080/users", {
         method: "PATCH",
@@ -34,24 +16,7 @@ export const useUpdateUser = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${user.accessToken}`,
         },
-        body: JSON.stringify({
-          name,
-          nric,
-          email,
-          phonenumber,
-          sex,
-          dob,
-          bankName,
-          bankAccountNo,
-          address,
-          workplace,
-          occupation,
-          driverLicense,
-          firstAid,
-          joinDate,
-          roles,
-          active,
-        }),
+        body: JSON.stringify(data),
       });
 
       const json = await response.json();

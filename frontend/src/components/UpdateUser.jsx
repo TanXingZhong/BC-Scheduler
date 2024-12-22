@@ -17,8 +17,19 @@ import FormControl from "@mui/material/FormControl";
 import Grid from "@mui/material/Grid2";
 import { forumToSGTime } from "../../config/convertTimeToSGT";
 
-function UpdateUser({ open, handleClose, handleUpdateUserInfo, userInfo }) {
+function UpdateUser({
+  open,
+  handleClose,
+  handleUpdateUserInfo,
+  userInfo,
+  allRoles,
+}) {
   const [formData, setFormData] = useState(userInfo || {});
+  const transformDataForRoles = allRoles.map((x) => ({
+    value: x.id,
+    label: x.role_name,
+  }));
+
   useEffect(() => {
     if (userInfo) {
       setFormData(userInfo);
@@ -49,27 +60,6 @@ function UpdateUser({ open, handleClose, handleUpdateUserInfo, userInfo }) {
       ...prevState,
       [field]: { error, message },
     }));
-  };
-
-  const handleSwitchChangeFirstAid = (event) => {
-    setFormData({
-      ...formData,
-      firstAid: event.target.checked,
-    });
-  };
-
-  const handleSwitchChangeDriverLicense = (event) => {
-    setFormData({
-      ...formData,
-      driverLicense: event.target.checked,
-    });
-  };
-
-  const handleSwitchChangeActive = (event) => {
-    setFormData({
-      ...formData,
-      active: event.target.checked,
-    });
   };
 
   const validateInputs = () => {
@@ -195,6 +185,7 @@ function UpdateUser({ open, handleClose, handleUpdateUserInfo, userInfo }) {
       label: "Sex",
       type: "select",
       defaultValue: formData.sex,
+      value: formData.sex,
       options: [
         { value: "Male", label: "Male" },
         { value: "Female", label: "Female" },
@@ -217,16 +208,14 @@ function UpdateUser({ open, handleClose, handleUpdateUserInfo, userInfo }) {
       type: "date",
     },
     {
-      id: "roles",
+      id: "role_id",
       label: "Role",
       type: "select",
-      defaultValue: formData.roles,
-      value: formData.roles,
-      options: [
-        { value: "Admin", label: "Admin" },
-        { value: "Part_Timer", label: "Part_Timer" },
-        { value: "Full_Timer", label: "Full_Timer" },
-      ],
+      defaultValue: formData.role_id,
+      value: formData.role_id,
+      options: transformDataForRoles,
+      error: false,
+      helperText: "",
     },
   ];
 
@@ -271,11 +260,19 @@ function UpdateUser({ open, handleClose, handleUpdateUserInfo, userInfo }) {
     },
   ];
 
+  const actionsData = [
+    { id: "driverLicense", name: "driverLicense", label: "Driver License" },
+    { id: "firstAid", name: "firstAid", label: "First Aid" },
+    { id: "admin", name: "admin", label: "Admin" },
+    { id: "active", name: "active", label: "Active" },
+    // Add more actions here
+  ];
+
   return (
     <Dialog
       open={open}
       onClose={handleClose}
-      aria-labelledby="user-dialog-title"
+      aria-labelledby="update-user-dialog-title"
       PaperProps={{
         component: "form",
         onSubmit: handleSubmit,
@@ -351,50 +348,30 @@ function UpdateUser({ open, handleClose, handleUpdateUserInfo, userInfo }) {
                 />
               </FormControl>
             ))}
-            <FormControl fullWidth sx={{ marginBottom: 2 }}>
+
+            <Grid sx={{ display: "flex", flexDirection: "column" }}>
               <FormLabel>Actions</FormLabel>
-              <Grid container spacing={2} alignItems="center">
-                <Grid ize={{ xs: 12, md: 6 }}>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        name="driverLicense"
-                        id="driverLicense"
-                        checked={formData.driverLicense == 1 ? true : false}
-                        onChange={handleSwitchChangeDriverLicense}
-                      />
-                    }
-                    label="Driver License"
-                  />
-                </Grid>
-                {/* First Aid */}
-                <Grid ize={{ xs: 12, md: 6 }}>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        name="firstAid"
-                        id="firstAid"
-                        checked={formData.firstAid == 1 ? true : false} // Bind to the state
-                        onChange={handleSwitchChangeFirstAid} // Update state on change
-                      />
-                    }
-                    label="First Aid"
-                  />
-                </Grid>
-              </Grid>
-            </FormControl>
-            <Grid ize={{ xs: 12, md: 6 }}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    name="active"
-                    id="active"
-                    checked={formData.active == 1 ? true : false} // Bind to the state
-                    onChange={handleSwitchChangeActive} // Update state on change
-                  />
-                }
-                label="Active"
-              />
+              {actionsData.map((action) => (
+                <FormControlLabel
+                  key={action.name}
+                  control={
+                    <Switch
+                      name={action.name}
+                      id={action.name}
+                      checked={formData[action.name] === 1}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          [action.name]: e.target.checked ? 1 : 0,
+                        })
+                      }
+                      color="primary"
+                    />
+                  }
+                  label={action.label}
+                  sx={{ marginBottom: 2 }}
+                />
+              ))}
             </Grid>
           </Grid>
         </Grid>
@@ -413,24 +390,6 @@ UpdateUser.propTypes = {
   handleClose: PropTypes.func.isRequired,
   handleUpdateUserInfo: PropTypes.func.isRequired,
   open: PropTypes.bool.isRequired,
-  // userInfo: PropTypes.shape({
-  //   name: PropTypes.string.isRequired,
-  //   nric: PropTypes.string.isRequired,
-  //   email: PropTypes.string.isRequired,
-  //   phonenumber: PropTypes.string.isRequired,
-  //   sex: PropTypes.oneOf(["Male", "Female"]).isRequired,
-  //   dob: PropTypes.instanceOf(Date).isRequired,
-  //   bankName: PropTypes.string.isRequired,
-  //   bankAccountNo: PropTypes.string.isRequired,
-  //   address: PropTypes.string.isRequired,
-  //   workplace: PropTypes.string.isRequired,
-  //   occupation: PropTypes.string.isRequired,
-  //   driverLicense: PropTypes.string.isRequired,
-  //   firstAid: PropTypes.bool.isRequired,
-  //   joinDate: PropTypes.instanceOf(Date).isRequired,
-  //   roles: PropTypes.arrayOf(PropTypes.string).isRequired,
-  //   active: PropTypes.bool.isRequired,
-  // }).isRequired,
 };
 
 export default UpdateUser;

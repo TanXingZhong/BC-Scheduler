@@ -2,10 +2,6 @@ import { jwtDecode } from "jwt-decode";
 import { useAuthContext } from "./useAuthContext";
 
 export const useUserInfo = () => {
-  let is_FullTimer = false;
-  let isAdmin = false;
-  let status = "Part_timer";
-
   const { user } = useAuthContext();
 
   if (!user || !user.accessToken) {
@@ -13,10 +9,6 @@ export const useUserInfo = () => {
     return {
       name: "",
       email: "",
-      roles: [],
-      status: "Part_timer",
-      is_FullTimer,
-      isAdmin,
     };
   }
 
@@ -25,24 +17,14 @@ export const useUserInfo = () => {
 
   // Check if UserInfo exists before destructuring
   if (decoded && decoded.UserInfo) {
-    const { name, email, roles } = decoded.UserInfo;
+    const { name, email } = decoded.UserInfo;
 
-    is_FullTimer = roles.includes("Full_timer");
-    isAdmin = roles.includes("Admin");
-
-    if (is_FullTimer) status = "Full_timer";
-    if (isAdmin) status = "Admin";
-
-    return { name, email, roles, status, is_FullTimer, isAdmin };
+    return { name, email };
   }
 
   // Return default values if decoding fails
   return {
     name: "",
     email: "",
-    roles: [],
-    status: "Part_timer",
-    is_FullTimer,
-    isAdmin,
   };
 };

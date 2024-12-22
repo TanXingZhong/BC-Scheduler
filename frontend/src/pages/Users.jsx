@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { DataGrid } from "@mui/x-data-grid";
-import { Typography, Box, Link } from "@mui/material";
+import { CircularProgress, Typography, Box, Link } from "@mui/material";
 import { useGetUsersInfo } from "../hooks/useGetUsersInfo";
 import { useUserContext } from "../hooks/useUserContext";
 import { useDeleteUser } from "../hooks/useDeleteUser";
@@ -8,7 +8,7 @@ import { useUpdateUser } from "../hooks/useUpdateUser";
 import Comfirmation from "../components/Comfirmation";
 import UpdateUser from "../components/UpdateUser";
 import { toSGDate } from "../../config/convertTimeToSGT";
-import { dateToDBDate, joinDateToDBDate } from "../../config/convertDateToDB";
+import { dateTimeToDBDate } from "../../config/convertDateToDB";
 
 const Users = () => {
   const { user } = useUserContext();
@@ -29,11 +29,10 @@ const Users = () => {
   } = useUpdateUser();
 
   const columns = [
-    { field: "id", headerName: "User ID", editable: false, width: 70 },
     { field: "name", headerName: "Name", editable: false, width: 150 },
     { field: "nric", headerName: "NRIC", editable: true, width: 120 },
     { field: "email", headerName: "Email", editable: false, width: 150 },
-    { field: "roles", headerName: "Role", editable: false, width: 100 },
+    { field: "role_name", headerName: "Role", editable: false, width: 100 },
     {
       field: "phonenumber",
       headerName: "Phone Number",
@@ -41,6 +40,13 @@ const Users = () => {
       width: 120,
     },
     { field: "sex", headerName: "Sex", editable: false, width: 70 },
+    {
+      field: "admin",
+      headerName: "Admin Rights",
+      valueFormatter: (params) => (params == 1 ? "True" : "False"),
+      editable: false,
+      width: 150,
+    },
     {
       field: "dob",
       headerName: "Date of Birth",
@@ -148,11 +154,17 @@ const Users = () => {
       ),
     },
   ];
+
   const [openDelete, setOpenDelete] = useState(false);
   const [openUpdate, setOpenUpdate] = useState(false);
-  const [userInfo, setUserInfo] = useState({});
-  const rowsMemoized = useMemo(() => user || [], [user]);
+  const [userInfo, setUserInfo] = useState(null);
+  const [allRoles, setAllRoles] = useState([]);
+  const rowsMemoized = useMemo(
+    () => (user ? user.allDatas || [] : []),
+    [user?.allDatas]
+  );
   const [selectedEmail, setSelectedEmail] = useState("");
+
   const onLoad = async () => {
     try {
       await getUsersInfo();
@@ -165,19 +177,25 @@ const Users = () => {
     setSelectedEmail(x);
     setOpenDelete(true);
   };
-
+  const [loading, setLoading] = useState(false); // To track if data is loading
   const handleClickOpenUpdate = useCallback((x) => {
+    setLoading(true); // Set loading to true when the dialog is opened
     setUserInfo({});
+    setAllRoles([]);
+
+    // Simulate data fetching or just set the data
     setTimeout(() => {
       setUserInfo(x);
+      setAllRoles(user.allRoles);
+      setLoading(false); // Once the data is set, set loading to false
     }, 0);
   });
 
   useEffect(() => {
-    if (userInfo && Object.keys(userInfo).length > 0) {
+    if (userInfo && Object.keys(userInfo).length > 0 && allRoles.length > 0) {
       setOpenUpdate(true);
     }
-  }, [userInfo]);
+  }, [userInfo, allRoles]);
 
   const handleClose = () => {
     setOpenDelete(false);
@@ -189,24 +207,9 @@ const Users = () => {
 
   const handleUpdateUserInfo = async (data) => {
     try {
-      await updateUser(
-        data.name,
-        data.nric,
-        data.email,
-        data.phonenumber,
-        data.sex,
-        dateToDBDate(data.dob),
-        data.bankName,
-        data.bankAccountNo,
-        data.address,
-        data.workplace,
-        data.occupation,
-        data.driverLicense,
-        data.firstAid,
-        joinDateToDBDate(data.joinDate),
-        data.roles,
-        data.active
-      );
+      data.dob = dateTimeToDBDate(data.dob);
+      data.joinDate = dateTimeToDBDate(data.joinDate);
+      await updateUser(data);
       await onLoad();
     } catch (err) {
       console.error(err);
@@ -229,21 +232,47 @@ const Users = () => {
 
   return (
     <Box sx={{ width: "100%", maxWidth: { sm: "100%", md: "1700px" } }}>
+      <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
+        All Users
+      </Typography>
       <Comfirmation
         open={openDelete}
         handleClose={handleClose}
         handleContinue={handleContinue}
         email={selectedEmail}
       />
-      <UpdateUser
-        open={openUpdate}
-        handleClose={handleCloseUpdate}
-        handleUpdateUserInfo={handleUpdateUserInfo}
-        userInfo={userInfo}
-      />
-      <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
-        All Users
-      </Typography>
+      {/* Conditionally render UpdateUser only when userInfo and allRoles are set */}
+      {loading ? (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100%",
+          }}
+        >
+          <Typography variant="h6" color="textSecondary">
+            Loading user informations...
+          </Typography>
+          <CircularProgress sx={{ ml: 2 }} />
+        </Box>
+      ) : userInfo && allRoles.length > 0 ? (
+        <UpdateUser
+          open={openUpdate}
+          handleClose={handleCloseUpdate}
+          handleUpdateUserInfo={handleUpdateUserInfo}
+          userInfo={userInfo}
+          allRoles={allRoles}
+        />
+      ) : (
+        <>
+          {openUpdate && (
+            <Typography color="error" variant="body2" sx={{ mt: 2 }}>
+              Failed to load user data or roles. Please try again later.
+            </Typography>
+          )}
+        </>
+      )}
       <DataGrid
         checkboxSelection
         rows={rowsMemoized}
@@ -251,10 +280,13 @@ const Users = () => {
         getRowClassName={(params) =>
           params.indexRelativeToCurrentPage % 2 === 0 ? "even" : "odd"
         }
-        initialState={{ pagination: { paginationModel: { pageSize: 20 } } }}
-        pageSizeOptions={[10, 20, 50]}
-        disableColumnResize
-        density="compact"
+        pageSize={5}
+        rowsPerPageOptions={[5]}
+        sx={{
+          "& .MuiDataGrid-columnHeaders": {
+            backgroundColor: "secondary.main",
+          },
+        }}
       />
     </Box>
   );

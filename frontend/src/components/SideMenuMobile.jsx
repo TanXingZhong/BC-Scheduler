@@ -8,13 +8,12 @@ import Typography from "@mui/material/Typography";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import NotificationsRoundedIcon from "@mui/icons-material/NotificationsRounded";
 import { useLogout } from "../hooks/useLogout";
-import { useAuthContext } from "../hooks/useAuthContext";
+import { useUserInfo } from "../hooks/useUserInfo";
 import MenuButton from "./MenuButton";
 import MenuContent from "./MenuContent";
 
 function SideMenuMobile({ open, toggleDrawer }) {
-  const { user } = useAuthContext();
-  const { name } = user || {};
+  const { name } = useUserInfo();
   const { logout } = useLogout();
 
   const handleClick = () => {

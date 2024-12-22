@@ -11,7 +11,7 @@ export const dateToDBDate = (inputDate) => {
   ).padStart(2, "0")}/${String(singaporeDate.getDate()).padStart(2, "0")}`;
 };
 
-export function joinDateToDBDate(inputDate) {
+export function dateTimeToDBDate(inputDate) {
   const date = new Date(inputDate);
   const singaporeDate = new Date(
     date.toLocaleString("en-US", { timeZone: default_time_zone })
