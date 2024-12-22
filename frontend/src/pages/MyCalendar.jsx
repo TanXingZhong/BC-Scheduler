@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { useGetCalendar } from "../hooks/Calendar/useGetCalendar";
 import { toSGTime } from "../../config/convertTimeToSGT";
 import { Grid2, Checkbox, FormControlLabel } from "@mui/material";
+import Publish from "../components/Publish";
 
 const localizer = momentLocalizer(moment);
 
@@ -101,6 +102,14 @@ export default function MyCalendar() {
     )
   );
 
+  const [openPublish, setOpenPublish] = useState(false);
+  const handleClosePublish = () => {
+    setOpenPublish(false);
+  };
+  const handleClickOpenPublish = () => {
+    setOpenPublish(true);
+  };
+
   return (
     <Box
       sx={{
@@ -141,7 +150,9 @@ export default function MyCalendar() {
             </Button>
           </Grid2>
           <Grid2 item sx={{ marginLeft: "auto" }}>
-            <Button variant="outlined">Publish</Button>
+            <Button onClick={handleClickOpenPublish} variant="outlined">
+              Publish
+            </Button>
           </Grid2>
         </Grid2>
       </Box>
@@ -173,6 +184,7 @@ export default function MyCalendar() {
         style={{ height: "90%" }}
         views={["month"]}
       />
+      <Publish open={openPublish} handleClose={handleClosePublish} />
     </Box>
   );
 }
