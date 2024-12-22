@@ -44,6 +44,18 @@ async function comparePassword(password, hash) {
   }
 }
 
+async function getAllUsersNames() {
+  const query = "SELECT id, name, role_id FROM users";
+  try {
+    const [rows, fields] = await pool.execute(query);
+    console.log("Database query result:", rows);
+    return rows;
+  } catch (err) {
+    console.error("Error occurred while fetching users:", err);
+    throw new Error("Error fetching users: " + err.message);
+  }
+}
+
 // Get all users from SQL
 async function getAllUsers() {
   const query = `
@@ -275,6 +287,7 @@ async function deleteUser(id) {
 }
 
 module.exports = {
+  getAllUsersNames,
   checkUserExists,
   getAllRoles,
   removeScheduleFromUser,
