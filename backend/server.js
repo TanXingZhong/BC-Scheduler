@@ -44,6 +44,7 @@ app.use("/users", require("./routes/userRoutes"));
 app.use("/roles", require("./routes/roleRoutes"));
 app.use("/schedules", require("./routes/schedulerRoutes"));
 
+
 app.all("*", (req, res) => {
   res.status(404);
   if (req.accepts("html")) {

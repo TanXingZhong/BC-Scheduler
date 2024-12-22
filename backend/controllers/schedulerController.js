@@ -137,6 +137,8 @@ const addUserToSchedule = async (res, req) => {
     console.error(err);
     return res.status(500).json({ message: "Error adding user to schedule" });
   }
+
+  
 };
 module.exports = {
   getAllSchedules,
