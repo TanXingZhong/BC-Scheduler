@@ -1,6 +1,5 @@
 require("dotenv").config();
 const bcrypt = require("bcrypt");
-const { json } = require("express");
 
 //MySQL connection pool
 const pool = require("../config/db_pool").pool;
@@ -16,7 +15,6 @@ function checkConflicts(shifts, start_time, end_time) {
     if(rt > ls && rt <= rs) return true;
     if(lt <= ls && rt >= rs) return true;
   }
-
   return false;
 }
 
@@ -85,7 +83,7 @@ async function getAllUsers() {
   }
 }
 
-// Get user by username
+// // Get user by username
 async function getUserByEmail(email) {
   const query = "SELECT * FROM users WHERE email = ?";
   const values = [email];
@@ -104,18 +102,40 @@ async function getUserByEmail(email) {
   }
 }
 
-// Check if user exists
-async function checkUserExists(email) {
-  const user = await getUserByEmail(email);
-  return user.length > 0;
+async function getUserByid(id) {
+  const query = "SELECT * FROM users WHERE id = ?";
+  const values = [id];
+
+  try {
+    // Execute query using promise pool
+    const [rows, fields] = await pool.execute(query, values);
+
+    // Log the result to inspect
+    console.log("Database query result:", rows);
+
+    return rows; // Returns the rows (user data)
+  } catch (error) {
+    console.error("Error getting user:", error);
+    throw new Error("Error fetching user.");
+  }
 }
 
-async function addScheduleToUser(email, schedule_id, start_time, end_time) {
+// Check if user exists
+async function checkUserExists(email) {
+  try {
+    const user = await getUserByEmail(email);
+    return user.length > 0;
+  } catch (err) {
+    throw new Error(err);
+  }
+}
+
+async function addScheduleToUser(id, schedule_id, start_time, end_time) {
   try {
     console.log("Adding schedule to user");
-    console.log(email, schedule_id, start_time, end_time);
+    console.log(id, schedule_id, start_time, end_time);
 
-    const user = await getUserByEmail(email);
+    const user = await getUserByid(id);
 
     if(checkConflicts(user[0].shifts.body, start_time, end_time)) {
       throw new Error("Shifts conflict");
@@ -125,8 +145,8 @@ async function addScheduleToUser(email, schedule_id, start_time, end_time) {
 
     shifts.body.push({schedule_id : schedule_id, start_time : start_time, end_time : end_time});
     const shifts_json = JSON.stringify(shifts);
-    const query = "UPDATE users SET shifts = ? WHERE email = ?";
-    const values = [shifts_json, email];
+    const query = "UPDATE users SET shifts = ? WHERE id = ?";
+    const values = [shifts_json, id];
     const [result] = await pool.execute(query, values);
     console.log("Schedule added to user successfully", result);
 
@@ -136,16 +156,17 @@ async function addScheduleToUser(email, schedule_id, start_time, end_time) {
   }
 }
 
-async function removeScheduleFromUser(email, schedule_id) {
+async function removeScheduleFromUser(id, schedule_id) {
   try {
-    const user = await getUserByEmail(email);
+    const user = await getUserByid(id);
     const shifts = (user[0].shifts);
 
     const newShifts = shifts.body.filter(shift => shift.schedule_id != schedule_id);
     shifts.body = newShifts;
     const shifts_json = JSON.stringify(shifts);
-    const query = "UPDATE users SET shifts = ? WHERE email = ?";
-    const values = [shifts_json, email];
+
+    const query = "UPDATE users SET shifts = ? WHERE id = ?";
+    const values = [shifts_json, id];
     const [result] = await pool.execute(query, values);
     console.log("Schedule removed from user successfully", result);
 
@@ -173,7 +194,7 @@ async function addUser(
   firstAid,
   role_id
 ) {
-  const shifts = JSON.stringify({ shifts: [] });
+  const shifts = JSON.stringify({ body: [] });
   const query =
     "INSERT INTO users (name, nric, email, password, phonenumber, sex, dob, bankName, bankAccountNo, address, workPlace, occupation, driverLicense, firstAid, shifts, role_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
   const values = [
@@ -207,7 +228,7 @@ async function addUser(
 
 async function updateUser(data) {
   const query =
-    "UPDATE users SET name = ?, nric = ? , phonenumber = ?, sex = ?, dob = ?, bankName = ?, bankAccountNo = ?, address = ?, workplace = ?, occupation = ?, driverLicense = ?, firstAid = ?, joinDate = ?, role_id = ?, active = ?, admin = ? WHERE email = ?";
+    "UPDATE users SET name = ?, nric = ? , phonenumber = ?, sex = ?, dob = ?, bankName = ?, bankAccountNo = ?, address = ?, workplace = ?, occupation = ?, driverLicense = ?, firstAid = ?, joinDate = ?, role_id = ?, active = ?, admin = ? WHERE id = ?";
   const values = [
     data.name,
     data.nric,
@@ -225,7 +246,7 @@ async function updateUser(data) {
     data.role_id,
     data.active,
     data.admin,
-    data.email,
+    data.id,
   ];
 
   try {
@@ -239,9 +260,9 @@ async function updateUser(data) {
   }
 }
 
-async function deleteUser(email) {
-  const query = "DELETE FROM users WHERE email = ?";
-  const values = [email];
+async function deleteUser(id) {
+  const query = "DELETE FROM users WHERE id = ?";
+  const values = [id];
 
   try {
     const [result] = await pool.execute(query, values);
@@ -253,64 +274,14 @@ async function deleteUser(email) {
   }
 }
 
-async function addScheduleToUser(email, schedule_id, start_time, end_time) {
-  try {
-    console.log("Adding schedule to user");
-    console.log(email, schedule_id, start_time, end_time);
-
-    const user = await getUserByEmail(email);
-
-    if (checkConflicts(user[0].shifts.body, start_time, end_time)) {
-      throw new Error("Shifts conflict");
-    }
-
-    const shifts = user[0].shifts;
-
-    shifts.body.push({
-      schedule_id: schedule_id,
-      start_time: start_time,
-      end_time: end_time,
-    });
-    const shifts_json = JSON.stringify(shifts);
-    const query = "UPDATE users SET shifts = ? WHERE email = ?";
-    const values = [shifts_json, email];
-    const [result] = await pool.execute(query, values);
-    console.log("Schedule added to user successfully", result);
-
-    return result;
-  } catch (err) {
-    throw new Error(err);
-  }
-}
-
-async function removeScheduleFromUser(email, schedule_id) {
-  try {
-    const user = await getUserByEmail(email);
-    const shifts = user[0].shifts;
-
-    const newShifts = shifts.body.filter(
-      (shift) => shift.schedule_id != schedule_id
-    );
-    shifts.body = newShifts;
-    const shifts_json = JSON.stringify(shifts);
-    const query = "UPDATE users SET shifts = ? WHERE email = ?";
-    const values = [shifts_json, email];
-    const [result] = await pool.execute(query, values);
-    console.log("Schedule removed from user successfully", result);
-
-    return result;
-  } catch (err) {
-    throw new Error(err);
-  }
-}
-
 module.exports = {
+  checkUserExists,
   getAllRoles,
   removeScheduleFromUser,
   comparePassword,
   getAllUsers,
+  getUserByid,
   getUserByEmail,
-  checkUserExists,
   addUser,
   updateUser,
   deleteUser,
