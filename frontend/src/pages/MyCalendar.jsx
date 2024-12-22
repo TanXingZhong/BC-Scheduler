@@ -3,7 +3,7 @@ import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useGetCalendar } from "../hooks/Calendar/useGetCalendar";
 import { toSGTime } from "../../config/convertTimeToSGT";
 import { Grid2, Checkbox, FormControlLabel } from "@mui/material";
@@ -13,109 +13,93 @@ const localizer = momentLocalizer(moment);
 export default function MyCalendar() {
   const { fetchSchedule, isLoading, error } = useGetCalendar();
   const [schedule, setSchedule] = useState([]);
+  const [filters, setFilters] = useState({});
+  const [uniqueValues, setUniqueValues] = useState({});
+  const [showFilterOptions, setShowFilterOptions] = useState(false);
+  const [currentFilterColumn, setCurrentFilterColumn] = useState(null); // Track the currently active filter column
 
-  // Load schedule data when the component mounts
-  const onLoad = async () => {
-    try {
-      const val = await fetchSchedule();
-      setSchedule(val);
-    } catch (err) {
-      console.error("Error loading schedules:", err);
-    }
-  };
-
+  // Load schedules on mount
   useEffect(() => {
+    const onLoad = async () => {
+      try {
+        const val = await fetchSchedule();
+        setSchedule(val);
+      } catch (err) {
+        console.error("Error loading schedules:", err);
+      }
+    };
     onLoad();
   }, []);
 
-  // Transform the schedule data into a format that the Calendar accepts
-  const transformedDataArray = schedule.map((data) => {
-    console.log(data);
-    const descString = `${toSGTime(data.start_time)} - ${toSGTime(
+  // Transform schedule data into calendar event format
+  const transformedDataArray = schedule.map((data) => ({
+    title: `${toSGTime(data.start_time)} - ${toSGTime(
       data.end_time
-    )}, Vacancy: ${data.vacancy}`;
-    return {
-      title: descString,
-      start: new Date(data.start_time),
-      end: new Date(data.end_time),
-      desc: descString,
-      schedule_id: data.schedule_id, // Added for filtering
-      outlet_name: data.outlet_name, // Added for filtering
-    };
-  });
+    )}, Vacancy: ${data.vacancy}`,
+    start: new Date(data.start_time),
+    end: new Date(data.end_time),
+    desc: `${toSGTime(data.start_time)} - ${toSGTime(
+      data.end_time
+    )}, Vacancy: ${data.vacancy}`,
+    schedule_id: data.schedule_id,
+    outlet_name: data.outlet_name,
+  }));
 
-  // Handle clicking on a day with events
-  const handleShowMore = (events, date) => {
-    setSelectedDateEvents(events);
-    setModalOpen(true);
-  };
-
-  // Handle selecting an event
-  const handleSelectEvent = useCallback(
-    (event) => window.alert(event.title),
-    []
-  );
-
-  // Custom event wrapper for better event display
-  const CustomEventWrapper = ({ children, event }) => (
-    <div
-      style={{
-        fontSize: "10px",
-      }}
-    >
-      {children}
-    </div>
-  );
-
-  // Filter state and logic
-  const [filters, setFilters] = useState({ column: "", values: [] });
-  const [uniqueValues, setUniqueValues] = useState([]);
-  const [showFilterOptions, setShowFilterOptions] = useState(false); // To control the dropdown visibility
-
+  // Update unique values when filters are toggled
   useEffect(() => {
-    if (filters.column) {
-      const unique = [...new Set(schedule.map((row) => row[filters.column]))];
-      setUniqueValues(unique);
+    const uniqueValuesByColumn = {};
+    for (const column of Object.keys(filters)) {
+      uniqueValuesByColumn[column] = [
+        ...new Set(schedule.map((row) => row[column])),
+      ];
+    }
+    setUniqueValues(uniqueValuesByColumn);
+  }, [filters, schedule]);
+
+  // Handle filter column selection (toggle filters)
+  const handleFilterColumnClick = (column) => {
+    if (currentFilterColumn === column) {
+      // If the same filter is clicked, toggle the visibility
+      setShowFilterOptions((prev) => !prev);
+      return;
+    }
+
+    setShowFilterOptions(true);
+    setCurrentFilterColumn(column);
+
+    if (!filters[column]) {
       setFilters((prevFilters) => ({
         ...prevFilters,
-        values: unique, // Automatically check all filter options by default
+        [column]: uniqueValues[column] || [], // Initialize with all values selected
       }));
-    } else {
-      setUniqueValues([]);
     }
-  }, [filters.column, schedule]);
+  };
 
-  const handleCheckboxChange = (value) => {
+  // Handle checkbox changes for filters
+  const handleCheckboxChange = (column, value) => {
     setFilters((prevFilters) => {
-      const newValues = prevFilters.values.includes(value)
-        ? prevFilters.values.filter((v) => v !== value)
-        : [...prevFilters.values, value];
-      return { ...prevFilters, values: newValues };
+      const columnFilters = prevFilters[column] || [];
+      const newFilters = columnFilters.includes(value)
+        ? columnFilters.filter((v) => v !== value)
+        : [...columnFilters, value];
+      return { ...prevFilters, [column]: newFilters };
     });
   };
 
+  // Clear all filters
   const handleClearFilters = () => {
-    setFilters({ column: "", values: [] });
-    setShowFilterOptions(false); // Hide options when filters are cleared
+    setFilters({});
+    setShowFilterOptions(false);
+    setCurrentFilterColumn(null);
   };
 
-  const handleFilterColumnClick = (column) => {
-    setFilters((prevFilters) => ({
-      ...prevFilters,
-      column,
-      values: [], // Reset values for new filter column
-    }));
-    setShowFilterOptions(true); // Show filter options when a column is selected
-  };
-
-  // Filtered data based on the selected filter and its values
-  const filteredDataArray = filters.column
-    ? filters.values.length === 0
-      ? [] // Show no data if no filter values are selected
-      : transformedDataArray.filter((event) =>
-          filters.values.includes(event[filters.column])
-        )
-    : transformedDataArray;
+  // Filtered events for calendar
+  const filteredDataArray = transformedDataArray.filter((event) =>
+    Object.keys(filters).every(
+      (column) =>
+        !filters[column]?.length || filters[column].includes(event[column])
+    )
+  );
 
   return (
     <Box
@@ -127,81 +111,67 @@ export default function MyCalendar() {
     >
       <Box sx={{ marginBottom: "10px" }}>
         <Grid2 container spacing={2} justifyContent="space-between">
-          <Grid2>
+          <Grid2 item>
             <Button
-              variant={
-                filters.column === "schedule_id" ? "contained" : "outlined"
-              }
+              variant={filters["schedule_id"] ? "contained" : "outlined"}
               onClick={() => handleFilterColumnClick("schedule_id")}
             >
               Schedule ID
             </Button>
           </Grid2>
-          <Grid2>
+          <Grid2 item>
             <Button
-              variant={
-                filters.column === "outlet_name" ? "contained" : "outlined"
-              }
+              variant={filters["outlet_name"] ? "contained" : "outlined"}
               onClick={() => handleFilterColumnClick("outlet_name")}
             >
-              Outlet Name
+              Outlet
             </Button>
           </Grid2>
-          <Grid2>
+          <Grid2 item>
             <Button
-              variant={filters.column === "start" ? "contained" : "outlined"}
+              variant={filters["start"] ? "contained" : "outlined"}
               onClick={() => handleFilterColumnClick("start")}
             >
               Start
             </Button>
           </Grid2>
-          <Grid2>
+          <Grid2 item>
             <Button variant="outlined" onClick={handleClearFilters}>
-              Clear Filter
+              Clear Filters
             </Button>
           </Grid2>
-
-          {/* Extreme Right Button */}
-          <Grid2 sx={{ marginLeft: "auto" }}>
+          <Grid2 item sx={{ marginLeft: "auto" }}>
             <Button variant="outlined">Publish</Button>
           </Grid2>
         </Grid2>
       </Box>
 
-      {/* Show Available Filter Options as Checkboxes */}
-      {showFilterOptions && filters.column && (
+      {showFilterOptions && (
         <Box sx={{ marginBottom: "20px" }}>
-          <Grid2 container spacing={2}>
-            {uniqueValues.map((value) => (
-              <Grid2 item key={value}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={filters.values.includes(value)}
-                      onChange={() => handleCheckboxChange(value)}
-                      name={value}
-                    />
-                  }
-                  label={value}
-                />
-              </Grid2>
-            ))}
-          </Grid2>
+          {Object.keys(filters).map((column) =>
+            uniqueValues[column]?.map((value) => (
+              <FormControlLabel
+                key={`${column}-${value}`}
+                control={
+                  <Checkbox
+                    checked={filters[column]?.includes(value)}
+                    onChange={() => handleCheckboxChange(column, value)}
+                    name={value}
+                  />
+                }
+                label={`${value}`}
+              />
+            ))
+          )}
         </Box>
       )}
 
-      {/* Calendar Component */}
       <Calendar
         localizer={localizer}
-        events={filteredDataArray} // Use filtered data
+        events={filteredDataArray}
         defaultView="month"
         style={{ height: "90%" }}
         views={["month"]}
-        onShowMore={handleShowMore}
-        onSelectEvent={handleSelectEvent}
-        components={{
-          eventWrapper: CustomEventWrapper,
-        }}
       />
     </Box>
   );
