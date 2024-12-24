@@ -10,9 +10,8 @@ export const SignUp = lazy(() => import("./pages/SignUp"));
 export const MyCalendar = lazy(() => import("./pages/MyCalendar"));
 export const EditSchedule = lazy(() => import("./pages/EditSchedule"));
 export const Users = lazy(() => import("./pages/Users"));
-export const HomeGrid = lazy(() => import("./components/HomeGrid"));
+export const HomeGrid = lazy(() => import("./components/Home/HomeGrid"));
 export const Roles = lazy(() => import("./pages/Roles"));
-import Crazy from "./pages/crazy";
 
 const CenteredBox = styled(Box)(({ theme }) => ({
   display: "flex",

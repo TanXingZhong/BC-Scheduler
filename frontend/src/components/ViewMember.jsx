@@ -26,7 +26,13 @@ export default function ViewMember({ open, handleClose, data }) {
   return (
     <Dialog
       open={open}
-      onClose={handleClose}
+      onClose={(_, reason) => {
+        // Prevent closing on backdrop click or escape
+        if (reason === "backdropClick" || reason === "escapeKeyDown") {
+          return;
+        }
+        handleClose;
+      }}
       maxWidth="sm"
       fullWidth
       aria-labelledby="view-member-dialog-title"

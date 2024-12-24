@@ -68,7 +68,13 @@ function EditRole({ open, handleClose, handleContinue, roleInfo }) {
   return (
     <Dialog
       open={open}
-      onClose={handleClose}
+      onClose={(_, reason) => {
+        // Prevent closing on backdrop click or escape
+        if (reason === "backdropClick" || reason === "escapeKeyDown") {
+          return;
+        }
+        handleClose;
+      }}
       aria-labelledby="edit-role-dialog-title"
       PaperProps={{
         component: "form",

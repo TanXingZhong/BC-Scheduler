@@ -5,15 +5,17 @@ const bcrypt = require("bcrypt");
 const pool = require("../config/db_pool").pool;
 
 function checkConflicts(shifts, start_time, end_time) {
-  const lt = new Date(start_time), rt = new Date(end_time);
+  const lt = new Date(start_time),
+    rt = new Date(end_time);
 
-  for(let i = 0;i < shifts.length; i++) {
+  for (let i = 0; i < shifts.length; i++) {
     const shift = shifts[i];
-    const ls = new Date(shift.start_time), rs = new Date(shift.end_time);
+    const ls = new Date(shift.start_time),
+      rs = new Date(shift.end_time);
 
-    if(lt >= ls && lt < rs) return true;
-    if(rt > ls && rt <= rs) return true;
-    if(lt <= ls && rt >= rs) return true;
+    if (lt >= ls && lt < rs) return true;
+    if (rt > ls && rt <= rs) return true;
+    if (lt <= ls && rt >= rs) return true;
   }
   return false;
 }
@@ -45,7 +47,15 @@ async function comparePassword(password, hash) {
 }
 
 async function getAllUsersNames() {
-  const query = "SELECT id, name, role_id FROM users";
+  const query = `
+  SELECT 
+    users.id, 
+    users.name, 
+    users.email, 
+    users.role_id, 
+    roles.role_name  -- role name from the roles table
+  FROM users
+  JOIN roles ON users.role_id = roles.id`;
   try {
     const [rows, fields] = await pool.execute(query);
     console.log("Database query result:", rows);
@@ -149,13 +159,17 @@ async function addScheduleToUser(id, schedule_id, start_time, end_time) {
 
     const user = await getUserByid(id);
 
-    if(checkConflicts(user[0].shifts.body, start_time, end_time)) {
+    if (checkConflicts(user[0].shifts.body, start_time, end_time)) {
       throw new Error("Shifts conflict");
     }
-    
-    const shifts = (user[0].shifts);
 
-    shifts.body.push({schedule_id : schedule_id, start_time : start_time, end_time : end_time});
+    const shifts = user[0].shifts;
+
+    shifts.body.push({
+      schedule_id: schedule_id,
+      start_time: start_time,
+      end_time: end_time,
+    });
     const shifts_json = JSON.stringify(shifts);
     const query = "UPDATE users SET shifts = ? WHERE id = ?";
     const values = [shifts_json, id];
@@ -171,9 +185,11 @@ async function addScheduleToUser(id, schedule_id, start_time, end_time) {
 async function removeScheduleFromUser(id, schedule_id) {
   try {
     const user = await getUserByid(id);
-    const shifts = (user[0].shifts);
+    const shifts = user[0].shifts;
 
-    const newShifts = shifts.body.filter(shift => shift.schedule_id != schedule_id);
+    const newShifts = shifts.body.filter(
+      (shift) => shift.schedule_id != schedule_id
+    );
     shifts.body = newShifts;
     const shifts_json = JSON.stringify(shifts);
 
@@ -262,7 +278,7 @@ async function updateUser(data) {
   ];
 
   try {
-    console.log("updating user")
+    console.log("updating user");
     const [result] = await pool.execute(query, values);
     console.log("User updated successfully", result);
     return result;

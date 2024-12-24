@@ -117,7 +117,9 @@ const deleteSchedules = async (req, res) => {
   // Delete the user
   try {
     await db_schedule.deleteScheduleId(schedule_id);
-    return res.status(200).json({ message: `Schedule ${schedule_id} deleted!` });
+    return res
+      .status(200)
+      .json({ message: `Schedule ${schedule_id} deleted!` });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Error deleting user." });
@@ -127,18 +129,29 @@ const deleteSchedules = async (req, res) => {
 const addUserToSchedule = async (req, res) => {
   const { schedule_id, employee_id, employee_email } = req.body;
 
-  if(!schedule_id || !employee_id || !employee_email) {
-    return res.status(400).json({ message: "schedule_id, employee_id, and employee_email required." });
+  if (!schedule_id || !employee_id || !employee_email) {
+    return res
+      .status(400)
+      .json({
+        message: "schedule_id, employee_id, and employee_email required.",
+      });
   }
 
   try {
-    const exists = await db_schedule.checkUserExistsInSchedule(schedule_id, employee_id);
+    const exists = await db_schedule.checkUserExistsInSchedule(
+      schedule_id,
+      employee_id
+    );
     if (exists) {
       return res.status(409).json({
         message: "User already working in this time slot.",
       });
     }
-    await db_schedule.addUserToSchedule(schedule_id, employee_id, employee_email);
+    await db_schedule.addUserToSchedule(
+      schedule_id,
+      employee_id,
+      employee_email
+    );
     return res.status(200).json({
       message: `User ${employee_id} added to schedule ${schedule_id}`,
     });

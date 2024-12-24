@@ -15,7 +15,12 @@ import { useCreateSchedule } from "../hooks/Calendar/useCreateSchedule";
 
 function Publish({ open, handleClose }) {
   const [errorState, setErrorState] = useState({
-    role_name: { error: false, message: "" },
+    outlet_name: { error: false, message: "" },
+    vacancy: { error: false, message: "" },
+    start_date: { error: false, message: "" },
+    end_date: { error: false, message: "" },
+    start_time: { error: false, message: "" },
+    end_time: { error: false, message: "" },
   });
   const setError = (field, error, message) => {
     setErrorState((prevState) => ({
@@ -25,14 +30,27 @@ function Publish({ open, handleClose }) {
   };
 
   const validateInputs = () => {
-    const role_name = document.getElementById("role_name");
+    const fields = [
+      { id: "outlet_name", errorMessage: "Outlet name is required." },
+      { id: "vacancy", errorMessage: "Vacancy is required." },
+      { id: "start_date", errorMessage: "Start date is required." },
+      { id: "end_date", errorMessage: "End date is required." },
+      { id: "start_time", errorMessage: "Start time is required." },
+      { id: "end_time", errorMessage: "End time is required." },
+    ];
+
     let isValid = true;
-    // if (!role_name.value || role_name.value.length < 1) {
-    //   setError("role_name", true, "Role name is required.");
-    //   isValid = false;
-    // } else {
-    //   setError("role_name", false, "");
-    // }
+
+    fields.forEach((field) => {
+      const element = document.getElementById(field.id);
+      if (!element.value || element.value.length < 1) {
+        setError(field.id, true, field.errorMessage);
+        isValid = false;
+      } else {
+        setError(field.id, false, "");
+      }
+    });
+
     return isValid;
   };
   const { createSchedule, error, isLoading } = useCreateSchedule();
@@ -77,22 +95,22 @@ function Publish({ open, handleClose }) {
     {
       id: "outlet_name",
       label: "Outlet",
-      error: errorState.role_name.error,
-      helperText: errorState.role_name.message,
+      error: errorState.outlet_name.error,
+      helperText: errorState.outlet_name.message,
     },
     {
       id: "start_date",
       label: "Start",
       type: "date",
-      error: errorState.role_name.error,
-      helperText: errorState.role_name.message,
+      error: errorState.start_date.error,
+      helperText: errorState.start_date.message,
     },
     {
       id: "start_time",
       label: "Start",
       type: "time",
-      error: errorState.role_name.error,
-      helperText: errorState.role_name.message,
+      error: errorState.start_time.error,
+      helperText: errorState.start_time.message,
     },
   ];
   const formFieldsRight = [
@@ -100,28 +118,35 @@ function Publish({ open, handleClose }) {
       id: "vacancy",
       label: "Vacancy",
       placeholder: "1",
-      error: errorState.role_name.error,
-      helperText: errorState.role_name.message,
+      type: "number",
+      error: errorState.vacancy.error,
+      helperText: errorState.vacancy.message,
     },
     {
       id: "end_date",
       label: "End",
       type: "date",
-      error: errorState.role_name.error,
-      helperText: errorState.role_name.message,
+      error: errorState.end_date.error,
+      helperText: errorState.end_date.message,
     },
     {
       id: "end_time",
       label: "End",
       type: "time",
-      error: errorState.role_name.error,
-      helperText: errorState.role_name.message,
+      error: errorState.end_time.error,
+      helperText: errorState.end_time.message,
     },
   ];
   return (
     <Dialog
       open={open}
-      onClose={handleClose}
+      onClose={(_, reason) => {
+        // Prevent closing on backdrop click or escape
+        if (reason === "backdropClick" || reason === "escapeKeyDown") {
+          return;
+        }
+        handleClose;
+      }}
       aria-labelledby="create-role-dialog-title"
       PaperProps={{
         component: "form",

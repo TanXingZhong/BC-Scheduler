@@ -56,10 +56,11 @@ export default function MyCalendar() {
       vacancy: data.vacancy,
       schedule_id: data.schedule_id,
       employee: "EMPTY",
+      employee_id: "",
     });
 
     const filledSlots = data.employee_ids.body.map((id) => {
-      const employee = names.find((employee) => employee.id === id);
+      const employee = names.find((employee) => employee.id == id);
       if (!employee) {
         return {};
       }
@@ -76,6 +77,7 @@ export default function MyCalendar() {
         vacancy: data.vacancy,
         schedule_id: data.schedule_id,
         employee: employee.name,
+        employee_id: employee.id,
       };
     });
 
@@ -174,7 +176,6 @@ export default function MyCalendar() {
       setAllocateSchedule(true);
       setScheduleInfo(event);
     };
-
     return (
       <>
         {openAllocateSchedule && (
@@ -182,6 +183,7 @@ export default function MyCalendar() {
             open={openAllocateSchedule}
             handleClose={handleCloseAllocateSchedule}
             scheduleInfo={scheduleInfo}
+            allUsersInfo={names}
           />
         )}
 

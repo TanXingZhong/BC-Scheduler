@@ -10,7 +10,13 @@ function Comfirmation({ open, handleClose, handleContinue, email }) {
   return (
     <Dialog
       open={open}
-      onClose={handleClose}
+      onClose={(_, reason) => {
+        // Prevent closing on backdrop click or escape
+        if (reason === "backdropClick" || reason === "escapeKeyDown") {
+          return;
+        }
+        handleClose;
+      }}
       aria-labelledby="confirm-dialog-title"
       PaperProps={{
         component: "form",

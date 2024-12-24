@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Button,
   Dialog,
@@ -6,15 +6,29 @@ import {
   DialogContent,
   DialogTitle,
   TextField,
+  Typography,
+  MenuItem,
 } from "@mui/material";
 import PropTypes from "prop-types";
 import FormLabel from "@mui/material/FormLabel";
 import FormControl from "@mui/material/FormControl";
 import Grid from "@mui/material/Grid2";
+import { toSGDate } from "../../config/convertTimeToSGT";
+import { useAssignEmployee } from "../hooks/Calendar/useAssignEmployee";
 
-function AllocateSchedule({ open, handleClose, scheduleInfo }) {
+function AllocateSchedule({ open, handleClose, scheduleInfo, allUsersInfo }) {
+  const { assignEmployee, isLoading, error } = useAssignEmployee();
+  const [formData, setFormData] = useState(scheduleInfo || {});
+  const transformDataForUserInfo = allUsersInfo.map((x) => {
+    return {
+      value: x.id,
+      label: `${x.name} (${x.role_name})`,
+      email: x.email,
+    };
+  });
+
   const [errorState, setErrorState] = useState({
-    role_name: { error: false, message: "" },
+    employee_id: { error: false, message: "" },
   });
   const setError = (field, error, message) => {
     setErrorState((prevState) => ({
@@ -24,65 +38,72 @@ function AllocateSchedule({ open, handleClose, scheduleInfo }) {
   };
 
   const validateInputs = () => {
-    const role_name = document.getElementById("role_name");
     let isValid = true;
-    // if (!role_name.value || role_name.value.length < 1) {
-    //   setError("role_name", true, "Role name is required.");
-    //   isValid = false;
-    // } else {
-    //   setError("role_name", false, "");
-    // }
+    if (!formData.employee_id) {
+      setError("employee_id", true, "Employee is required.");
+      isValid = false;
+    } else {
+      setError("employee_id", false, "");
+    }
+
     return isValid;
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const isValid = validateInputs();
-    if (!isValid) {
+
+    if (!validateInputs()) {
       return;
     }
-    // const role_name = document.getElementById("role_name").value;
-    const outlet_name = document.getElementById("outlet_name").value;
-    const start_date = document.getElementById("start_date").value;
-    const end_date = document.getElementById("end_date").value;
-    const start_time = document.getElementById("start_time").value;
-    const end_time = document.getElementById("end_time").value;
-
+    const sche_Id = scheduleInfo.schedule_id;
+    const employee_id = formData.employee_id;
+    const selectedUser = transformDataForUserInfo.find(
+      (user) => user.value == employee_id
+    );
+    await assignEmployee(sche_Id, formData.employee_id, selectedUser.email);
     handleClose();
   };
   const formFieldsLeft = [
     {
-      id: "outlet_name",
-      label: "Outlet",
-      error: errorState.role_name.error,
-      helperText: errorState.role_name.message,
+      id: "employee_id",
+      label: "Employee",
+      type: "select",
+      value: formData.employee_id || "", // Ensure it's never undefined
+      options: transformDataForUserInfo,
+      error: errorState.employee_id.error,
+      helperText: errorState.employee_id.message,
     },
     {
-      id: "start_date",
-      label: "Date",
-      error: errorState.role_name.error,
-      helperText: errorState.role_name.message,
+      id: "outlet_name",
+      label: "Outlet",
+      defaultValue: scheduleInfo.outlet_name,
+      isEditable: false,
     },
   ];
   const formFieldsRight = [
     {
-      id: "vacancy",
-      label: "Employee",
-      placeholder: "1",
-      error: errorState.role_name.error,
-      helperText: errorState.role_name.message,
+      id: "start_date",
+      label: "Date",
+      defaultValue: toSGDate(scheduleInfo.start),
+      isEditable: false,
     },
     {
       id: "end_date",
       label: "Time",
-      error: errorState.role_name.error,
-      helperText: errorState.role_name.message,
+      defaultValue: scheduleInfo.start_end_time,
+      isEditable: false,
     },
   ];
   return (
     <Dialog
       open={open}
-      onClose={handleClose}
+      onClose={(_, reason) => {
+        // Prevent closing on backdrop click or escape
+        if (reason === "backdropClick" || reason === "escapeKeyDown") {
+          return;
+        }
+        handleClose;
+      }}
       aria-labelledby="create-role-dialog-title"
       PaperProps={{
         component: "form",
@@ -90,8 +111,9 @@ function AllocateSchedule({ open, handleClose, scheduleInfo }) {
         sx: { backgroundImage: "none" },
       }}
     >
-      <DialogTitle id="create-role-dialog-title">Asign Employee</DialogTitle>
+      <DialogTitle id="create-role-dialog-title">Assign Employee</DialogTitle>
       <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        <Typography>Current Assigned: {scheduleInfo.employee}</Typography>
         <Grid container spacing={5}>
           <Grid size={{ xs: 12, md: 6 }}>
             {formFieldsLeft.map((field) => (
@@ -99,13 +121,18 @@ function AllocateSchedule({ open, handleClose, scheduleInfo }) {
                 <FormLabel htmlFor={field.id}>{field.label}</FormLabel>
                 {field.type == "select" ? (
                   <TextField
-                    required
                     id={field.id}
                     name={field.id}
                     select
+                    defaultValue={field.defaultValue}
                     value={field.value}
-                    onChange={(e) => setSex(e.target.value)}
+                    onChange={(e) =>
+                      setFormData({ ...formData, [field.id]: e.target.value })
+                    }
                     fullWidth
+                    error={field.error}
+                    helperText={field.helperText}
+                    color={field.error ? "error" : "primary"}
                   >
                     {field.options.map((option) => (
                       <MenuItem key={option.value} value={option.value}>
@@ -126,6 +153,11 @@ function AllocateSchedule({ open, handleClose, scheduleInfo }) {
                     error={field.error}
                     helperText={field.helperText}
                     color={field.error ? "error" : "primary"}
+                    slotProps={{
+                      input: {
+                        readOnly: !field.isEditable,
+                      },
+                    }}
                   />
                 )}
               </FormControl>
@@ -147,6 +179,11 @@ function AllocateSchedule({ open, handleClose, scheduleInfo }) {
                   error={field.error}
                   helperText={field.helperText}
                   color={field.error ? "error" : "primary"}
+                  slotProps={{
+                    input: {
+                      readOnly: !field.isEditable,
+                    },
+                  }}
                 />
               </FormControl>
             ))}

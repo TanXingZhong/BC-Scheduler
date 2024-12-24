@@ -15,7 +15,13 @@ function CorfirmationToDeleteRole({
   return (
     <Dialog
       open={open}
-      onClose={handleClose}
+      onClose={(_, reason) => {
+        // Prevent closing on backdrop click or escape
+        if (reason === "backdropClick" || reason === "escapeKeyDown") {
+          return;
+        }
+        handleClose;
+      }}
       aria-labelledby="delete-role-dialog-title"
       PaperProps={{
         component: "form",
