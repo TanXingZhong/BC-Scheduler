@@ -20,7 +20,7 @@ export const useGetCalendar = () => {
         return;
       }
       setIsLoading(false);
-      return json.rows;
+      return {rows: json.rows, rowsplus: json.rowsplus};
     } catch (error) {
       console.log("Error getRoles", error);
       setIsLoading(false);

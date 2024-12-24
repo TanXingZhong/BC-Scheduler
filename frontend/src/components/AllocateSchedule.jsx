@@ -22,8 +22,7 @@ function AllocateSchedule({ open, handleClose, scheduleInfo, allUsersInfo }) {
   const transformDataForUserInfo = allUsersInfo.map((x) => {
     return {
       value: x.id,
-      label: `${x.name} (${x.role_name})`,
-      email: x.email,
+      label: `${x.name} (${x.role_name})`
     };
   });
 
@@ -57,10 +56,7 @@ function AllocateSchedule({ open, handleClose, scheduleInfo, allUsersInfo }) {
     }
     const sche_Id = scheduleInfo.schedule_id;
     const employee_id = formData.employee_id;
-    const selectedUser = transformDataForUserInfo.find(
-      (user) => user.value == employee_id
-    );
-    await assignEmployee(sche_Id, formData.employee_id, selectedUser.email);
+    await assignEmployee(sche_Id, formData.employee_id);
     handleClose();
   };
   const formFieldsLeft = [

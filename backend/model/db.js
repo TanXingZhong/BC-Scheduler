@@ -4,7 +4,7 @@ const bcrypt = require("bcrypt");
 //MySQL connection pool
 const pool = require("../config/db_pool").pool;
 
-function checkConflicts(shifts, start_time, end_time) {
+async function checkConflicts(shifts, start_time, end_time) {
   const lt = new Date(start_time),
     rt = new Date(end_time);
 
@@ -152,35 +152,35 @@ async function checkUserExists(email) {
   }
 }
 
-async function addScheduleToUser(id, schedule_id, start_time, end_time) {
-  try {
-    console.log("Adding schedule to user");
-    console.log(id, schedule_id, start_time, end_time);
+// async function addScheduleToUser(id, schedule_id, start_time, end_time) {
+//   try {
+//     console.log("Adding schedule to user");
+//     console.log(id, schedule_id, start_time, end_time);
 
-    const user = await getUserByid(id);
+//     const user = await getUserByid(id);
 
-    if (checkConflicts(user[0].shifts.body, start_time, end_time)) {
-      throw new Error("Shifts conflict");
-    }
+//     if (checkConflicts(user[0].shifts.body, start_time, end_time)) {
+//       throw new Error("Shifts conflict");
+//     }
 
-    const shifts = user[0].shifts;
+//     const shifts = user[0].shifts;
 
-    shifts.body.push({
-      schedule_id: schedule_id,
-      start_time: start_time,
-      end_time: end_time,
-    });
-    const shifts_json = JSON.stringify(shifts);
-    const query = "UPDATE users SET shifts = ? WHERE id = ?";
-    const values = [shifts_json, id];
-    const [result] = await pool.execute(query, values);
-    console.log("Schedule added to user successfully", result);
+//     shifts.body.push({
+//       schedule_id: schedule_id,
+//       start_time: start_time,
+//       end_time: end_time,
+//     });
+//     const shifts_json = JSON.stringify(shifts);
+//     const query = "UPDATE users SET shifts = ? WHERE id = ?";
+//     const values = [shifts_json, id];
+//     const [result] = await pool.execute(query, values);
+//     console.log("Schedule added to user successfully", result);
 
-    return result;
-  } catch (err) {
-    throw new Error(err);
-  }
-}
+//     return result;
+//   } catch (err) {
+//     throw new Error(err);
+//   }
+// }
 
 async function removeScheduleFromUser(id, schedule_id) {
   try {
@@ -222,9 +222,8 @@ async function addUser(
   firstAid,
   role_id
 ) {
-  const shifts = JSON.stringify({ body: [] });
   const query =
-    "INSERT INTO users (name, nric, email, password, phonenumber, sex, dob, bankName, bankAccountNo, address, workPlace, occupation, driverLicense, firstAid, shifts, role_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    "INSERT INTO users (name, nric, email, password, phonenumber, sex, dob, bankName, bankAccountNo, address, workPlace, occupation, driverLicense, firstAid, role_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
   const values = [
     name,
     nric,
@@ -240,7 +239,6 @@ async function addUser(
     occupation,
     driverLicense,
     firstAid,
-    shifts,
     role_id,
   ];
 
@@ -314,5 +312,5 @@ module.exports = {
   addUser,
   updateUser,
   deleteUser,
-  addScheduleToUser,
+  checkConflicts
 };

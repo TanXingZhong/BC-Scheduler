@@ -24,16 +24,18 @@ export default function MyCalendar() {
   const { fetchSchedule, isLoading, error } = useGetCalendar();
   const [names, setNames] = useState([]);
   const [schedule, setSchedule] = useState([]);
+  const [scheduleAndUsers, setScheduleAndUsers] = useState([]);
 
   // Load schedule data when the component mounts
   const onLoad = async () => {
     try {
-      const schedules = await fetchSchedule();
+      const {rows, rowsplus} = await fetchSchedule();
       const namesData = await fetchNames();
-      setSchedule(schedules);
+      setSchedule(rows);
+      setScheduleAndUsers(rowsplus);
       setNames(namesData);
     } catch (err) {
-      console.error("Error loading schedules:", err);
+      console.error("Error loading schedules: ", err);
     }
   };
 
@@ -59,13 +61,13 @@ export default function MyCalendar() {
       employee_id: "",
     });
 
-    const filledSlots = data.employee_ids.body.map((id) => {
-      const employee = names.find((employee) => employee.id == id);
-      if (!employee) {
+    const filledSlots = [data.schedule_id].map((xid) => {
+      const slot = scheduleAndUsers.find(x => x.schedule_id == xid);
+      if (!slot) {
         return {};
       }
       return {
-        title: `${employee.name}, ${toSGTimeShort(
+        title: `${slot.name}, ${toSGTimeShort(
           data.start_time
         )} - ${toSGTimeShort(data.end_time)}, ${data.outlet_name}`,
         outlet_name: data.outlet_name,
@@ -76,8 +78,8 @@ export default function MyCalendar() {
         )}`,
         vacancy: data.vacancy,
         schedule_id: data.schedule_id,
-        employee: employee.name,
-        employee_id: employee.id,
+        employee: slot.name,
+        employee_id: slot.id,
       };
     });
 

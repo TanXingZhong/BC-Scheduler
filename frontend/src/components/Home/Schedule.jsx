@@ -14,18 +14,21 @@ import DeleteIcon from "@mui/icons-material/Delete";
 export default function Schedule() {
   const items = [
     {
+      id: 1,
       location: "NUS",
       date: "10-03-2024",
       start: "2:00pm",
       end: "3:00pm",
     },
     {
+      id: 2,
       location: "Macdonads",
       date: "10-03-2024",
       start: "2:00pm",
       end: "3:00pm",
     },
     {
+      id: 3,
       location: "Toiletbowl",
       date: "10-03-2024",
       start: "2:00pm",
@@ -46,23 +49,23 @@ export default function Schedule() {
               marginBottom: 2, // Add margin between items
             }}
           >
-            <ListItemText
-              primary={
-                <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                  {item.date}
+          <ListItemText
+            primary={
+              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                {item.date}
+              </Typography>
+            }
+            secondary={
+              <>
+                <Typography variant="body2" color="text.secondary" component="span">
+                  Location: {item.location}
+                </Typography><br/>
+                <Typography variant="body2" color="text.secondary" component="span">
+                  Time: {item.start} - {item.end}
                 </Typography>
-              }
-              secondary={
-                <>
-                  <Typography variant="body2" color="text.secondary">
-                    Location: {item.location}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Time: {item.start} - {item.end}
-                  </Typography>
-                </>
-              }
-            />
+              </>
+            }
+          />
           </ListItem>
           {index < items.length - 1 && <Divider variant="inset" />}
         </React.Fragment>

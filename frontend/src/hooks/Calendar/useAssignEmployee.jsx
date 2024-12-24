@@ -6,7 +6,7 @@ export const useAssignEmployee = () => {
   const [isLoading, setIsLoading] = useState(null);
   const { user } = useAuthContext();
 
-  const assignEmployee = async (schedule_id, employee_id, employee_email) => {
+  const assignEmployee = async (schedule_id, employee_id) => {
     setIsLoading(true);
     setError(null);
 
@@ -19,8 +19,7 @@ export const useAssignEmployee = () => {
         },
         body: JSON.stringify({
           schedule_id,
-          employee_id,
-          employee_email,
+          employee_id
         }),
       });
 

@@ -7,7 +7,8 @@ const getAllSchedules = async (req, res) => {
   // Get all schedule from SQL
   try {
     const allSchedules = await db_schedule.getAllSchedules();
-    return res.status(200).json({ rows: allSchedules });
+    const scheduleWithUsers = await db_schedule.getAllSchedulesAndUsers();
+    return res.status(200).json({ rows: allSchedules, rowsplus: scheduleWithUsers });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Error fetching schedules." });
@@ -49,9 +50,7 @@ const updateSchedules = async (req, res) => {
     outlet_name,
     start_time,
     end_time,
-    vacancy,
-    employee_ids,
-    employee_emails,
+    vacancy
   } = req.body;
 
   // Confirm data
@@ -81,9 +80,7 @@ const updateSchedules = async (req, res) => {
       outlet_name,
       start_time,
       end_time,
-      vacancy,
-      employee_ids,
-      employee_emails
+      vacancy
     );
     return res
       .status(200)
@@ -127,13 +124,13 @@ const deleteSchedules = async (req, res) => {
 };
 
 const addUserToSchedule = async (req, res) => {
-  const { schedule_id, employee_id, employee_email } = req.body;
+  const { schedule_id, employee_id} = req.body;
 
-  if (!schedule_id || !employee_id || !employee_email) {
+  if (!schedule_id || !employee_id) {
     return res
       .status(400)
       .json({
-        message: "schedule_id, employee_id, and employee_email required.",
+        message: "schedule_id, employee_id required.",
       });
   }
 
@@ -149,8 +146,7 @@ const addUserToSchedule = async (req, res) => {
     }
     await db_schedule.addUserToSchedule(
       schedule_id,
-      employee_id,
-      employee_email
+      employee_id
     );
     return res.status(200).json({
       message: `User ${employee_id} added to schedule ${schedule_id}`,
