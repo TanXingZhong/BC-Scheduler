@@ -1,131 +1,137 @@
+import { useState, useEffect, useCallback } from "react";
+import {
+  Grid2,
+  Box,
+  Button,
+  Checkbox,
+  FormControlLabel,
+  Card,
+  Typography,
+} from "@mui/material";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import { useEffect, useState } from "react";
+import Publish from "../components/Publish";
 import { useGetCalendar } from "../hooks/Calendar/useGetCalendar";
 import { useGetNames } from "../hooks/Calendar/useGetNames";
-import { toSGTime } from "../../config/convertTimeToSGT";
-import { Grid2, Checkbox, FormControlLabel } from "@mui/material";
-import Publish from "../components/Publish";
+import { toSGTimeShort } from "../../config/convertTimeToSGT";
+import AllocateSchedule from "../components/AllocateSchedule";
 
 const localizer = momentLocalizer(moment);
 
 export default function MyCalendar() {
-  const { fetchSchedule, isLoading, error } = useGetCalendar();
   const { fetchNames } = useGetNames();
-  const [schedule, setSchedule] = useState([]);
+  const { fetchSchedule, isLoading, error } = useGetCalendar();
   const [names, setNames] = useState([]);
+  const [schedule, setSchedule] = useState([]);
 
   // Load schedule data when the component mounts
   const onLoad = async () => {
     try {
       const schedules = await fetchSchedule();
-      const names = await fetchNames();
-
+      const namesData = await fetchNames();
       setSchedule(schedules);
-      setNames(names);
+      setNames(namesData);
     } catch (err) {
       console.error("Error loading schedules:", err);
     }
   };
 
   useEffect(() => {
-    const onLoad = async () => {
-      try {
-        const val = await fetchSchedule();
-        setSchedule(val);
-      } catch (err) {
-        console.error("Error loading schedules:", err);
-      }
-    };
     onLoad();
   }, []);
-  
-  // Transform the schedule data into a format that the Calendar accepts
-  const transformedDataArray = schedule.reduce((acc, data) => {
-    // create new event objects based on vacancies and number of employees
 
-    const emptySlots = Array(data.vacancy).fill(
-      {
-        title: `${toSGTime(data.start_time)} - ${toSGTime(data.end_time)}, ${data.outlet_name}, EMPTY`,
-        start: new Date(data.start_time),
-        end: new Date(data.end_time),
-        desc: `Vacancy: ${data.vacancy}`,
-        schedule_id: data.schedule_id,
-        outlet_name: data.outlet_name,
-      }
-    );
-    
+  // Transform the schedule data into the format that the calendar can use
+  const transformedDataArray = schedule.reduce((acc, data) => {
+    const emptySlots = Array(data.vacancy).fill({
+      title: `EMPTY, ${toSGTimeShort(data.start_time)} - ${toSGTimeShort(
+        data.end_time
+      )}, ${data.outlet_name}`,
+      outlet_name: data.outlet_name,
+      start: new Date(data.start_time),
+      end: new Date(data.end_time),
+      start_end_time: `${toSGTimeShort(data.start_time)} - ${toSGTimeShort(
+        data.end_time
+      )}`,
+      vacancy: data.vacancy,
+      schedule_id: data.schedule_id,
+      employee: "EMPTY",
+    });
+
     const filledSlots = data.employee_ids.body.map((id) => {
       const employee = names.find((employee) => employee.id === id);
-
-      if(!employee) {
+      if (!employee) {
         return {};
       }
-
       return {
-        title: `${toSGTime(data.start_time)} - ${toSGTime(data.end_time)}, ${data.outlet_name}, ${employee.name}`,
+        title: `${employee.name}, ${toSGTimeShort(
+          data.start_time
+        )} - ${toSGTimeShort(data.end_time)}, ${data.outlet_name}`,
+        outlet_name: data.outlet_name,
         start: new Date(data.start_time),
         end: new Date(data.end_time),
-        desc: `Vacancy: ${data.vacancy}`,
+        start_end_time: `${toSGTimeShort(data.start_time)} - ${toSGTimeShort(
+          data.end_time
+        )}`,
+        vacancy: data.vacancy,
         schedule_id: data.schedule_id,
-        outlet_name: data.outlet_name,
+        employee: employee.name,
       };
-    })
+    });
+
     return [...acc, ...emptySlots, ...filledSlots];
   }, []);
 
-  // const transformedDataArray = schedule.map((data) => {
-  //   console.log(data);
-  //   const descString = `${toSGTime(data.start_time)} - ${toSGTime(
-  //     data.end_time
-  //   )}, Vacancy: ${data.vacancy}`;
-  //   return {
-  //     title: descString,
-  //     start: new Date(data.start_time),
-  //     end: new Date(data.end_time),
-  //     desc: descString,
-  //     schedule_id: data.schedule_id, // Added for filtering
-  //     outlet_name: data.outlet_name, // Added for filtering
-  //   };
-  // });
+  // Handle selecting an event
+  const handleSelectEvent = useCallback(
+    (event) => window.alert(event.title),
+    []
+  );
 
-  // Handle clicking on a day with events
-  const handleShowMore = (events, date) => {
-    setSelectedDateEvents(events);
-    setModalOpen(true);
+  // Handle category toggle (to filter by category)
+
+  // Publish logic (for modal or other purposes)
+  const [openPublish, setOpenPublish] = useState(false);
+  const handleClickOpenPublish = () => {
+    setOpenPublish(true);
+  };
+  const handleClosePublish = () => {
+    setOpenPublish(false);
   };
 
-  // Update unique values when filters are toggled
+  const [filters, setFilters] = useState({});
+  const [uniqueValues, setUniqueValues] = useState({});
+  const [showFilterOptions, setShowFilterOptions] = useState(false);
+  const [currentFilterColumn, setCurrentFilterColumn] = useState(null);
   useEffect(() => {
     const uniqueValuesByColumn = {};
     for (const column of Object.keys(filters)) {
       uniqueValuesByColumn[column] = [
-        ...new Set(schedule.map((row) => row[column])),
+        ...new Set(transformedDataArray.map((row) => row[column])),
       ];
     }
     setUniqueValues(uniqueValuesByColumn);
-  }, [filters, schedule]);
+  }, [filters]);
 
   // Handle filter column selection (toggle filters)
   const handleFilterColumnClick = (column) => {
-    if (currentFilterColumn === column) {
-      // If the same filter is clicked, toggle the visibility
-      setShowFilterOptions((prev) => !prev);
-      return;
-    }
-
+    // Only show filter options if not already showing
     setShowFilterOptions(true);
     setCurrentFilterColumn(column);
 
-    if (!filters[column]) {
-      setFilters((prevFilters) => ({
+    // Only initialize the filter if it hasn't been set yet
+    setFilters((prevFilters) => {
+      if (prevFilters[column]) {
+        // If the filter is already set, do not update it
+        return prevFilters;
+      }
+
+      // Otherwise, initialize it with all values selected (if not already done)
+      return {
         ...prevFilters,
         [column]: uniqueValues[column] || [], // Initialize with all values selected
-      }));
-    }
+      };
+    });
   };
 
   // Handle checkbox changes for filters
@@ -146,21 +152,84 @@ export default function MyCalendar() {
     setCurrentFilterColumn(null);
   };
 
-  // Filtered events for calendar
-  const filteredDataArray = transformedDataArray.filter((event) =>
-    Object.keys(filters).every(
+  const filteredDataArray = transformedDataArray.filter((event) => {
+    return Object.keys(filters).every(
       (column) =>
-        !filters[column]?.length || filters[column].includes(event[column])
-    )
-  );
+        !filters[column].length || filters[column].includes(event[column])
+    );
+  });
 
-  const [openPublish, setOpenPublish] = useState(false);
-  const handleClosePublish = () => {
-    setOpenPublish(false);
+  const CustomEventWrapper = ({ event }) => {
+    const isEventNameEmpty = event.employee === "EMPTY";
+    const eventColor = isEventNameEmpty ? "red" : "green";
+
+    const [openAllocateSchedule, setAllocateSchedule] = useState(false);
+    const [scheduleInfo, setScheduleInfo] = useState([]);
+
+    const handleCloseAllocateSchedule = () => {
+      setAllocateSchedule(false);
+    };
+
+    const handleCardClick = () => {
+      setAllocateSchedule(true);
+      setScheduleInfo(event);
+    };
+
+    return (
+      <>
+        {openAllocateSchedule && (
+          <AllocateSchedule
+            open={openAllocateSchedule}
+            handleClose={handleCloseAllocateSchedule}
+            scheduleInfo={scheduleInfo}
+          />
+        )}
+
+        <Card
+          variant="outlined"
+          sx={{
+            fontSize: "10px", // Set font size for Card
+            cursor: "pointer", // Change cursor to pointer to indicate it's clickable
+            alignItems: "center", // Vertically center the content
+            justifyContent: "center", // Horizontally center the content
+
+            transition: "all 0.3s ease", // Smooth transition for hover effect
+            "&:hover": {
+              backgroundColor: "#f0f0f0", // Change background on hover
+              transform: "scale(1.05)", // Slightly enlarge the card on hover
+              boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)", // Add shadow on hover
+            },
+          }}
+          onClick={handleCardClick} // Set the onClick handler
+        >
+          <Typography
+            sx={{
+              fontSize: "10px", // Set font size for Typography
+              color: eventColor, // Change color based on event.employee status
+              textAlign: "center", // Ensure text is centered horizontally
+            }}
+          >
+            {event.title} {/* Display event title */}
+          </Typography>
+        </Card>
+      </>
+    );
   };
-  const handleClickOpenPublish = () => {
-    setOpenPublish(true);
-  };
+
+  const categories = [
+    {
+      label: "outlet_name",
+      name: "Outlet",
+    },
+    {
+      label: "start_end_time",
+      name: "Shifts",
+    },
+    {
+      label: "employee",
+      name: "Employee",
+    },
+  ];
 
   return (
     <Box
@@ -171,36 +240,24 @@ export default function MyCalendar() {
       }}
     >
       <Box sx={{ marginBottom: "10px" }}>
-        <Grid2 container spacing={2} justifyContent="space-between">
-          <Grid2 item>
-            <Button
-              variant={filters["schedule_id"] ? "contained" : "outlined"}
-              onClick={() => handleFilterColumnClick("schedule_id")}
-            >
-              Schedule ID
-            </Button>
-          </Grid2>
-          <Grid2 item>
-            <Button
-              variant={filters["outlet_name"] ? "contained" : "outlined"}
-              onClick={() => handleFilterColumnClick("outlet_name")}
-            >
-              Outlet
-            </Button>
-          </Grid2>
-          <Grid2 item>
-            <Button
-              variant={filters["start"] ? "contained" : "outlined"}
-              onClick={() => handleFilterColumnClick("start")}
-            >
-              Start
-            </Button>
-          </Grid2>
-          <Grid2 item>
+        <Grid2 container spacing={2}>
+          {categories.map((x) => (
+            <Grid2 item key={x.label}>
+              <Button
+                variant={filters[x.label]?.length ? "contained" : "outlined"}
+                onClick={() => handleFilterColumnClick(x.label)}
+              >
+                {x.name}
+              </Button>
+            </Grid2>
+          ))}
+
+          <Grid2>
             <Button variant="outlined" onClick={handleClearFilters}>
               Clear Filters
             </Button>
           </Grid2>
+
           <Grid2 item sx={{ marginLeft: "auto" }}>
             <Button onClick={handleClickOpenPublish} variant="outlined">
               Publish
@@ -211,21 +268,21 @@ export default function MyCalendar() {
 
       {showFilterOptions && (
         <Box sx={{ marginBottom: "20px" }}>
-          {Object.keys(filters).map((column) =>
-            uniqueValues[column]?.map((value) => (
-              <FormControlLabel
-                key={`${column}-${value}`}
-                control={
-                  <Checkbox
-                    checked={filters[column]?.includes(value)}
-                    onChange={() => handleCheckboxChange(column, value)}
-                    name={value}
-                  />
-                }
-                label={`${value}`}
-              />
-            ))
-          )}
+          {uniqueValues[currentFilterColumn]?.map((value) => (
+            <FormControlLabel
+              key={`${currentFilterColumn}-${value}`}
+              control={
+                <Checkbox
+                  checked={filters[currentFilterColumn]?.includes(value)}
+                  onChange={() =>
+                    handleCheckboxChange(currentFilterColumn, value)
+                  }
+                  name={value}
+                />
+              }
+              label={`${value}`}
+            />
+          ))}
         </Box>
       )}
 
@@ -234,7 +291,10 @@ export default function MyCalendar() {
         events={filteredDataArray}
         defaultView="month"
         style={{ height: "90%" }}
-        views={["month"]}
+        views={["week", "month"]}
+        components={{
+          eventWrapper: (props) => <CustomEventWrapper {...props} />,
+        }}
       />
       <Publish open={openPublish} handleClose={handleClosePublish} />
     </Box>

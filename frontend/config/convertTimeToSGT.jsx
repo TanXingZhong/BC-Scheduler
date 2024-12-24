@@ -54,3 +54,15 @@ export const forumToSGTime = (date) => {
   const [day, month, year] = singaporeDate.split("/");
   return `${year}-${month}-${day}`; // Reformat to yyyy-mm-dd
 };
+
+export const toSGTimeShort = (date) => {
+  const options = {
+    timeZone: default_time_zone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  };
+
+  const singaporeTime = new Date(date).toLocaleString("en-GB", options);
+  return singaporeTime;
+};
