@@ -3,12 +3,14 @@ import Grid from "@mui/material/Grid2";
 import Typography from "@mui/material/Typography";
 import ApprovalSection from "./ApprovalSection";
 import Schedule from "./Schedule";
+import { useUserInfo } from "../../hooks/useUserInfo";
 
 export default function HomeGrid() {
+  const { name } = useUserInfo();
   return (
     <Box sx={{ width: "100%", maxWidth: { sm: "100%", md: "1700px" } }}>
       <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
-        Hi XXXXX,
+        Hi {name},
       </Typography>
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, lg: 5 }}>

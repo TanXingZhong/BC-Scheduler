@@ -8,7 +8,11 @@ export const useUserInfo = () => {
     // Handle the case where user or accessToken is unavailable
     return {
       name: "",
+      user_id: "",
       email: "",
+      role_id: "",
+      admin: false,
+      userShifts: [],
     };
   }
 
@@ -17,14 +21,19 @@ export const useUserInfo = () => {
 
   // Check if UserInfo exists before destructuring
   if (decoded && decoded.UserInfo) {
-    const { name, email } = decoded.UserInfo;
+    const { name, user_id, email, role_id, admin, userShifts } =
+      decoded.UserInfo;
 
-    return { name, email };
+    return { name, user_id, email, role_id, admin, userShifts };
   }
 
   // Return default values if decoding fails
   return {
     name: "",
+    user_id: "",
     email: "",
+    role_id: "",
+    admin: false,
+    userShifts: [],
   };
 };

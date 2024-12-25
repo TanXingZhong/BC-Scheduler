@@ -7,8 +7,8 @@ import { Box, CircularProgress, styled } from "@mui/material";
 export const Dashboard = lazy(() => import("./Dashboard"));
 export const SignIn = lazy(() => import("./pages/SignIn"));
 export const SignUp = lazy(() => import("./pages/SignUp"));
+export const AdminCalendar = lazy(() => import("./pages/AdminCalendar"));
 export const MyCalendar = lazy(() => import("./pages/MyCalendar"));
-export const EditSchedule = lazy(() => import("./pages/EditSchedule"));
 export const Users = lazy(() => import("./pages/Users"));
 export const HomeGrid = lazy(() => import("./components/Home/HomeGrid"));
 export const Roles = lazy(() => import("./pages/Roles"));
@@ -45,7 +45,7 @@ function App() {
         <Route index element={<HomeGrid />} />
         <Route path="signup" element={<SignUp />} />
         <Route path="calendar" element={<MyCalendar />} />
-        <Route path="edit-schedule" element={<EditSchedule />} />
+        <Route path="edit-schedule" element={<AdminCalendar />} />
         <Route path="users" element={<Users />} />
         <Route path="roles" element={<Roles />} />
       </Route>

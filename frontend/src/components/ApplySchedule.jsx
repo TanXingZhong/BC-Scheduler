@@ -14,60 +14,23 @@ import FormLabel from "@mui/material/FormLabel";
 import FormControl from "@mui/material/FormControl";
 import Grid from "@mui/material/Grid2";
 import { toSGDate } from "../../config/convertTimeToSGT";
-import { useAssignEmployee } from "../hooks/Calendar/useAssignEmployee";
-
-function AllocateSchedule({ open, handleClose, scheduleInfo, allUsersInfo }) {
-  const { assignEmployee, isLoading, error } = useAssignEmployee();
-  const [formData, setFormData] = useState(scheduleInfo || {});
-  const transformDataForUserInfo = allUsersInfo.map((x) => {
-    return {
-      value: x.id,
-      label: `${x.name} (${x.role_name})`,
-    };
-  });
-
-  const [errorState, setErrorState] = useState({
-    employee_id: { error: false, message: "" },
-  });
-  const setError = (field, error, message) => {
-    setErrorState((prevState) => ({
-      ...prevState,
-      [field]: { error, message },
-    }));
-  };
-
-  const validateInputs = () => {
-    let isValid = true;
-    if (!formData.employee_id) {
-      setError("employee_id", true, "Employee is required.");
-      isValid = false;
-    } else {
-      setError("employee_id", false, "");
-    }
-
-    return isValid;
-  };
-
+import { useApplyShift } from "../hooks/Calendar/useApplyShift";
+function ApplySchedule({ open, handleClose, scheduleInfo, userInfo }) {
+  const { applyShift, isLoading, error } = useApplyShift();
   const handleSubmit = async (event) => {
     event.preventDefault();
-
-    if (!validateInputs()) {
-      return;
-    }
     const sche_Id = scheduleInfo.schedule_id;
-    const employee_id = formData.employee_id;
-    await assignEmployee(sche_Id, employee_id);
+    const employee_id = userInfo.user_id;
+    await applyShift(sche_Id, employee_id);
+    console.log(error);
     handleClose();
   };
   const formFieldsLeft = [
     {
       id: "employee_id",
       label: "Employee",
-      type: "select",
-      value: formData.employee_id || "", // Ensure it's never undefined
-      options: transformDataForUserInfo,
-      error: errorState.employee_id.error,
-      helperText: errorState.employee_id.message,
+      defaultValue: userInfo.name,
+      isEditable: false,
     },
     {
       id: "outlet_name",
@@ -107,7 +70,7 @@ function AllocateSchedule({ open, handleClose, scheduleInfo, allUsersInfo }) {
         sx: { backgroundImage: "none" },
       }}
     >
-      <DialogTitle id="create-role-dialog-title">Assign Employee</DialogTitle>
+      <DialogTitle id="create-role-dialog-title">Apply Schedule</DialogTitle>
       <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
         <Typography>Current Assigned: {scheduleInfo.employee}</Typography>
         <Grid container spacing={5}>
@@ -115,47 +78,24 @@ function AllocateSchedule({ open, handleClose, scheduleInfo, allUsersInfo }) {
             {formFieldsLeft.map((field) => (
               <FormControl key={field.id} fullWidth sx={{ marginBottom: 2 }}>
                 <FormLabel htmlFor={field.id}>{field.label}</FormLabel>
-                {field.type == "select" ? (
-                  <TextField
-                    id={field.id}
-                    name={field.id}
-                    select
-                    defaultValue={field.defaultValue}
-                    value={field.value}
-                    onChange={(e) =>
-                      setFormData({ ...formData, [field.id]: e.target.value })
-                    }
-                    fullWidth
-                    error={field.error}
-                    helperText={field.helperText}
-                    color={field.error ? "error" : "primary"}
-                  >
-                    {field.options.map((option) => (
-                      <MenuItem key={option.value} value={option.value}>
-                        {option.label}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                ) : (
-                  <TextField
-                    autoComplete={field.id}
-                    name={field.id}
-                    id={field.id}
-                    fullWidth
-                    variant="outlined"
-                    defaultValue={field.defaultValue}
-                    type={field.type}
-                    placeholder={field.placeholder}
-                    error={field.error}
-                    helperText={field.helperText}
-                    color={field.error ? "error" : "primary"}
-                    slotProps={{
-                      input: {
-                        readOnly: !field.isEditable,
-                      },
-                    }}
-                  />
-                )}
+                <TextField
+                  autoComplete={field.id}
+                  name={field.id}
+                  id={field.id}
+                  fullWidth
+                  variant="outlined"
+                  defaultValue={field.defaultValue}
+                  type={field.type}
+                  placeholder={field.placeholder}
+                  error={field.error}
+                  helperText={field.helperText}
+                  color={field.error ? "error" : "primary"}
+                  slotProps={{
+                    input: {
+                      readOnly: !field.isEditable,
+                    },
+                  }}
+                />
               </FormControl>
             ))}
           </Grid>
@@ -189,16 +129,16 @@ function AllocateSchedule({ open, handleClose, scheduleInfo, allUsersInfo }) {
       <DialogActions sx={{ pb: 3, px: 3 }}>
         <Button onClick={handleClose}>Cancel</Button>
         <Button variant="contained" type="submit">
-          Assign
+          Apply
         </Button>
       </DialogActions>
     </Dialog>
   );
 }
 
-AllocateSchedule.propTypes = {
+ApplySchedule.propTypes = {
   open: PropTypes.bool.isRequired,
   handleClose: PropTypes.func.isRequired,
 };
 
-export default AllocateSchedule;
+export default ApplySchedule;

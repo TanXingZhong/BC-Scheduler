@@ -100,14 +100,14 @@ function Publish({ open, handleClose }) {
     },
     {
       id: "start_date",
-      label: "Start",
+      label: "From",
       type: "date",
       error: errorState.start_date.error,
       helperText: errorState.start_date.message,
     },
     {
       id: "start_time",
-      label: "Start",
+      label: "Shift Start",
       type: "time",
       error: errorState.start_time.error,
       helperText: errorState.start_time.message,
@@ -124,14 +124,14 @@ function Publish({ open, handleClose }) {
     },
     {
       id: "end_date",
-      label: "End",
+      label: "To",
       type: "date",
       error: errorState.end_date.error,
       helperText: errorState.end_date.message,
     },
     {
       id: "end_time",
-      label: "End",
+      label: "Shift Ends",
       type: "time",
       error: errorState.end_time.error,
       helperText: errorState.end_time.message,

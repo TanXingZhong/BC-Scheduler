@@ -10,31 +10,23 @@ import {
 import Grid from "@mui/material/Grid2";
 import DownloadIcon from "@mui/icons-material/Download";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { useUserInfo } from "../../hooks/useUserInfo";
+import { toSGTimeShort, toSGDate } from "../../../config/convertTimeToSGT";
 
 export default function Schedule() {
-  const items = [
-    {
-      id: 1,
-      location: "NUS",
-      date: "10-03-2024",
-      start: "2:00pm",
-      end: "3:00pm",
-    },
-    {
-      id: 2,
-      location: "Macdonads",
-      date: "10-03-2024",
-      start: "2:00pm",
-      end: "3:00pm",
-    },
-    {
-      id: 3,
-      location: "Toiletbowl",
-      date: "10-03-2024",
-      start: "2:00pm",
-      end: "3:00pm",
-    },
-  ];
+  const { name, email, role_id, admin, userShifts } = useUserInfo();
+  const items = userShifts
+    .map((x) => ({
+      id: x.schedule_id,
+      location: x.outlet_name,
+      date: toSGDate(x.start_time),
+      start: toSGTimeShort(x.start_time),
+      end: toSGTimeShort(x.end_time),
+      startDateTime: new Date(x.start_time),
+      endDateTime: new Date(x.end_time),
+    }))
+    .sort((a, b) => a.startDateTime - b.startDateTime) // Sort by start date
+    .filter((item) => item.endDateTime > new Date()); // Filter items after the current time
 
   return (
     <List>
@@ -49,23 +41,32 @@ export default function Schedule() {
               marginBottom: 2, // Add margin between items
             }}
           >
-          <ListItemText
-            primary={
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                {item.date}
-              </Typography>
-            }
-            secondary={
-              <>
-                <Typography variant="body2" color="text.secondary" component="span">
-                  Location: {item.location}
-                </Typography><br/>
-                <Typography variant="body2" color="text.secondary" component="span">
-                  Time: {item.start} - {item.end}
+            <ListItemText
+              primary={
+                <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                  {item.date}
                 </Typography>
-              </>
-            }
-          />
+              }
+              secondary={
+                <>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    component="span"
+                  >
+                    Location: {item.location}
+                  </Typography>
+                  <br />
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    component="span"
+                  >
+                    Time: {item.start} - {item.end}
+                  </Typography>
+                </>
+              }
+            />
           </ListItem>
           {index < items.length - 1 && <Divider variant="inset" />}
         </React.Fragment>

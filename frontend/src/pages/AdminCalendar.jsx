@@ -11,24 +11,31 @@ import {
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
+import Publish from "../components/Publish";
 import { useGetCalendar } from "../hooks/Calendar/useGetCalendar";
+import { useGetNames } from "../hooks/Calendar/useGetNames";
 import { toSGTimeShort } from "../../config/convertTimeToSGT";
-import ApplySchedule from "../components/ApplySchedule";
-import { useUserInfo } from "../hooks/useUserInfo";
+import AllocateSchedule from "../components/AllocateSchedule";
 
 const localizer = momentLocalizer(moment);
 
-export default function MyCalendar() {
+export default function AdminCalendar() {
+  const { fetchNames } = useGetNames();
   const { fetchSchedule, isLoading, error } = useGetCalendar();
+  const [names, setNames] = useState([]);
   const [schedule, setSchedule] = useState([]);
   const [scheduleAndUsers, setScheduleAndUsers] = useState([]);
-  const userInfo = useUserInfo();
+
   // Load schedule data when the component mounts
   const onLoad = async () => {
     try {
-      const [scheduleData, namesData] = await Promise.all([fetchSchedule()]);
+      const [scheduleData, namesData] = await Promise.all([
+        fetchSchedule(),
+        fetchNames(),
+      ]);
       setSchedule(scheduleData.rows);
       setScheduleAndUsers(scheduleData.rowsplus);
+      setNames(namesData);
     } catch (err) {
       console.error("Error loading schedules: ", err);
     }
@@ -84,6 +91,17 @@ export default function MyCalendar() {
     (event) => window.alert(event.title),
     []
   );
+
+  // Handle category toggle (to filter by category)
+
+  // Publish logic (for modal or other purposes)
+  const [openPublish, setOpenPublish] = useState(false);
+  const handleClickOpenPublish = () => {
+    setOpenPublish(true);
+  };
+  const handleClosePublish = () => {
+    setOpenPublish(false);
+  };
 
   const [filters, setFilters] = useState({});
   const [uniqueValues, setUniqueValues] = useState({});
@@ -149,25 +167,25 @@ export default function MyCalendar() {
     const isEventNameEmpty = event.employee === "EMPTY";
     const eventColor = isEventNameEmpty ? "red" : "green";
 
-    const [openApplySchedule, setApplySchedule] = useState(false);
+    const [openAllocateSchedule, setAllocateSchedule] = useState(false);
     const [scheduleInfo, setScheduleInfo] = useState([]);
 
-    const handleCloseApplySchedule = () => {
-      setApplySchedule(false);
+    const handleCloseAllocateSchedule = () => {
+      setAllocateSchedule(false);
     };
 
     const handleCardClick = () => {
-      setApplySchedule(true);
+      setAllocateSchedule(true);
       setScheduleInfo(event);
     };
     return (
       <>
-        {openApplySchedule && (
-          <ApplySchedule
-            open={openApplySchedule}
-            handleClose={handleCloseApplySchedule}
+        {openAllocateSchedule && (
+          <AllocateSchedule
+            open={openAllocateSchedule}
+            handleClose={handleCloseAllocateSchedule}
             scheduleInfo={scheduleInfo}
-            userInfo={userInfo}
+            allUsersInfo={names}
           />
         )}
 
@@ -244,6 +262,12 @@ export default function MyCalendar() {
             Clear Filters
           </Button>
         </Grid2>
+
+        <Grid2 sx={{ marginLeft: "auto" }}>
+          <Button onClick={handleClickOpenPublish} variant="outlined">
+            Publish
+          </Button>
+        </Grid2>
       </Grid2>
 
       {showFilterOptions && (
@@ -276,6 +300,7 @@ export default function MyCalendar() {
           eventWrapper: (props) => <CustomEventWrapper {...props} />,
         }}
       />
+      <Publish open={openPublish} handleClose={handleClosePublish} />
     </Box>
   );
 }

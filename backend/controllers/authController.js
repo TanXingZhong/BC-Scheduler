@@ -1,4 +1,5 @@
 const db = require("../model/db");
+const db_schedule = require("../model/db_schedule");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
@@ -24,13 +25,17 @@ const login = async (req, res) => {
 
   if (!match) return res.status(401).json({ message: "Unauthorized" });
 
+  const userShfits = await db_schedule.getAllShiftsByUser(foundUser[0].id);
+
   const accessToken = jwt.sign(
     {
       UserInfo: {
         name: foundUser[0].name,
+        user_id: foundUser[0].id,
         email: foundUser[0].email,
         role_id: foundUser[0].role_id,
         admin: foundUser[0].admin,
+        userShifts: userShfits,
       },
     },
     process.env.ACCESS_TOKEN_SECRET,
@@ -76,13 +81,16 @@ const refresh = (req, res) => {
       if (!foundUser || foundUser.length == 0 || !foundUser[0].active)
         return res.status(401).json({ message: "Unauthorized" });
 
+      const userShfits = await db_schedule.getAllShiftsByUser(foundUser[0].id);
       const accessToken = jwt.sign(
         {
           UserInfo: {
             name: foundUser[0].name,
+            user_id: foundUser[0].id,
             email: foundUser[0].email,
             role_id: foundUser[0].role_id,
             admin: foundUser[0].admin,
+            userShifts: userShfits,
           },
         },
         process.env.ACCESS_TOKEN_SECRET,

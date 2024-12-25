@@ -1,59 +1,59 @@
-import React from "react";
+import { useState, useEffect } from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import Grid from "@mui/material/Grid2";
-import { Button } from "@mui/material";
+import { Button, Tooltip } from "@mui/material";
 import Box from "@mui/material/Box";
-
+import { useGetAllApplications } from "../../hooks/Calendar/useGetAllApplications";
+import { toSGDate, toSGTimeShort } from "../../../config/convertTimeToSGT";
+import DeleteIcon from "@mui/icons-material/Delete";
+import CheckIcon from "@mui/icons-material/Check";
+import { usePutApplication } from "../../hooks/Calendar/usePutApplication";
 export default function ScheduleApproval() {
-  const rows = [
-    {
-      id: 1,
-      name: "Aaron",
-      role: "NOOB",
-      date: "2024-12-25",
-      start: "12:00pm",
-      end: "11:59pm",
-    },
-    {
-      id: 2,
-      name: "Aaron",
-      role: "NOOB",
-      date: "2024-12-25",
-      start: "12:00pm",
-      end: "11:59pm",
-    },
-    {
-      id: 3,
-      name: "Aaron",
-      role: "NOOB",
-      date: "2024-12-25",
-      start: "12:00pm",
-      end: "11:59pm",
-    },
-    {
-      id: 4,
-      name: "Aaron",
-      role: "NOOB",
-      date: "2024-12-25",
-      start: "12:00pm",
-      end: "11:59pm",
-    },
-    {
-      id: 5,
-      name: "Aaron",
-      role: "NOOB",
-      date: "2024-12-25",
-      start: "12:00pm",
-      end: "11:59pm",
-    },
-  ];
+  const { allApplications, isLoading, error } = useGetAllApplications();
+  const {
+    approve_reject,
+    isLoading: isLoadingPut,
+    error: errorEditPut,
+  } = usePutApplication();
+  const [applications, setApplications] = useState([]);
+
+  const onLoad = async () => {
+    try {
+      const data = await allApplications();
+      setApplications(data);
+    } catch (err) {
+      console.error("Error loading schedules: ", err);
+    }
+  };
+
+  useEffect(() => {
+    onLoad();
+  }, []);
+
+  const rows = applications;
 
   const columns = [
-    { field: "name", headerName: "Name", width: 100 },
-    { field: "role", headerName: "Role", width: 100 },
-    { field: "date", headerName: "Date", width: 100 },
-    { field: "start", headerName: "Start", width: 100 },
-    { field: "end", headerName: "End", width: 100 },
+    { field: "name", headerName: "Name", width: 150 },
+    { field: "role_name", headerName: "Role", width: 100 },
+    { field: "outlet_name", headerName: "Outlet", width: 150 },
+    {
+      field: "date",
+      headerName: "Date",
+      width: 100,
+      valueFormatter: (params) => toSGDate(params),
+    },
+    {
+      field: "start_time",
+      headerName: "Start",
+      width: 70,
+      valueFormatter: (params) => toSGTimeShort(params),
+    },
+    {
+      field: "end_time",
+      headerName: "End",
+      width: 70,
+      valueFormatter: (params) => toSGTimeShort(params),
+    },
     {
       field: "actions",
       headerName: "Actions",
@@ -66,31 +66,33 @@ export default function ScheduleApproval() {
             color="success"
             size="small"
             sx={{ marginRight: 1 }}
-            onClick={() => handleAccept(params.row.id)}
-          >
-            Accept
-          </Button>
+            startIcon={<CheckIcon />}
+            onClick={() =>
+              handleAccept({ rows: params.row, action: "accepted" })
+            }
+          ></Button>
+
           <Button
             variant="contained"
             color="error"
-            size="small"
-            onClick={() => handleReject(params.row.id)}
-          >
-            Reject
-          </Button>
+            startIcon={<DeleteIcon />} // Add the dustbin icon here
+            onClick={() =>
+              handleReject({ rows: params.row, action: "rejected" })
+            }
+          ></Button>
         </>
       ),
     },
   ];
 
-  const handleAccept = (id) => {
-    console.log(`Accepted row with id: ${id}`);
-    // Add logic for accepting the row
+  const handleAccept = async (x) => {
+    await approve_reject(x.rows.schedule_id, x.rows.user_id, x.action);
+    onLoad();
   };
 
-  const handleReject = (id) => {
-    console.log(`Rejected row with id: ${id}`);
-    // Add logic for rejecting the row
+  const handleReject = async (x) => {
+    await approve_reject(x.rows.schedule_id, x.rows.user_id, x.action);
+    onLoad();
   };
 
   return (
