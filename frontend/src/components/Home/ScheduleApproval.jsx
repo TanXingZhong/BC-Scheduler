@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
 import { DataGrid } from "@mui/x-data-grid";
-import Grid from "@mui/material/Grid2";
-import { Button, Tooltip } from "@mui/material";
+import { Button } from "@mui/material";
 import Box from "@mui/material/Box";
-import { useGetAllApplications } from "../../hooks/Calendar/useGetAllApplications";
+import { useGetAllApplications } from "../../hooks/Home/useGetAllApplications";
 import { toSGDate, toSGTimeShort } from "../../../config/convertTimeToSGT";
-import DeleteIcon from "@mui/icons-material/Delete";
-import CheckIcon from "@mui/icons-material/Check";
 import { usePutApplication } from "../../hooks/Calendar/usePutApplication";
+import CheckIcon from "@mui/icons-material/check";
+import CloseIcon from "@mui/icons-material/Close";
 export default function ScheduleApproval() {
   const { allApplications, isLoading, error } = useGetAllApplications();
   const {
@@ -75,7 +74,8 @@ export default function ScheduleApproval() {
           <Button
             variant="contained"
             color="error"
-            startIcon={<DeleteIcon />} // Add the dustbin icon here
+            size="small"
+            startIcon={<CloseIcon />}
             onClick={() =>
               handleReject({ rows: params.row, action: "rejected" })
             }

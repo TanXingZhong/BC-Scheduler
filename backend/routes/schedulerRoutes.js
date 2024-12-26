@@ -21,4 +21,9 @@ router
   .put(shiftApplicationController.approve_reject)
   .delete(shiftApplicationController.deleteApplication);
 
+router
+  .route("/user")
+  .post(shiftApplicationController.getUserPendingApplication)
+  .delete(shiftApplicationController.deleteApplication);
+
 module.exports = router;

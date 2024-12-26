@@ -5,8 +5,6 @@ const employeeController = require("../controllers/employeeController");
 
 // router.use(verifyJWT.verifyJWT);
 
-router
-  .route("/")
-  .get(employeeController.getAllUsers)
+router.route("/").get(employeeController.getAllUsers);
 
 module.exports = router;

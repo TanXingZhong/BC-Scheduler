@@ -18,6 +18,19 @@ const getAllPendingApplication = async (req, res) => {
   }
 };
 
+const getUserPendingApplication = async (req, res) => {
+  const { user_id } = req.body;
+  try {
+    const rows = await db_shiftApplication.getAllApplicationByUserId(user_id);
+    return res.status(200).json({ rows: rows });
+  } catch (err) {
+    console.error(err);
+    return res
+      .status(500)
+      .json({ message: "Error retriving user pending applications" });
+  }
+};
+
 const applyShift = async (req, res) => {
   const { schedule_id, user_id } = req.body;
   try {
@@ -111,4 +124,5 @@ module.exports = {
   approve_reject,
   deleteApplication,
   getAllPendingApplication,
+  getUserPendingApplication,
 };

@@ -15,6 +15,9 @@ import FormControl from "@mui/material/FormControl";
 import Grid from "@mui/material/Grid2";
 import { toSGDate } from "../../config/convertTimeToSGT";
 import { useAssignEmployee } from "../hooks/Calendar/useAssignEmployee";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
+import IconButton from "@mui/material/IconButton";
 
 function AllocateSchedule({ open, handleClose, scheduleInfo, allUsersInfo }) {
   const { assignEmployee, isLoading, error } = useAssignEmployee();
@@ -90,6 +93,14 @@ function AllocateSchedule({ open, handleClose, scheduleInfo, allUsersInfo }) {
       isEditable: false,
     },
   ];
+
+  const handleEdit = () => {
+    console.log("Edit action triggered");
+  };
+
+  const handleDelete = () => {
+    console.log("Delete action triggered");
+  };
   return (
     <Dialog
       open={open}
@@ -107,7 +118,24 @@ function AllocateSchedule({ open, handleClose, scheduleInfo, allUsersInfo }) {
         sx: { backgroundImage: "none" },
       }}
     >
-      <DialogTitle id="create-role-dialog-title">Assign Employee</DialogTitle>
+      <DialogTitle
+        id="create-role-dialog-title"
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        Assign Employee
+        <div>
+          <IconButton aria-label="edit" onClick={handleEdit}>
+            <EditIcon />
+          </IconButton>
+          <IconButton aria-label="delete" onClick={handleDelete}>
+            <DeleteIcon />
+          </IconButton>
+        </div>
+      </DialogTitle>
       <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
         <Typography>Current Assigned: {scheduleInfo.employee}</Typography>
         <Grid container spacing={5}>

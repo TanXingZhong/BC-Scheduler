@@ -4,7 +4,7 @@ import { lazy, Suspense } from "react";
 import { Box, CircularProgress, styled } from "@mui/material";
 
 // Lazy-loaded components
-export const Dashboard = lazy(() => import("./Dashboard"));
+import Dashboard from "./Dashboard";
 export const SignIn = lazy(() => import("./pages/SignIn"));
 export const SignUp = lazy(() => import("./pages/SignUp"));
 export const AdminCalendar = lazy(() => import("./pages/AdminCalendar"));

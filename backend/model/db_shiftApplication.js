@@ -28,9 +28,10 @@ async function getAllApplications() {
 }
 
 async function getAllApplicationByUserId(user_id) {
-  const query = "SELECT * FROM shifts_application WHERE user_id = ?";
+  const query =
+    "SELECT sa.application_id as id, s.start_time AS date, sa.status, s.* FROM shift_applications sa JOIN schedule s ON sa.schedule_id = s.schedule_id WHERE sa.user_id = ?";
   try {
-    const [rows, fields] = await pool.execute(query);
+    const [rows, fields] = await pool.execute(query, [user_id]);
     return rows;
   } catch (err) {
     throw new Error(err);
