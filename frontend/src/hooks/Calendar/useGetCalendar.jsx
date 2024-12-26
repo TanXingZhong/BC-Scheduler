@@ -4,13 +4,14 @@ export const useGetCalendar = () => {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchSchedule = async () => {
+  const fetchSchedule = async (start_date) => {
     try {
-      const response = await fetch("http://localhost:8080/schedules", {
-        method: "GET",
+      const response = await fetch("http://localhost:8080/schedules/bydate", {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({ start_date }),
       });
 
       const json = await response.json();
@@ -20,7 +21,7 @@ export const useGetCalendar = () => {
         return;
       }
       setIsLoading(false);
-      return {rows: json.rows, rowsplus: json.rowsplus};
+      return { rows: json.rows, rowsplus: json.rowsplus };
     } catch (error) {
       console.log("Error getRoles", error);
       setIsLoading(false);

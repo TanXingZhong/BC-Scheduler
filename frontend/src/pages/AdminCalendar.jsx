@@ -7,6 +7,9 @@ import {
   FormControlLabel,
   Card,
   Typography,
+  Dialog,
+  DialogActions,
+  DialogContent,
 } from "@mui/material";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
@@ -15,6 +18,7 @@ import Publish from "../components/Publish";
 import { useGetCalendar } from "../hooks/Calendar/useGetCalendar";
 import { useGetNames } from "../hooks/Calendar/useGetNames";
 import { toSGTimeShort } from "../../config/convertTimeToSGT";
+import { dateTimeToDBDate } from "../../config/convertDateToDB";
 import AllocateSchedule from "../components/AllocateSchedule";
 
 const localizer = momentLocalizer(moment);
@@ -25,12 +29,13 @@ export default function AdminCalendar() {
   const [names, setNames] = useState([]);
   const [schedule, setSchedule] = useState([]);
   const [scheduleAndUsers, setScheduleAndUsers] = useState([]);
+  const [currentDate, setCurrentDate] = useState(new Date()); // Track the visible month
 
   // Load schedule data when the component mounts
-  const onLoad = async () => {
+  const onLoad = async (start) => {
     try {
       const [scheduleData, namesData] = await Promise.all([
-        fetchSchedule(),
+        fetchSchedule(start),
         fetchNames(),
       ]);
       setSchedule(scheduleData.rows);
@@ -42,8 +47,22 @@ export default function AdminCalendar() {
   };
 
   useEffect(() => {
-    onLoad();
-  }, []);
+    const start = getMonthRange(currentDate);
+    onLoad(start);
+  }, [currentDate]);
+
+  const getMonthRange = (date) => {
+    const start = dateTimeToDBDate(
+      new Date(date.getFullYear(), date.getMonth(), 1)
+    );
+    return start;
+  };
+
+  const handleNavigate = (newDate) => {
+    setSchedule([]);
+    setScheduleAndUsers([]);
+    setCurrentDate(newDate); // Update the visible date
+  };
 
   // Transform the schedule data into the format that the calendar can use
   const transformedDataArray = schedule.reduce((acc, data) => {
@@ -235,6 +254,14 @@ export default function AdminCalendar() {
     },
   ];
 
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedDateEvents, setSelectedDateEvents] = useState([]);
+
+  const handleShowMore = (events, date) => {
+    setSelectedDateEvents(events);
+    setModalOpen(true);
+  };
+
   return (
     <Box
       sx={{
@@ -299,8 +326,36 @@ export default function AdminCalendar() {
         components={{
           eventWrapper: (props) => <CustomEventWrapper {...props} />,
         }}
+        onNavigate={handleNavigate}
+        onShowMore={handleShowMore}
       />
       <Publish open={openPublish} handleClose={handleClosePublish} />
+      <Dialog
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogContent>
+          <h2>
+            Shifts on{" "}
+            {selectedDateEvents.length > 0 &&
+              moment(selectedDateEvents[0]?.start).format("MMMM Do YYYY")}
+          </h2>
+          <ul>
+            {selectedDateEvents.map((event, index) => (
+              <li key={index}>
+                <Typography>{event.title}</Typography>
+              </li>
+            ))}
+          </ul>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setModalOpen(false)} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

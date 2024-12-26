@@ -8,22 +8,23 @@ const verifyJWT = require("../middleware/verifyJWT");
 
 router
   .route("/")
-  .get(schedulerController.getAllSchedules)
   .post(schedulerController.createSchedules)
   .patch(schedulerController.updateSchedules)
   .delete(schedulerController.deleteSchedules)
   .put(schedulerController.addUserToSchedule);
+
+router.route("/bydate").post(schedulerController.getAllSchedules);
+
+router
+  .route("/user")
+  .post(shiftApplicationController.getUserPendingApplication)
+  .delete(shiftApplicationController.deleteApplication);
 
 router
   .route("/application")
   .get(shiftApplicationController.getAllPendingApplication)
   .post(shiftApplicationController.applyShift)
   .put(shiftApplicationController.approve_reject)
-  .delete(shiftApplicationController.deleteApplication);
-
-router
-  .route("/user")
-  .post(shiftApplicationController.getUserPendingApplication)
   .delete(shiftApplicationController.deleteApplication);
 
 module.exports = router;

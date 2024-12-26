@@ -7,12 +7,17 @@ import {
   FormControlLabel,
   Card,
   Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { useGetCalendar } from "../hooks/Calendar/useGetCalendar";
 import { toSGTimeShort } from "../../config/convertTimeToSGT";
+import { dateTimeToDBDate } from "../../config/convertDateToDB";
 import ApplySchedule from "../components/ApplySchedule";
 import { useUserInfo } from "../hooks/useUserInfo";
 
@@ -23,10 +28,13 @@ export default function MyCalendar() {
   const [schedule, setSchedule] = useState([]);
   const [scheduleAndUsers, setScheduleAndUsers] = useState([]);
   const userInfo = useUserInfo();
+  const [currentDate, setCurrentDate] = useState(new Date()); // Track the visible month
   // Load schedule data when the component mounts
-  const onLoad = async () => {
+  const onLoad = async (start) => {
     try {
-      const [scheduleData, namesData] = await Promise.all([fetchSchedule()]);
+      const [scheduleData, namesData] = await Promise.all([
+        fetchSchedule(start),
+      ]);
       setSchedule(scheduleData.rows);
       setScheduleAndUsers(scheduleData.rowsplus);
     } catch (err) {
@@ -35,8 +43,16 @@ export default function MyCalendar() {
   };
 
   useEffect(() => {
-    onLoad();
-  }, []);
+    const start = getMonthRange(currentDate);
+    onLoad(start);
+  }, [currentDate]);
+
+  const getMonthRange = (date) => {
+    const start = dateTimeToDBDate(
+      new Date(date.getFullYear(), date.getMonth(), 1)
+    );
+    return start;
+  };
 
   // Transform the schedule data into the format that the calendar can use
   const transformedDataArray = schedule.reduce((acc, data) => {
@@ -216,6 +232,19 @@ export default function MyCalendar() {
       name: "Employee",
     },
   ];
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedDateEvents, setSelectedDateEvents] = useState([]);
+
+  const handleShowMore = (events, date) => {
+    setSelectedDateEvents(events);
+    setModalOpen(true);
+  };
+
+  const handleNavigate = (newDate) => {
+    setSchedule([]);
+    setScheduleAndUsers([]);
+    setCurrentDate(newDate); // Update the visible date
+  };
 
   return (
     <Box
@@ -275,7 +304,35 @@ export default function MyCalendar() {
         components={{
           eventWrapper: (props) => <CustomEventWrapper {...props} />,
         }}
+        onNavigate={handleNavigate}
+        onShowMore={handleShowMore}
       />
+      <Dialog
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogContent>
+          <h2>
+            Shifts on{" "}
+            {selectedDateEvents.length > 0 &&
+              moment(selectedDateEvents[0]?.start).format("MMMM Do YYYY")}
+          </h2>
+          <ul>
+            {selectedDateEvents.map((event, index) => (
+              <li key={index}>
+                <Typography>{event.title}</Typography>
+              </li>
+            ))}
+          </ul>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setModalOpen(false)} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

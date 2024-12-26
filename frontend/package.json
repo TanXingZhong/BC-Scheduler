@@ -10,7 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@atlaskit/pragmatic-drag-and-drop": "^1.4.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^6.2.0",
@@ -22,7 +21,6 @@
     "jwt-decode": "^4.0.0",
     "react": "^18.3.1",
     "react-big-calendar": "^1.17.1",
-    "react-day-picker": "^9.4.4",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.0.2"
   },

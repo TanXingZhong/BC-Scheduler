@@ -7,7 +7,7 @@ import Header from "./components/Header";
 import SideMenu from "./components/SideMenu";
 import AppTheme from "../shared-theme/AppTheme";
 import { Outlet } from "react-router-dom";
-import { Suspense } from "react";
+
 import {
   chartsCustomizations,
   dataGridCustomizations,
@@ -49,9 +49,8 @@ export default function Dashboard(props) {
             }}
           >
             <Header />
-            <Suspense fallback={<div>Loading...</div>}>
-              <Outlet />
-            </Suspense>
+
+            <Outlet />
           </Stack>
         </Box>
       </Box>

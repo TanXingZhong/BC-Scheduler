@@ -1,17 +1,25 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuthContext } from "./hooks/useAuthContext";
-import { lazy, Suspense } from "react";
 import { Box, CircularProgress, styled } from "@mui/material";
+// import { lazy, Suspense } from "react";
 
 // Lazy-loaded components
 import Dashboard from "./Dashboard";
-export const SignIn = lazy(() => import("./pages/SignIn"));
-export const SignUp = lazy(() => import("./pages/SignUp"));
-export const AdminCalendar = lazy(() => import("./pages/AdminCalendar"));
-export const MyCalendar = lazy(() => import("./pages/MyCalendar"));
-export const Users = lazy(() => import("./pages/Users"));
-export const HomeGrid = lazy(() => import("./components/Home/HomeGrid"));
-export const Roles = lazy(() => import("./pages/Roles"));
+import SignIn from "./pages/SignIn";
+import SignUp from "./pages/SignUp";
+import AdminCalendar from "./pages/AdminCalendar";
+import MyCalendar from "./pages/MyCalendar";
+import Users from "./pages/Users";
+import HomeGrid from "./components/Home/HomeGrid";
+import Roles from "./pages/Roles";
+// export const Dashboard = lazy(() => import("./Dashboard"));
+// export const SignIn = lazy(() => import("./pages/SignIn"));
+// export const SignUp = lazy(() => import("./pages/SignUp"));
+// export const AdminCalendar = lazy(() => import("./pages/AdminCalendar"));
+// export const MyCalendar = lazy(() => import("./pages/MyCalendar"));
+// export const Users = lazy(() => import("./pages/Users"));
+// export const HomeGrid = lazy(() => import("./components/Home/HomeGrid"));
+// export const Roles = lazy(() => import("./pages/Roles"));
 
 const CenteredBox = styled(Box)(({ theme }) => ({
   display: "flex",
@@ -30,23 +38,12 @@ function App() {
   const { user } = useAuthContext();
   return (
     <Routes>
-      <Route
-        path="/"
-        element={
-          user ? (
-            <Suspense fallback={renderFallback}>
-              <Dashboard />
-            </Suspense>
-          ) : (
-            <Navigate to="/login" />
-          )
-        }
-      >
+      <Route path="/" element={user ? <Dashboard /> : <Navigate to="/login" />}>
         <Route index element={<HomeGrid />} />
-        <Route path="signup" element={<SignUp />} />
         <Route path="calendar" element={<MyCalendar />} />
         <Route path="edit-schedule" element={<AdminCalendar />} />
         <Route path="users" element={<Users />} />
+        <Route path="signup" element={<SignUp />} />
         <Route path="roles" element={<Roles />} />
       </Route>
       <Route path="/login" element={!user ? <SignIn /> : <Navigate to="/" />} />

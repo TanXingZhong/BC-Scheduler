@@ -5,10 +5,15 @@ const db_schedule = require("../model/db_schedule");
 // @access Private
 const getAllSchedules = async (req, res) => {
   // Get all schedule from SQL
+  const { start_date } = req.body;
   try {
-    const allSchedules = await db_schedule.getAllSchedules();
-    const scheduleWithUsers = await db_schedule.getAllSchedulesAndUsers();
-    return res.status(200).json({ rows: allSchedules, rowsplus: scheduleWithUsers });
+    const allSchedules = await db_schedule.getAllSchedules(start_date);
+    const scheduleWithUsers = await db_schedule.getAllSchedulesAndUsers(
+      start_date
+    );
+    return res
+      .status(200)
+      .json({ rows: allSchedules, rowsplus: scheduleWithUsers });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Error fetching schedules." });
@@ -45,13 +50,7 @@ const createSchedules = async (req, res) => {
 // @route PATCH /schedule
 // @access Private
 const updateSchedules = async (req, res) => {
-  const {
-    schedule_id,
-    outlet_name,
-    start_time,
-    end_time,
-    vacancy
-  } = req.body;
+  const { schedule_id, outlet_name, start_time, end_time, vacancy } = req.body;
 
   // Confirm data
   if (!schedule_id || !outlet_name || !start_time || !end_time || !vacancy) {
@@ -124,14 +123,12 @@ const deleteSchedules = async (req, res) => {
 };
 
 const addUserToSchedule = async (req, res) => {
-  const { schedule_id, employee_id} = req.body;
+  const { schedule_id, employee_id } = req.body;
 
   if (!schedule_id || !employee_id) {
-    return res
-      .status(400)
-      .json({
-        message: "schedule_id, employee_id required.",
-      });
+    return res.status(400).json({
+      message: "schedule_id, employee_id required.",
+    });
   }
 
   try {
@@ -144,10 +141,7 @@ const addUserToSchedule = async (req, res) => {
         message: "User already working in this time slot.",
       });
     }
-    await db_schedule.addUserToSchedule(
-      schedule_id,
-      employee_id
-    );
+    await db_schedule.addUserToSchedule(schedule_id, employee_id);
     return res.status(200).json({
       message: `User ${employee_id} added to schedule ${schedule_id}`,
     });

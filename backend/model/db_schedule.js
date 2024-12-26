@@ -62,21 +62,23 @@ async function addSchedule(outlet_name, start_time, end_time, vacancy) {
   }
 }
 
-async function getAllSchedules() {
-  const query = "SELECT * FROM schedule";
+async function getAllSchedules(start_date) {
+  const query =
+    "SELECT * FROM schedule WHERE YEAR(start_time) = YEAR(?) AND MONTH(start_time) = MONTH(?);";
   try {
-    const [rows, fields] = await pool.execute(query);
+    const [rows, fields] = await pool.execute(query, [start_date, start_date]);
+    console.log(rows);
     return rows;
   } catch (err) {
     throw new Error(err);
   }
 }
 
-async function getAllSchedulesAndUsers() {
+async function getAllSchedulesAndUsers(start_date) {
   const query =
-    "SELECT s.schedule_id, s.vacancy, s.start_time, s.end_time, s.outlet_name, u.id, u.name FROM schedule s, confirmed_slots c, users u WHERE s.schedule_id = c.schedule_id AND u.id = c.user_id";
+    "SELECT s.schedule_id, s.vacancy, s.start_time, s.end_time, s.outlet_name, u.id, u.name FROM schedule s, confirmed_slots c, users u WHERE s.schedule_id = c.schedule_id AND u.id = c.user_id AND YEAR(start_time) = YEAR(?) AND MONTH(start_time) = MONTH(?)";
   try {
-    const [rows, fields] = await pool.execute(query);
+    const [rows, fields] = await pool.execute(query, [start_date, start_date]);
     return rows;
   } catch (err) {
     throw new Error(err);
