@@ -9,6 +9,7 @@ import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import AdminCalendar from "./pages/AdminCalendar";
 import MyCalendar from "./pages/MyCalendar";
+import LeavesAndOffs from "./pages/LeavesAndOffs";
 import Users from "./pages/Users";
 import HomeGrid from "./components/Home/HomeGrid";
 import Roles from "./pages/Roles";
@@ -41,6 +42,7 @@ function App() {
       <Route path="/" element={user ? <Dashboard /> : <Navigate to="/login" />}>
         <Route index element={<HomeGrid />} />
         <Route path="calendar" element={<MyCalendar />} />
+        <Route path="leaves" element={<LeavesAndOffs />} />
         <Route path="edit-schedule" element={<AdminCalendar />} />
         <Route path="users" element={<Users />} />
         <Route path="signup" element={<SignUp />} />

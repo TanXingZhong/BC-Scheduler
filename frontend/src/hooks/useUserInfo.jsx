@@ -12,6 +12,7 @@ export const useUserInfo = () => {
       email: "",
       role_id: "",
       admin: false,
+      leaves: -1,
       userShifts: [],
     };
   }
@@ -21,10 +22,10 @@ export const useUserInfo = () => {
 
   // Check if UserInfo exists before destructuring
   if (decoded && decoded.UserInfo) {
-    const { name, user_id, email, role_id, admin, userShifts } =
+    const { name, user_id, email, role_id, admin, leaves, userShifts } =
       decoded.UserInfo;
 
-    return { name, user_id, email, role_id, admin, userShifts };
+    return { name, user_id, email, role_id, admin, leaves, userShifts };
   }
 
   // Return default values if decoding fails
@@ -34,6 +35,7 @@ export const useUserInfo = () => {
     email: "",
     role_id: "",
     admin: false,
+    leaves: -1,
     userShifts: [],
   };
 };
