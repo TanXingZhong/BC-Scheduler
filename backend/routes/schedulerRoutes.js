@@ -13,6 +13,7 @@ router
   .delete(schedulerController.deleteSchedules)
   .put(schedulerController.addUserToSchedule);
 
+router.route("/createAdd").post(schedulerController.createSchedulesAddUser);
 router.route("/bydate").post(schedulerController.getAllSchedules);
 
 router

@@ -15,7 +15,7 @@ import {
 import FormLabel from "@mui/material/FormLabel";
 import FormControl from "@mui/material/FormControl";
 import Grid from "@mui/material/Grid2";
-import { forumToSGTime } from "../../config/convertTimeToSGT";
+import { forumToSGDate } from "../../config/convertTimeToSGT";
 
 function UpdateUser({
   open,
@@ -196,7 +196,7 @@ function UpdateUser({
     {
       id: "dob",
       label: "Date of Birth",
-      defaultValue: forumToSGTime(formData.dob),
+      defaultValue: forumToSGDate(formData.dob),
       type: "date",
       error: errorState.dob.error,
       helperText: errorState.dob.message,
@@ -204,7 +204,7 @@ function UpdateUser({
     {
       id: "joinDate",
       label: "Join Date",
-      defaultValue: forumToSGTime(formData.joinDate),
+      defaultValue: forumToSGDate(formData.joinDate),
       type: "date",
     },
     {

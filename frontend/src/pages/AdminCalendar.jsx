@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Grid2,
   Box,
@@ -20,18 +20,26 @@ import { useGetNames } from "../hooks/Calendar/useGetNames";
 import { toSGTimeShort } from "../../config/convertTimeToSGT";
 import { dateTimeToDBDate } from "../../config/convertDateToDB";
 import AllocateSchedule from "../components/AllocateSchedule";
-
-const localizer = momentLocalizer(moment);
+import { useDeleteSchedule } from "../hooks/Calendar/useDeleteSchedule";
 
 export default function AdminCalendar() {
+  const localizer = momentLocalizer(moment);
   const { fetchNames } = useGetNames();
   const { fetchSchedule, isLoading, error } = useGetCalendar();
   const [names, setNames] = useState([]);
   const [schedule, setSchedule] = useState([]);
   const [scheduleAndUsers, setScheduleAndUsers] = useState([]);
-  const [currentDate, setCurrentDate] = useState(new Date()); // Track the visible month
-
-  // Load schedule data when the component mounts
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const {
+    deleteSchedule,
+    isLoading: isLoadingDelete,
+    error: errorDelete,
+  } = useDeleteSchedule();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedDateEvents, setSelectedDateEvents] = useState([]);
+  const selectedSlotsRef = useRef([]);
+  const [isDeleteButtonVisible, setDeleteButtonVisible] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState([]);
   const onLoad = async (start) => {
     try {
       const [scheduleData, namesData] = await Promise.all([
@@ -61,58 +69,49 @@ export default function AdminCalendar() {
   const handleNavigate = (newDate) => {
     setSchedule([]);
     setScheduleAndUsers([]);
+    setSelectedSlot([]);
+    selectedSlotsRef.current = [];
     setCurrentDate(newDate); // Update the visible date
+    if (isDeleteButtonVisible) {
+      setDeleteButtonVisible(false);
+    }
   };
 
   // Transform the schedule data into the format that the calendar can use
-  const transformedDataArray = schedule.reduce((acc, data) => {
-    const emptySlots = Array(data.vacancy)
-      .fill()
-      .map(() => ({
-        title: `EMPTY, ${toSGTimeShort(data.start_time)} - ${toSGTimeShort(
-          data.end_time
-        )}, ${data.outlet_name}`,
-        schedule_id: data.schedule_id,
-        outlet_name: data.outlet_name,
-        start: new Date(data.start_time),
-        end: new Date(data.end_time),
-        start_end_time: `${toSGTimeShort(data.start_time)} - ${toSGTimeShort(
-          data.end_time
-        )}`,
-        vacancy: data.vacancy,
-        employee: "EMPTY",
-        employee_id: "",
-      }));
-
+  const transformedDataArray = schedule.map((data) => {
+    // Find all users scheduled for this slot
     const filledSlots = scheduleAndUsers
       .filter((x) => x.schedule_id === data.schedule_id)
       .map((slot) => ({
-        title: `${slot.name}, ${toSGTimeShort(
-          data.start_time
-        )} - ${toSGTimeShort(data.end_time)}, ${data.outlet_name}`,
-        schedule_id: data.schedule_id,
-        outlet_name: data.outlet_name,
-        start: new Date(data.start_time),
-        end: new Date(data.end_time),
-        start_end_time: `${toSGTimeShort(data.start_time)} - ${toSGTimeShort(
-          data.end_time
-        )}`,
-        vacancy: data.vacancy,
+        id: slot.id,
         employee: slot.name,
-        employee_id: slot.id,
       }));
 
-    return [...acc, ...emptySlots, ...filledSlots];
-  }, []);
+    // Calculate the number of empty slots based on vacancie
+    const emptySlots = Array(data.vacancy)
+      .fill()
+      .map(() => ({
+        id: "",
+        employee: "EMPTY",
+      }));
 
-  // Handle selecting an event
-  const handleSelectEvent = useCallback(
-    (event) => window.alert(event.title),
-    []
-  );
+    // Combine filled and empty slots
+    const combinedSlots = [...filledSlots, ...emptySlots];
 
-  // Handle category toggle (to filter by category)
-
+    return {
+      schedule_id: data.schedule_id,
+      title: `${data.outlet_name}, ${toSGTimeShort(
+        data.start_time
+      )} - ${toSGTimeShort(data.end_time)}`,
+      outlet_name: data.outlet_name,
+      start: new Date(data.start_time),
+      end: new Date(data.end_time),
+      start_time: toSGTimeShort(data.start_time),
+      end_time: toSGTimeShort(data.end_time),
+      vacancy: data.vacancy,
+      array: combinedSlots,
+    };
+  });
   // Publish logic (for modal or other purposes)
   const [openPublish, setOpenPublish] = useState(false);
   const handleClickOpenPublish = () => {
@@ -126,11 +125,12 @@ export default function AdminCalendar() {
   const [uniqueValues, setUniqueValues] = useState({});
   const [showFilterOptions, setShowFilterOptions] = useState(false);
   const [currentFilterColumn, setCurrentFilterColumn] = useState(null);
+
   useEffect(() => {
     const uniqueValuesByColumn = {};
     for (const column of Object.keys(filters)) {
       uniqueValuesByColumn[column] = [
-        ...new Set(transformedDataArray.map((row) => row[column])),
+        ...new Set(transformedDataArray.flatMap((row) => row[column])),
       ];
     }
     setUniqueValues(uniqueValuesByColumn);
@@ -138,18 +138,13 @@ export default function AdminCalendar() {
 
   // Handle filter column selection (toggle filters)
   const handleFilterColumnClick = (column) => {
-    // Only show filter options if not already showing
     setShowFilterOptions(true);
     setCurrentFilterColumn(column);
-
-    // Only initialize the filter if it hasn't been set yet
     setFilters((prevFilters) => {
       if (prevFilters[column]) {
-        // If the filter is already set, do not update it
-        return prevFilters;
+        return prevFilters; // Don't update if already exists
       }
 
-      // Otherwise, initialize it with all values selected (if not already done)
       return {
         ...prevFilters,
         [column]: uniqueValues[column] || [], // Initialize with all values selected
@@ -175,101 +170,102 @@ export default function AdminCalendar() {
     setCurrentFilterColumn(null);
   };
 
+  // Filtered data based on selected filters
   const filteredDataArray = transformedDataArray.filter((event) => {
-    return Object.keys(filters).every(
-      (column) =>
-        !filters[column].length || filters[column].includes(event[column])
-    );
+    return Object.keys(filters).every((column) => {
+      // If the filter applies to an array column (like 'employee'), we need to check the array of objects
+      if (column === "employee") {
+        return (
+          !filters[column].length ||
+          event.array.some((slot) => filters[column].includes(slot.employee))
+        );
+      }
+      // Otherwise, apply the filter on the main column
+      return !filters[column].length || filters[column].includes(event[column]);
+    });
   });
 
-  const CustomEventWrapper = ({ event }) => {
-    const isEventNameEmpty = event.employee === "EMPTY";
-    const eventColor = isEventNameEmpty ? "red" : "green";
-
-    const [openAllocateSchedule, setAllocateSchedule] = useState(false);
-    const [scheduleInfo, setScheduleInfo] = useState([]);
-
-    const handleCloseAllocateSchedule = () => {
-      setAllocateSchedule(false);
-    };
-
-    const handleCardClick = () => {
-      setAllocateSchedule(true);
-      setScheduleInfo(event);
-    };
-    return (
-      <>
-        {openAllocateSchedule && (
-          <AllocateSchedule
-            open={openAllocateSchedule}
-            handleClose={handleCloseAllocateSchedule}
-            scheduleInfo={scheduleInfo}
-            allUsersInfo={names}
-          />
-        )}
-
-        <Card
-          variant="outlined"
-          sx={{
-            fontSize: "10px", // Set font size for Card
-            cursor: "pointer", // Change cursor to pointer to indicate it's clickable
-            alignItems: "center", // Vertically center the content
-            justifyContent: "center", // Horizontally center the content
-
-            transition: "all 0.3s ease", // Smooth transition for hover effect
-            "&:hover": {
-              backgroundColor: "#f0f0f0", // Change background on hover
-              transform: "scale(1.05)", // Slightly enlarge the card on hover
-              boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)", // Add shadow on hover
-            },
-          }}
-          onClick={handleCardClick} // Set the onClick handler
-        >
-          <Typography
-            sx={{
-              fontSize: "10px", // Set font size for Typography
-              color: eventColor, // Change color based on event.employee status
-              textAlign: "center", // Ensure text is centered horizontally
-            }}
-          >
-            {event.title} {/* Display event title */}
-          </Typography>
-        </Card>
-      </>
-    );
-  };
-
   const categories = [
-    {
-      label: "outlet_name",
-      name: "Outlet",
-    },
-    {
-      label: "start_end_time",
-      name: "Shifts",
-    },
-    {
-      label: "employee",
-      name: "Employee",
-    },
+    { label: "outlet_name", name: "Outlet" },
+    { label: "start_time", name: "Shifts" },
+    { label: "employee", name: "Employee" },
   ];
-
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedDateEvents, setSelectedDateEvents] = useState([]);
 
   const handleShowMore = (events, date) => {
     setSelectedDateEvents(events);
     setModalOpen(true);
   };
-
+  const handleDelete = async () => {
+    try {
+      const deletionPromises = selectedSlotsRef.current.map((x) =>
+        deleteSchedule(x.schedule_id)
+      );
+      await Promise.all(deletionPromises);
+      selectedSlotsRef.current = [];
+      if (isDeleteButtonVisible) {
+        setDeleteButtonVisible(false);
+      }
+      onLoad(getMonthRange(currentDate));
+    } catch (error) {
+      console.error("Error deleting schedules", error);
+    }
+  };
+  const [openAllocateSchedule, setOpenAllocateSchedule] = useState(false);
+  const [scheduleInfo, setScheduleInfo] = useState({});
+  const [assigned, setAssigned] = useState([]);
+  const handleCardClick = (event, x) => {
+    setScheduleInfo(event);
+    setAssigned(x);
+    setOpenAllocateSchedule(true);
+  };
+  const handleRefresh = () => {
+    onLoad(getMonthRange(currentDate));
+  };
+  const CustomEventWrapper = ({ event, onCardClick }) => {
+    const title = event.title;
+    const arr = event.array;
+    return (
+      <div>
+        {arr.map((x, index) => (
+          <Card
+            key={index}
+            variant="outlined"
+            sx={{
+              fontSize: "10px",
+              cursor: "pointer",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "all 0.3s ease",
+              "&:hover": {
+                backgroundColor: "#f0f0f0",
+                transform: "scale(1.05)",
+                boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)",
+              },
+            }}
+            onClick={() => onCardClick(event, x)} // Pass the event and the item to the callback
+          >
+            <Typography
+              sx={{
+                fontSize: "10px",
+                color: x.employee == "EMPTY" ? "red" : "green",
+                textAlign: "center",
+              }}
+            >
+              {`${x.employee} - ${title}`} {/* Combine title with each item */}
+            </Typography>
+          </Card>
+        ))}
+      </div>
+    );
+  };
   return (
     <Box
       sx={{
         width: "100%",
         maxWidth: { sm: "100%", md: "1700px" },
         height: "100vh",
-        overflowY: "hidden", // Disable vertical scrollbar
-        overflowX: "auto", // Enable horizontal scrollbar if necessary
+        overflowY: "scroll",
+        scrollbarWidth: "none",
       }}
     >
       <Grid2 container spacing={2} sx={{ marginBottom: "10px" }}>
@@ -291,7 +287,16 @@ export default function AdminCalendar() {
         </Grid2>
 
         <Grid2 sx={{ marginLeft: "auto" }}>
-          <Button onClick={handleClickOpenPublish} variant="outlined">
+          {isDeleteButtonVisible && (
+            <Button onClick={handleDelete} variant="outlined">
+              Delete
+            </Button>
+          )}
+          <Button
+            onClick={handleClickOpenPublish}
+            variant="outlined"
+            sx={{ marginLeft: "10px" }} // Adds space between buttons
+          >
             Publish
           </Button>
         </Grid2>
@@ -317,19 +322,65 @@ export default function AdminCalendar() {
         </>
       )}
 
+      {openAllocateSchedule && (
+        <AllocateSchedule
+          open={openAllocateSchedule}
+          handleClose={() => setOpenAllocateSchedule(false)}
+          scheduleInfo={scheduleInfo}
+          allUsersInfo={names}
+          assigned={assigned}
+          refresh={handleRefresh}
+        />
+      )}
+
       <Calendar
         localizer={localizer}
         events={filteredDataArray}
         defaultView="month"
         style={{ height: "100%" }}
         views={["month", "agenda"]}
-        components={{
-          eventWrapper: (props) => <CustomEventWrapper {...props} />,
+        onSelectSlot={(slotInfo) => {
+          const { start, end, slots } = slotInfo;
+          const selectedEvents = filteredDataArray.filter(
+            (event) =>
+              new Date(event.start) >= new Date(start) &&
+              new Date(event.end) <= new Date(end)
+          );
+          setSelectedSlot(slots);
+          selectedSlotsRef.current = selectedEvents;
+          if (selectedEvents.length > 0) {
+            setDeleteButtonVisible(true);
+          } else {
+            setDeleteButtonVisible(false);
+          }
         }}
+        dayPropGetter={(date) => {
+          const isSelected = selectedSlot.some((slot) =>
+            moment(slot).isSame(date, "day")
+          );
+          return {
+            style: {
+              border: isSelected ? "0.1px solid #1890ff" : undefined,
+            },
+          };
+        }}
+        components={{
+          eventWrapper: (props) => (
+            <CustomEventWrapper {...props} onCardClick={handleCardClick} />
+          ),
+        }}
+        selectable
         onNavigate={handleNavigate}
         onShowMore={handleShowMore}
       />
-      <Publish open={openPublish} handleClose={handleClosePublish} />
+
+      <Publish
+        open={openPublish}
+        handleClose={handleClosePublish}
+        names={names}
+        refresh={handleRefresh}
+      />
+
       <Dialog
         open={modalOpen}
         onClose={() => setModalOpen(false)}

@@ -46,7 +46,6 @@ async function checkVacantSchedule(schedule_id) {
 }
 
 async function addSchedule(outlet_name, start_time, end_time, vacancy) {
-  const empty = JSON.stringify({ body: [] });
   const query =
     "INSERT INTO schedule (outlet_name, start_time, end_time, vacancy) VALUES (?, ?, ?, ?)";
   try {
@@ -67,7 +66,6 @@ async function getAllSchedules(start_date) {
     "SELECT * FROM schedule WHERE YEAR(start_time) = YEAR(?) AND MONTH(start_time) = MONTH(?);";
   try {
     const [rows, fields] = await pool.execute(query, [start_date, start_date]);
-    console.log(rows);
     return rows;
   } catch (err) {
     throw new Error(err);
@@ -108,10 +106,9 @@ async function getScheduleById(schedule_id) {
 
 async function getUserByScheduleId(schedule_id) {
   const query =
-    "SELECT u.id, u.email  FROM confirmed_slots c, users u WHERE schedule_id = ? AND c.user_id = u.id";
+    "SELECT u.id, u.name  FROM confirmed_slots c, users u WHERE schedule_id = ? AND c.user_id = u.id";
   try {
     const [rows, fields] = await pool.execute(query, [schedule_id]);
-
     return rows;
   } catch (err) {
     throw new Error(err);
@@ -127,10 +124,27 @@ async function updateSchedule(
 ) {
   const query =
     "UPDATE schedule SET outlet_name = ?, start_time = ?, end_time = ?, vacancy = ? WHERE schedule_id = ?";
-
   try {
     const schedule = await getScheduleById(schedule_id);
-
+    if (
+      new Date(start_time).toISOString() !=
+        schedule[0].start_time.toISOString() ||
+      new Date(end_time).toISOString() != schedule[0].end_time.toISOString()
+    ) {
+      const users = await getUserByScheduleId(schedule_id);
+      for (let i = 0; i < users.length; i++) {
+        const shifts = await getAllShiftsByUser(users[i].id);
+        const conflict = await checkConflictsUpdateVer(
+          shifts,
+          start_time,
+          end_time,
+          schedule_id
+        );
+        if (conflict) {
+          throw new Error("Shifts conflict");
+        }
+      }
+    }
     const [rows, fields] = await pool.execute(query, [
       outlet_name,
       start_time,
@@ -144,7 +158,30 @@ async function updateSchedule(
   }
 }
 
+async function checkConflictsUpdateVer(
+  shifts,
+  start_time,
+  end_time,
+  schedule_id
+) {
+  const lt = new Date(start_time),
+    rt = new Date(end_time);
+
+  for (let i = 0; i < shifts.length; i++) {
+    const shift = shifts[i];
+    if (shift.schedule_id == schedule_id) continue;
+    const ls = new Date(shift.start_time),
+      rs = new Date(shift.end_time);
+
+    if (lt >= ls && lt < rs) return true;
+    if (rt > ls && rt <= rs) return true;
+    if (lt <= ls && rt >= rs) return true;
+  }
+  return false;
+}
+
 async function addUserToSchedule(schedule_id, id) {
+  console.log(schedule_id, id);
   try {
     const schedule = await getScheduleById(schedule_id);
 

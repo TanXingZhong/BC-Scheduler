@@ -10,6 +10,7 @@ async function checkConflicts(shifts, start_time, end_time) {
 
   for (let i = 0; i < shifts.length; i++) {
     const shift = shifts[i];
+    console.log(shifts);
     const ls = new Date(shift.start_time),
       rs = new Date(shift.end_time);
 
@@ -152,58 +153,6 @@ async function checkUserExists(email) {
   }
 }
 
-// async function addScheduleToUser(id, schedule_id, start_time, end_time) {
-//   try {
-//     console.log("Adding schedule to user");
-//     console.log(id, schedule_id, start_time, end_time);
-
-//     const user = await getUserByid(id);
-
-//     if (checkConflicts(user[0].shifts.body, start_time, end_time)) {
-//       throw new Error("Shifts conflict");
-//     }
-
-//     const shifts = user[0].shifts;
-
-//     shifts.body.push({
-//       schedule_id: schedule_id,
-//       start_time: start_time,
-//       end_time: end_time,
-//     });
-//     const shifts_json = JSON.stringify(shifts);
-//     const query = "UPDATE users SET shifts = ? WHERE id = ?";
-//     const values = [shifts_json, id];
-//     const [result] = await pool.execute(query, values);
-//     console.log("Schedule added to user successfully", result);
-
-//     return result;
-//   } catch (err) {
-//     throw new Error(err);
-//   }
-// }
-
-async function removeScheduleFromUser(id, schedule_id) {
-  try {
-    const user = await getUserByid(id);
-    const shifts = user[0].shifts;
-
-    const newShifts = shifts.body.filter(
-      (shift) => shift.schedule_id != schedule_id
-    );
-    shifts.body = newShifts;
-    const shifts_json = JSON.stringify(shifts);
-
-    const query = "UPDATE users SET shifts = ? WHERE id = ?";
-    const values = [shifts_json, id];
-    const [result] = await pool.execute(query, values);
-    console.log("Schedule removed from user successfully", result);
-
-    return result;
-  } catch (err) {
-    throw new Error(err);
-  }
-}
-
 // Add new user to the database
 async function addUser(
   name,
@@ -304,7 +253,6 @@ module.exports = {
   getAllUsersNames,
   checkUserExists,
   getAllRoles,
-  removeScheduleFromUser,
   comparePassword,
   getAllUsers,
   getUserByid,
@@ -312,5 +260,5 @@ module.exports = {
   addUser,
   updateUser,
   deleteUser,
-  checkConflicts
+  checkConflicts,
 };

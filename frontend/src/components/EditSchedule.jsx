@@ -13,35 +13,18 @@ import PropTypes from "prop-types";
 import FormLabel from "@mui/material/FormLabel";
 import FormControl from "@mui/material/FormControl";
 import Grid from "@mui/material/Grid2";
-import { toSGDate } from "../../config/convertTimeToSGT";
-import { useAssignEmployee } from "../hooks/Calendar/useAssignEmployee";
-import { useDeleteSchedule } from "../hooks/Calendar/useDeleteSchedule";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
-import IconButton from "@mui/material/IconButton";
-import EditSchedule from "./EditSchedule";
+import { forumToSGTime, forumToSGDate } from "../../config/convertTimeToSGT";
+import { useEditSchedule } from "../hooks/Calendar/useEditSchedule";
+import { dateToDBDate, dateTimeToDBDate } from "../../config/convertDateToDB";
 
-function AllocateSchedule({
-  open,
-  handleClose,
-  scheduleInfo,
-  allUsersInfo,
-  assigned,
-  refresh,
-}) {
-  const { assignEmployee, isLoading, error } = useAssignEmployee();
-  const {
-    deleteSchedule,
-    isLoading: isLoadingDelete,
-    error: errorDelete,
-  } = useDeleteSchedule();
-  const [formData, setFormData] = useState(scheduleInfo || {});
-  const transformDataForUserInfo = allUsersInfo.map((x) => {
-    return {
-      value: x.id,
-      label: `${x.name} (${x.role_name})`,
-    };
-  });
+function EditSchedule({ open, handleClose, scheduleInfo, refresh }) {
+  const { editSchedule, isLoading, error } = useEditSchedule();
+  const [formData, setFormData] = useState({});
+  useEffect(() => {
+    if (scheduleInfo) {
+      setFormData(scheduleInfo);
+    }
+  }, [scheduleInfo]);
 
   const [errorState, setErrorState] = useState({
     employee_id: { error: false, message: "" },
@@ -55,12 +38,12 @@ function AllocateSchedule({
 
   const validateInputs = () => {
     let isValid = true;
-    if (!formData.employee_id) {
-      setError("employee_id", true, "Employee is required.");
-      isValid = false;
-    } else {
-      setError("employee_id", false, "");
-    }
+    // if (!formData.employee_id) {
+    //   setError("employee_id", true, "Employee is required.");
+    //   isValid = false;
+    // } else {
+    //   setError("employee_id", false, "");
+    // }
 
     return isValid;
   };
@@ -70,58 +53,70 @@ function AllocateSchedule({
     if (!validateInputs()) {
       return;
     }
-    const sche_Id = scheduleInfo.schedule_id;
-    const employee_id = formData.employee_id;
-    await assignEmployee(sche_Id, employee_id);
-    await refresh();
+    console.log(
+      formData.schedule_id,
+      formData.outlet_name,
+      dateToDBDate(formData.start) + " " + formData.start_time,
+      dateToDBDate(formData.start) + " " + formData.end_time,
+      formData.vacancy
+    );
+    await editSchedule(
+      formData.schedule_id,
+      formData.outlet_name,
+      dateToDBDate(formData.start) + " " + formData.start_time,
+      dateToDBDate(formData.start) + " " + formData.end_time,
+      formData.vacancy
+    );
+    refresh();
     handleClose();
   };
+
   const formFieldsLeft = [
-    {
-      id: "employee_id",
-      label: "Employee",
-      type: "select",
-      value: formData.employee_id || "",
-      options: transformDataForUserInfo,
-      error: errorState.employee_id.error,
-      helperText: errorState.employee_id.message,
-    },
     {
       id: "outlet_name",
       label: "Outlet",
       defaultValue: scheduleInfo.outlet_name,
-      isEditable: false,
+      error: errorState.employee_id.error,
+      helperText: errorState.employee_id.message,
+    },
+    {
+      id: "start_time",
+      label: "Shift Start",
+      type: "time",
+      value: forumToSGTime(scheduleInfo.start),
+      defaultValue: forumToSGTime(scheduleInfo.start),
+      error: errorState.employee_id.error,
+      helperText: errorState.employee_id.message,
+    },
+    {
+      id: "vacancy",
+      label: "Vacancy",
+      defaultValue: scheduleInfo.vacancy,
+      error: errorState.employee_id.error,
+      helperText: errorState.employee_id.message,
     },
   ];
   const formFieldsRight = [
     {
-      id: "date",
+      id: "start",
       label: "Date",
-      defaultValue: toSGDate(scheduleInfo.start),
-      isEditable: false,
+      type: "Date",
+      value: forumToSGDate(scheduleInfo.start),
+      defaultValue: forumToSGDate(scheduleInfo.start),
+      error: errorState.employee_id.error,
+      helperText: errorState.employee_id.message,
     },
+
     {
-      id: "time",
-      label: "Time",
-      defaultValue: scheduleInfo.start_time + " - " + scheduleInfo.end_time,
-      isEditable: false,
+      id: "end_time",
+      label: "Shift Ends",
+      type: "time",
+      value: forumToSGTime(scheduleInfo.end),
+      defaultValue: forumToSGTime(scheduleInfo.end),
+      error: errorState.employee_id.error,
+      helperText: errorState.employee_id.message,
     },
   ];
-
-  const [openEdit, setOpenEdit] = useState(false);
-  const handleCloseEdit = () => {
-    setOpenEdit(false);
-    handleClose();
-  };
-  const handleEdit = (x) => {
-    setOpenEdit(true); // Open the edit modal
-  };
-
-  const handleDelete = async () => {
-    await deleteSchedule(scheduleInfo.schedule_id);
-    await refresh();
-  };
-
   return (
     <Dialog
       open={open}
@@ -132,35 +127,22 @@ function AllocateSchedule({
         }
         handleClose;
       }}
-      aria-labelledby="create-role-dialog-title"
-      PaperProps={{
-        component: "form",
-        onSubmit: handleSubmit,
-        sx: { backgroundImage: "none" },
-      }}
+      aria-labelledby="edit-shift-dialog-title"
     >
       <DialogTitle
-        id="create-role-dialog-title"
+        id="edit-shift-dialog-title"
         sx={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
         }}
       >
-        Assign Employee
-        <div>
-          <IconButton aria-label="edit" onClick={handleEdit}>
-            <EditIcon />
-          </IconButton>
-          <IconButton aria-label="delete" onClick={handleDelete}>
-            <DeleteIcon />
-          </IconButton>
-        </div>
+        Edit Shift
       </DialogTitle>
       <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        <Typography>Current Slot: {assigned.employee}</Typography>
         <Typography>
-          Shift Assigned: {scheduleInfo.array.map((x) => x.employee).join(", ")}
+          Current Assigned: {scheduleInfo.employee} || {scheduleInfo.vacancy}{" "}
+          Empty
         </Typography>
         <Grid container spacing={5}>
           <Grid size={{ xs: 12, md: 6 }}>
@@ -198,14 +180,12 @@ function AllocateSchedule({
                     defaultValue={field.defaultValue}
                     type={field.type}
                     placeholder={field.placeholder}
+                    onChange={(e) =>
+                      setFormData({ ...formData, [field.id]: e.target.value })
+                    }
                     error={field.error}
                     helperText={field.helperText}
                     color={field.error ? "error" : "primary"}
-                    slotProps={{
-                      input: {
-                        readOnly: !field.isEditable,
-                      },
-                    }}
                   />
                 )}
               </FormControl>
@@ -218,20 +198,18 @@ function AllocateSchedule({
                 <TextField
                   autoComplete={field.id}
                   name={field.id}
-                  fullWidth
-                  defaultValue={field.defaultValue}
-                  options={field.options}
-                  type={field.type}
                   id={field.id}
+                  fullWidth
+                  variant="outlined"
+                  defaultValue={field.defaultValue}
+                  type={field.type}
                   placeholder={field.placeholder}
+                  onChange={(e) =>
+                    setFormData({ ...formData, [field.id]: e.target.value })
+                  }
                   error={field.error}
                   helperText={field.helperText}
                   color={field.error ? "error" : "primary"}
-                  slotProps={{
-                    input: {
-                      readOnly: !field.isEditable,
-                    },
-                  }}
                 />
               </FormControl>
             ))}
@@ -240,26 +218,17 @@ function AllocateSchedule({
       </DialogContent>
       <DialogActions sx={{ pb: 3, px: 3 }}>
         <Button onClick={handleClose}>Cancel</Button>
-        <Button variant="contained" type="submit">
-          Assign
+        <Button variant="contained" onClick={handleSubmit}>
+          Edit
         </Button>
       </DialogActions>
-
-      {openEdit && (
-        <EditSchedule
-          open={openEdit}
-          handleClose={handleCloseEdit}
-          scheduleInfo={formData}
-          refresh={refresh}
-        />
-      )}
     </Dialog>
   );
 }
 
-AllocateSchedule.propTypes = {
+EditSchedule.propTypes = {
   open: PropTypes.bool.isRequired,
   handleClose: PropTypes.func.isRequired,
 };
 
-export default AllocateSchedule;
+export default EditSchedule;

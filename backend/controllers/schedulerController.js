@@ -24,8 +24,6 @@ const getAllSchedules = async (req, res) => {
 // @route POST /schedule
 // @access Private
 const createSchedules = async (req, res) => {
-  console.log("receved");
-
   const { outlet_name, start_time, end_time, vacancy } = req.body;
 
   // Confirm data
@@ -46,6 +44,35 @@ const createSchedules = async (req, res) => {
   }
 };
 
+const createSchedulesAddUser = async (req, res) => {
+  const { outlet_name, start_time, end_time, vacancy, user_id } = req.body;
+  // Confirm data
+  if (!outlet_name || !start_time || !end_time || !vacancy) {
+    return res.status(400).json({
+      message: "outlet_name, start_time, end_time, and vacancy required.",
+    });
+  }
+  // Create and store new schedule
+  try {
+    const rows = await db_schedule.addSchedule(
+      outlet_name,
+      start_time,
+      end_time,
+      vacancy
+    );
+    const schedule_id = rows.insertId;
+    for (user of user_id) {
+      await db_schedule.addUserToSchedule(schedule_id, user);
+    }
+    return res.status(201).json({
+      message: `New schedule at ${outlet_name} from ${start_time} to ${end_time} and assigned!`,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Error creating new schedule." });
+  }
+};
+
 // @desc Update a schedule
 // @route PATCH /schedule
 // @access Private
@@ -53,7 +80,7 @@ const updateSchedules = async (req, res) => {
   const { schedule_id, outlet_name, start_time, end_time, vacancy } = req.body;
 
   // Confirm data
-  if (!schedule_id || !outlet_name || !start_time || !end_time || !vacancy) {
+  if (!schedule_id || !outlet_name || !start_time || !end_time || vacancy < 0) {
     return res
       .status(400)
       .json({ message: "Missing Informations to update schedule" });
@@ -118,7 +145,7 @@ const deleteSchedules = async (req, res) => {
       .json({ message: `Schedule ${schedule_id} deleted!` });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: "Error deleting user." });
+    return res.status(500).json({ message: "Error deleting schedule." });
   }
 };
 
@@ -157,4 +184,5 @@ module.exports = {
   updateSchedules,
   deleteSchedules,
   addUserToSchedule,
+  createSchedulesAddUser,
 };

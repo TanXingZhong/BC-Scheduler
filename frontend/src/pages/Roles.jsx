@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import Search from "../components/Search";
 import { useGetRoles } from "../hooks/Roles/useGetRoles";
-import CorfirmationToDeleteRole from "../components/CorfirmationToDeleteROle";
+import CorfirmationToDeleteRole from "../components/CorfirmationToDeleteRole";
 import { useDeleteRole } from "../hooks/Roles/useDeleteRole";
 import PeopleRoundedIcon from "@mui/icons-material/PeopleRounded";
 import ViewMember from "../components/ViewMember";

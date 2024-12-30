@@ -39,7 +39,7 @@ export const toSGTime = (date) => {
   return singaporeTime;
 };
 
-export const forumToSGTime = (date) => {
+export const forumToSGDate = (date) => {
   const options = {
     timeZone: default_time_zone,
     year: "numeric",
@@ -53,6 +53,24 @@ export const forumToSGTime = (date) => {
   // Return in yyyy-mm-dd format
   const [day, month, year] = singaporeDate.split("/");
   return `${year}-${month}-${day}`; // Reformat to yyyy-mm-dd
+};
+
+export const forumToSGTime = (date) => {
+  const options = {
+    timeZone: default_time_zone,
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  };
+
+  // Format the date in Singapore Time (SGT)
+  const singaporeTime = new Intl.DateTimeFormat("en-GB", options).format(
+    new Date(date)
+  );
+
+  // Return the time in HH:mm:ss format
+  return singaporeTime;
 };
 
 export const toSGTimeShort = (date) => {

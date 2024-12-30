@@ -1,26 +1,35 @@
 import { useState } from "react";
 import {
   Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
+  MenuItem,
+  Chip,
+  OutlinedInput,
+  Select,
   TextField,
+  Box,
 } from "@mui/material";
 import PropTypes from "prop-types";
-import FormLabel from "@mui/material/FormLabel";
-import FormControl from "@mui/material/FormControl";
 import Grid from "@mui/material/Grid2";
 import { useCreateSchedule } from "../hooks/Calendar/useCreateSchedule";
+import { useCreateAdd } from "../hooks/Calendar/useCreateAdd";
 
-function Publish({ open, handleClose }) {
+function Publish({ open, handleClose, names, refresh }) {
   const [errorState, setErrorState] = useState({
     outlet_name: { error: false, message: "" },
     vacancy: { error: false, message: "" },
-    start_date: { error: false, message: "" },
-    end_date: { error: false, message: "" },
+    date: { error: false, message: "" },
     start_time: { error: false, message: "" },
     end_time: { error: false, message: "" },
+    cycleStart: { error: false, message: "" },
+    cycleEnd: { error: false, message: "" },
   });
   const setError = (field, error, message) => {
     setErrorState((prevState) => ({
@@ -28,13 +37,50 @@ function Publish({ open, handleClose }) {
       [field]: { error, message },
     }));
   };
+  const [repeat, setRepeat] = useState("Never");
+  const [selectedDays, setSelectedDays] = useState([]);
+  const [cycleStart, setCycleStart] = useState("");
+  const [cycleEnd, setCycleEnd] = useState("");
+  const [employee, setEmployee] = useState([]);
+  const { createSchedule, error, isLoading } = useCreateSchedule();
+
+  const reset = () => {
+    setRepeat("Never");
+    setSelectedDays([]);
+    setCycleStart("");
+    setCycleEnd("");
+    setEmployee([]);
+  };
+  const {
+    createAdd,
+    error: createAddError,
+    isLoading: createAddLoading,
+  } = useCreateAdd();
+
+  const handleChange = (event) => {
+    setEmployee(event.target.value);
+  };
+
+  const handleDaySelection = (day) => {
+    setSelectedDays((prevDays) =>
+      prevDays.includes(day)
+        ? prevDays.filter((d) => d !== day)
+        : [...prevDays, day]
+    );
+  };
+
+  const transformDataForUserInfo = names.map((x) => {
+    return {
+      value: x.id,
+      label: `${x.name} (${x.role_name})`,
+    };
+  });
 
   const validateInputs = () => {
     const fields = [
       { id: "outlet_name", errorMessage: "Outlet name is required." },
       { id: "vacancy", errorMessage: "Vacancy is required." },
-      { id: "start_date", errorMessage: "Start date is required." },
-      { id: "end_date", errorMessage: "End date is required." },
+      { id: "date", errorMessage: "Date is required." },
       { id: "start_time", errorMessage: "Start time is required." },
       { id: "end_time", errorMessage: "End time is required." },
     ];
@@ -43,54 +89,162 @@ function Publish({ open, handleClose }) {
 
     fields.forEach((field) => {
       const element = document.getElementById(field.id);
-      if (!element.value || element.value.length < 1) {
+      if (!element || !element.value || element.value.length < 1) {
         setError(field.id, true, field.errorMessage);
         isValid = false;
       } else {
         setError(field.id, false, "");
       }
+      const startDateObj = new Date(cycleStart);
+      const endDateObj = new Date(cycleEnd);
+      const diffInDays = Math.floor(endDateObj - startDateObj);
+      const startTime = document.getElementById("start_time").value;
+      const endTime = document.getElementById("end_time").value;
+      const [startHours, startMinutes] = startTime.split(":").map(Number);
+      const [endHours, endMinutes] = endTime.split(":").map(Number);
+      const startTotalMinutes = startHours * 60 + startMinutes;
+      const endTotalMinutes = endHours * 60 + endMinutes;
+      if (repeat !== "Never") {
+        if (!cycleStart || cycleStart.length < 1) {
+          setError("cycleStart", true, "Date is required.");
+          isValid = false;
+        } else {
+          setError("cycleStart", false, "");
+        }
+        if (!cycleEnd || cycleEnd.length < 1) {
+          setError("cycleEnd", true, "Date is required.");
+          isValid = false;
+        } else {
+          setError("cycleEnd", false, "");
+        }
+        if (diffInDays < 0) {
+          setError("cycleEnd", true, "Date should be after cycle start date.");
+          isValid = false;
+        }
+        if (startTotalMinutes > endTotalMinutes) {
+          setError("end_time", true, "End time should be after start time.");
+          isValid = false;
+        }
+      }
+      if (document.getElementById("vacancy").value <= 0) {
+        setError("vacancy", true, "Vacancy should be more then 1.");
+        isValid = false;
+      }
+      if (document.getElementById("vacancy").value < employee.length) {
+        setError(
+          "vacancy",
+          true,
+          "Vacancy should be more than the number of employees assigned."
+        );
+        isValid = false;
+      }
     });
-
     return isValid;
   };
-  const { createSchedule, error, isLoading } = useCreateSchedule();
+
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const isValid = validateInputs();
-    if (!isValid) {
+    if (!validateInputs()) {
       return;
     }
-    // const role_name = document.getElementById("role_name").value;
-    const outlet_name = document.getElementById("outlet_name").value;
-    const start_date = document.getElementById("start_date").value;
-    const end_date = document.getElementById("end_date").value;
-    const start_time = document.getElementById("start_time").value;
-    const end_time = document.getElementById("end_time").value;
-    const vacancy = document.getElementById("vacancy").value;
-    const startDateObj = new Date(start_date);
-    const endDateObj = new Date(end_date);
-    const amt = endDateObj - startDateObj;
-    const diffInDays = amt / (1000 * 60 * 60 * 24);
+
     const schedulePromisesArr = [];
-    for (let i = 0; i <= diffInDays; i++) {
-      const date = new Date(start_date);
-      date.setDate(date.getDate() + i);
-      const formatted_date = date.toISOString().split("T")[0];
-      const schedulePromise = createSchedule(
-        outlet_name,
-        formatted_date + " " + start_time,
-        formatted_date + " " + end_time,
-        vacancy
+    const outletName = document.getElementById("outlet_name").value.trim();
+    const date = document.getElementById("date").value;
+    const startTime = document.getElementById("start_time").value;
+    const endTime = document.getElementById("end_time").value;
+    const vacancy = parseInt(document.getElementById("vacancy").value);
+
+    const dateObj = new Date(date);
+    const formattedDate = dateObj.toISOString().split("T")[0];
+    if (employee.length > 0) {
+      schedulePromisesArr.push(
+        createAdd(
+          outletName,
+          `${formattedDate} ${startTime}`,
+          `${formattedDate} ${endTime}`,
+          vacancy,
+          employee
+        )
       );
-      schedulePromisesArr.push(schedulePromise);
+    } else {
+      schedulePromisesArr.push(
+        createSchedule(
+          outletName,
+          `${formattedDate} ${startTime}`,
+          `${formattedDate} ${endTime}`,
+          vacancy
+        )
+      );
+    }
+
+    const dayMapping = {
+      Sun: 0,
+      Mon: 1,
+      Tue: 2,
+      Wed: 3,
+      Thu: 4,
+      Fri: 5,
+      Sat: 6,
+    };
+    const validDays = selectedDays.map((day) => dayMapping[day]);
+    const startDateObj = new Date(cycleStart);
+    const endDateObj = new Date(cycleEnd);
+
+    const diffInDays = Math.floor(
+      (endDateObj - startDateObj) / (1000 * 60 * 60 * 24)
+    );
+    const interval =
+      repeat === "Every Week"
+        ? 7
+        : repeat === "Every 2 Weeks"
+        ? 14
+        : repeat === "Every 3 Weeks"
+        ? 21
+        : 1;
+    for (let i = 0; i <= diffInDays; i += interval) {
+      for (let j = i; j < i + 7 && j <= diffInDays; j++) {
+        const currentDay = new Date(startDateObj);
+        currentDay.setDate(currentDay.getDate() + j);
+        if (
+          !validDays.includes(currentDay.getDay()) ||
+          currentDay.toISOString() == dateObj.toISOString()
+        ) {
+          continue;
+        }
+        const currentFormattedDate = currentDay.toISOString().split("T")[0];
+        if (employee.length > 0) {
+          schedulePromisesArr.push(
+            createAdd(
+              outletName,
+              `${currentFormattedDate} ${startTime}`,
+              `${currentFormattedDate} ${endTime}`,
+              vacancy,
+              employee
+            )
+          );
+        } else {
+          schedulePromisesArr.push(
+            createSchedule(
+              outletName,
+              `${currentFormattedDate} ${startTime}`,
+              `${currentFormattedDate} ${endTime}`,
+              vacancy
+            )
+          );
+        }
+      }
     }
     try {
       await Promise.all(schedulePromisesArr);
+      await refresh();
+      reset();
+      handleClose();
     } catch (error) {
       console.error("Error creating schedules:", error);
     }
-    handleClose();
   };
+
   const formFieldsLeft = [
     {
       id: "outlet_name",
@@ -99,35 +253,29 @@ function Publish({ open, handleClose }) {
       helperText: errorState.outlet_name.message,
     },
     {
-      id: "start_date",
-      label: "From",
-      type: "date",
-      error: errorState.start_date.error,
-      helperText: errorState.start_date.message,
-    },
-    {
       id: "start_time",
       label: "Shift Start",
       type: "time",
       error: errorState.start_time.error,
       helperText: errorState.start_time.message,
     },
+    {
+      id: "assign",
+      label: "Employee",
+      type: "select",
+      value: employee,
+      options: transformDataForUserInfo,
+      error: errorState.end_time.error,
+      helperText: errorState.end_time.message,
+    },
   ];
   const formFieldsRight = [
     {
-      id: "vacancy",
-      label: "Vacancy",
-      placeholder: "1",
-      type: "number",
-      error: errorState.vacancy.error,
-      helperText: errorState.vacancy.message,
-    },
-    {
-      id: "end_date",
-      label: "To",
+      id: "date",
+      label: "Date",
       type: "date",
-      error: errorState.end_date.error,
-      helperText: errorState.end_date.message,
+      error: errorState.date.error,
+      helperText: errorState.date.message,
     },
     {
       id: "end_time",
@@ -136,16 +284,24 @@ function Publish({ open, handleClose }) {
       error: errorState.end_time.error,
       helperText: errorState.end_time.message,
     },
+    {
+      id: "vacancy",
+      label: "Vacancy",
+      placeholder: "1",
+      type: "number",
+      error: errorState.vacancy.error,
+      helperText: errorState.vacancy.message,
+    },
   ];
   return (
     <Dialog
       open={open}
       onClose={(_, reason) => {
-        // Prevent closing on backdrop click or escape
         if (reason === "backdropClick" || reason === "escapeKeyDown") {
           return;
         }
-        handleClose;
+        reset();
+        handleClose();
       }}
       aria-labelledby="create-role-dialog-title"
       PaperProps={{
@@ -155,28 +311,50 @@ function Publish({ open, handleClose }) {
       }}
     >
       <DialogTitle id="create-role-dialog-title">Create Schedule</DialogTitle>
-      <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+      <DialogContent sx={{ gap: 2 }}>
         <Grid container spacing={5}>
-          <Grid size={{ xs: 12, md: 6 }}>
+          <Grid
+            size={{
+              xs: 12,
+              md: 6,
+            }}
+          >
             {formFieldsLeft.map((field) => (
               <FormControl key={field.id} fullWidth sx={{ marginBottom: 2 }}>
                 <FormLabel htmlFor={field.id}>{field.label}</FormLabel>
-                {field.type == "select" ? (
-                  <TextField
-                    required
+                {field.type === "select" ? (
+                  <Select
+                    size="auto"
+                    labelId={field.id}
                     id={field.id}
-                    name={field.id}
-                    select
+                    multiple
                     value={field.value}
-                    onChange={(e) => setSex(e.target.value)}
-                    fullWidth
+                    onChange={handleChange}
+                    input={
+                      <OutlinedInput id="select-multiple-chip" label="Chip" />
+                    }
+                    renderValue={(selected) => (
+                      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                        {selected.map((id) => {
+                          const selectedOption = field.options.find(
+                            (option) => option.value === id
+                          );
+                          return (
+                            <Chip
+                              key={id}
+                              label={selectedOption ? selectedOption.label : id}
+                            />
+                          );
+                        })}
+                      </Box>
+                    )}
                   >
                     {field.options.map((option) => (
                       <MenuItem key={option.value} value={option.value}>
                         {option.label}
                       </MenuItem>
                     ))}
-                  </TextField>
+                  </Select>
                 ) : (
                   <TextField
                     autoComplete={field.id}
@@ -216,9 +394,79 @@ function Publish({ open, handleClose }) {
             ))}
           </Grid>
         </Grid>
+        <FormControl fullWidth>
+          <FormLabel>Repeat</FormLabel>
+          <TextField
+            select
+            value={repeat}
+            onChange={(e) => setRepeat(e.target.value)}
+          >
+            <MenuItem value="Never">Never</MenuItem>
+            <MenuItem value="Every Week">Every Week</MenuItem>
+            <MenuItem value="Every 2 Weeks">Every 2 Weeks</MenuItem>
+            <MenuItem value="Every 3 Weeks">Every 3 Weeks</MenuItem>
+          </TextField>
+        </FormControl>
+
+        {repeat !== "Never" && (
+          <>
+            <FormControl component="fieldset" sx={{ mt: 2 }}>
+              <FormLabel component="legend">Days of the Week</FormLabel>
+              <Grid container spacing={1}>
+                {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
+                  (day) => (
+                    <Grid key={day}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={selectedDays.includes(day)}
+                            onChange={() => handleDaySelection(day)}
+                          />
+                        }
+                        label={day}
+                      />
+                    </Grid>
+                  )
+                )}
+              </Grid>
+            </FormControl>
+
+            <Grid container spacing={2} sx={{ mt: 1 }}>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <FormLabel>Cycle Start</FormLabel>
+                <TextField
+                  type="date"
+                  fullWidth
+                  error={errorState.cycleStart.error}
+                  helperText={errorState.cycleStart.message}
+                  value={cycleStart}
+                  onChange={(e) => setCycleStart(e.target.value)}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <FormLabel>Cycle End</FormLabel>
+                <TextField
+                  type="date"
+                  fullWidth
+                  error={errorState.cycleEnd.error}
+                  helperText={errorState.cycleEnd.message}
+                  value={cycleEnd}
+                  onChange={(e) => setCycleEnd(e.target.value)}
+                />
+              </Grid>
+            </Grid>
+          </>
+        )}
       </DialogContent>
       <DialogActions sx={{ pb: 3, px: 3 }}>
-        <Button onClick={handleClose}>Cancel</Button>
+        <Button
+          onClick={() => {
+            reset();
+            handleClose();
+          }}
+        >
+          Cancel
+        </Button>
         <Button variant="contained" type="submit">
           Create
         </Button>
