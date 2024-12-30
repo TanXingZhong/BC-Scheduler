@@ -260,13 +260,11 @@ export default function leaveApplication(props) {
     <AppTheme {...props}>
       <CssBaseline enableColorScheme />
       <LeavesAndOffsContainer direction="column" justifyContent="space-between">
-        <Card>
+        <Card variant="outlined">
           <Typography>
             Leave Balance: {userInfo ? userInfo.leaves : 0}
           </Typography>
           <Typography>Offs Balance: {userInfo ? userInfo.offs : 0}</Typography>
-        </Card>
-        <Card variant="outlined">
           <Typography
             component="h1"
             variant="h4"

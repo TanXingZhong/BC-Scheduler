@@ -13,12 +13,12 @@ import { Link } from "react-router-dom";
 const mainListItems = [
   { text: "Home", icon: <HomeRoundedIcon />, path: "/" },
   { text: "Calendar", icon: <PeopleRoundedIcon />, path: "/calendar" },
-  { text: "Leaves", icon: <PeopleRoundedIcon />, path: "/leaves" },
   {
     text: "Edit Schedule",
     icon: <PeopleRoundedIcon />,
     path: "/edit-schedule",
   },
+  { text: "Leaves", icon: <PeopleRoundedIcon />, path: "/leaves" },
   { text: "Users", icon: <AnalyticsRoundedIcon />, path: "/users" },
   { text: "Create Account", icon: <PeopleRoundedIcon />, path: "/signup" },
   { text: "Roles", icon: <PeopleRoundedIcon />, path: "/roles" },
