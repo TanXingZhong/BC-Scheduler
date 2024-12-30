@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   Grid2,
   Box,
@@ -8,9 +8,8 @@ import {
   Card,
   Typography,
   Dialog,
-  DialogTitle,
-  DialogContent,
   DialogActions,
+  DialogContent,
 } from "@mui/material";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
@@ -24,23 +23,65 @@ import { useUserInfo } from "../hooks/useUserInfo";
 const localizer = momentLocalizer(moment);
 
 export default function MyCalendar() {
+  const userInfo = useUserInfo();
   const { fetchSchedule, isLoading, error } = useGetCalendar();
   const [schedule, setSchedule] = useState([]);
   const [scheduleAndUsers, setScheduleAndUsers] = useState([]);
-  const userInfo = useUserInfo();
-  const [currentDate, setCurrentDate] = useState(new Date()); // Track the visible month
-  // Load schedule data when the component mounts
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [modalOpen, setModalOpen] = useState(false);
+  const [transformedDataArray, setTransformedDataArray] = useState([]);
+  const [filteredDataArray, setFilteredData] = useState([]);
+
   const onLoad = async (start) => {
     try {
-      const [scheduleData, namesData] = await Promise.all([
-        fetchSchedule(start),
-      ]);
+      const [scheduleData] = await Promise.all([fetchSchedule(start)]);
       setSchedule(scheduleData.rows);
       setScheduleAndUsers(scheduleData.rowsplus);
     } catch (err) {
       console.error("Error loading schedules: ", err);
     }
   };
+
+  useEffect(() => {
+    const data = schedule.map((data) => {
+      // Find all users scheduled for this slot
+      const filledSlots = scheduleAndUsers
+        .filter((x) => x.schedule_id === data.schedule_id)
+        .map((slot) => ({
+          id: slot.id,
+          employee: slot.name,
+          role: slot.role_name,
+        }));
+
+      // Calculate the number of empty slots based on vacancie
+      const emptySlots = Array(data.vacancy)
+        .fill()
+        .map(() => ({
+          id: "",
+          employee: "EMPTY",
+        }));
+
+      // Combine filled and empty slots
+      const combinedSlots = [...filledSlots, ...emptySlots];
+
+      return {
+        schedule_id: data.schedule_id,
+        title: `${data.outlet_name}, ${toSGTimeShort(
+          data.start_time
+        )} - ${toSGTimeShort(data.end_time)}`,
+        outlet_name: data.outlet_name,
+        start: new Date(data.start_time),
+        end: new Date(data.end_time),
+        start_time: toSGTimeShort(data.start_time),
+        end_time: toSGTimeShort(data.end_time),
+        vacancy: data.vacancy,
+        array: combinedSlots,
+      };
+    });
+
+    setTransformedDataArray(data);
+    setFilteredData(data);
+  }, [schedule, scheduleAndUsers]);
 
   useEffect(() => {
     const start = getMonthRange(currentDate);
@@ -54,81 +95,89 @@ export default function MyCalendar() {
     return start;
   };
 
-  // Transform the schedule data into the format that the calendar can use
-  const transformedDataArray = schedule.reduce((acc, data) => {
-    const emptySlots = Array(data.vacancy)
-      .fill()
-      .map(() => ({
-        title: `EMPTY, ${toSGTimeShort(data.start_time)} - ${toSGTimeShort(
-          data.end_time
-        )}, ${data.outlet_name}`,
-        schedule_id: data.schedule_id,
-        outlet_name: data.outlet_name,
-        start: new Date(data.start_time),
-        end: new Date(data.end_time),
-        start_end_time: `${toSGTimeShort(data.start_time)} - ${toSGTimeShort(
-          data.end_time
-        )}`,
-        vacancy: data.vacancy,
-        employee: "EMPTY",
-        employee_id: "",
-      }));
-
-    const filledSlots = scheduleAndUsers
-      .filter((x) => x.schedule_id === data.schedule_id)
-      .map((slot) => ({
-        title: `${slot.name}, ${toSGTimeShort(
-          data.start_time
-        )} - ${toSGTimeShort(data.end_time)}, ${data.outlet_name}`,
-        schedule_id: data.schedule_id,
-        outlet_name: data.outlet_name,
-        start: new Date(data.start_time),
-        end: new Date(data.end_time),
-        start_end_time: `${toSGTimeShort(data.start_time)} - ${toSGTimeShort(
-          data.end_time
-        )}`,
-        vacancy: data.vacancy,
-        employee: slot.name,
-        employee_id: slot.id,
-      }));
-
-    return [...acc, ...emptySlots, ...filledSlots];
-  }, []);
-
-  // Handle selecting an event
-  const handleSelectEvent = useCallback(
-    (event) => window.alert(event.title),
-    []
-  );
+  // Publish logic (for modal or other purposes)
+  const [openPublish, setOpenPublish] = useState(false);
+  const handleClickOpenPublish = () => {
+    setOpenPublish(true);
+  };
+  const handleClosePublish = () => {
+    setOpenPublish(false);
+  };
 
   const [filters, setFilters] = useState({});
   const [uniqueValues, setUniqueValues] = useState({});
   const [showFilterOptions, setShowFilterOptions] = useState(false);
   const [currentFilterColumn, setCurrentFilterColumn] = useState(null);
+
   useEffect(() => {
     const uniqueValuesByColumn = {};
-    for (const column of Object.keys(filters)) {
-      uniqueValuesByColumn[column] = [
-        ...new Set(transformedDataArray.map((row) => row[column])),
-      ];
+    // if filters is empty, set filteredData to transformedDataArray
+    if (Object.keys(filters).length === 0) {
+      setFilteredData(transformedDataArray);
+      return;
+    } else {
+      for (const column of Object.keys(filters)) {
+        if (column === "array") {
+          uniqueValuesByColumn[column] = transformedDataArray
+            .flatMap((row) => row[column])
+            .reduce((unique, current) => {
+              // Check if the current object is already in the unique array based on custom comparison
+              if (!unique.some((item) => item.id === current.id)) {
+                unique.push(current); // Add it if not already included
+              }
+              return unique;
+            }, []);
+        } else {
+          uniqueValuesByColumn[column] = [
+            ...new Set(transformedDataArray.flatMap((row) => row[column])),
+          ];
+        }
+      }
+      setUniqueValues(uniqueValuesByColumn);
     }
-    setUniqueValues(uniqueValuesByColumn);
+
+    // only filters outletname and start_time, if the the chosen employees are in the event, it will be kept
+    const fisrtFilter = transformedDataArray.filter((event) => {
+      return Object.keys(filters).every((column) => {
+        // If the filter applies to an array column (like 'employee'), we need to check the array of objects
+        if (column === "array") {
+          return (
+            !filters[column].length ||
+            event.array.some((slot) => filters["array"].includes(slot.employee))
+          );
+        }
+        // Otherwise, apply the filter on the main column
+        return (
+          !filters[column].length || filters[column].includes(event[column])
+        );
+      });
+    });
+
+    // filter employee
+    if (filters["array"] === undefined) {
+      setFilteredData([]);
+    } else {
+      const secondFilter = fisrtFilter.map((event) => {
+        const filteredArray = event.array.filter((slot) =>
+          filters["array"].includes(slot.employee)
+        );
+        return {
+          ...event,
+          array: filteredArray,
+        };
+      });
+      setFilteredData(secondFilter);
+    }
   }, [filters]);
 
   // Handle filter column selection (toggle filters)
   const handleFilterColumnClick = (column) => {
-    // Only show filter options if not already showing
     setShowFilterOptions(true);
     setCurrentFilterColumn(column);
-
-    // Only initialize the filter if it hasn't been set yet
     setFilters((prevFilters) => {
       if (prevFilters[column]) {
-        // If the filter is already set, do not update it
-        return prevFilters;
+        return prevFilters; // Don't update if already exists
       }
-
-      // Otherwise, initialize it with all values selected (if not already done)
       return {
         ...prevFilters,
         [column]: uniqueValues[column] || [], // Initialize with all values selected
@@ -154,97 +203,74 @@ export default function MyCalendar() {
     setCurrentFilterColumn(null);
   };
 
-  const filteredDataArray = transformedDataArray.filter((event) => {
-    return Object.keys(filters).every(
-      (column) =>
-        !filters[column].length || filters[column].includes(event[column])
-    );
-  });
+  const categories = [
+    { label: "array", name: "Employee" },
+    { label: "outlet_name", name: "Outlet" },
+    { label: "start_time", name: "Shifts" },
+  ];
 
-  const CustomEventWrapper = ({ event }) => {
-    const isEventNameEmpty = event.employee === "EMPTY";
-    const eventColor = isEventNameEmpty ? "red" : "green";
+  const [openApplySchedule, setApplySchedule] = useState(false);
+  const [scheduleInfo, setScheduleInfo] = useState([]);
 
-    const [openApplySchedule, setApplySchedule] = useState(false);
-    const [scheduleInfo, setScheduleInfo] = useState([]);
+  const handleCardClick = useCallback((event, x) => {
+    setScheduleInfo(event);
+    setApplySchedule(true);
+  }, []);
 
-    const handleCloseApplySchedule = () => {
-      setApplySchedule(false);
-    };
-
-    const handleCardClick = () => {
-      setApplySchedule(true);
-      setScheduleInfo(event);
-    };
-    return (
-      <>
-        {openApplySchedule && (
-          <ApplySchedule
-            open={openApplySchedule}
-            handleClose={handleCloseApplySchedule}
-            scheduleInfo={scheduleInfo}
-            userInfo={userInfo}
-          />
-        )}
-
-        <Card
-          variant="outlined"
-          sx={{
-            fontSize: "10px", // Set font size for Card
-            cursor: "pointer", // Change cursor to pointer to indicate it's clickable
-            alignItems: "center", // Vertically center the content
-            justifyContent: "center", // Horizontally center the content
-
-            transition: "all 0.3s ease", // Smooth transition for hover effect
-            "&:hover": {
-              backgroundColor: "#f0f0f0", // Change background on hover
-              transform: "scale(1.05)", // Slightly enlarge the card on hover
-              boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)", // Add shadow on hover
-            },
-          }}
-          onClick={handleCardClick} // Set the onClick handler
-        >
-          <Typography
-            sx={{
-              fontSize: "10px", // Set font size for Typography
-              color: eventColor, // Change color based on event.employee status
-              textAlign: "center", // Ensure text is centered horizontally
-            }}
-          >
-            {event.title} {/* Display event title */}
-          </Typography>
-        </Card>
-      </>
-    );
+  const handleCloseApplySchedule = () => {
+    setApplySchedule(false);
   };
 
-  const categories = [
-    {
-      label: "outlet_name",
-      name: "Outlet",
-    },
-    {
-      label: "start_end_time",
-      name: "Shifts",
-    },
-    {
-      label: "employee",
-      name: "Employee",
-    },
-  ];
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedDateEvents, setSelectedDateEvents] = useState([]);
+  const CustomEventWrapper = ({ event, onCardClick }) => {
+    const title = event.title;
+    const arr = event.array;
+
+    return (
+      <div>
+        {arr.map((x, index) => (
+          <Card
+            key={index}
+            variant="outlined"
+            sx={{
+              width: "99%",
+              fontSize: "10px",
+              cursor: "pointer",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "all 0.3s ease",
+              "&:hover": {
+                backgroundColor: "#f0f0f0",
+                transform: "scale(1.05)",
+                boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)",
+              },
+            }}
+            onClick={() => onCardClick(event, x)} // Pass the event and the item to the callback
+          >
+            <Typography
+              sx={{
+                fontSize: "10px",
+                color: x.employee == "EMPTY" ? "red" : "green",
+                textAlign: "center",
+              }}
+            >
+              {`${x.employee} - ${title}`} {/* Combine title with each item */}
+            </Typography>
+          </Card>
+        ))}
+      </div>
+    );
+  };
 
   const handleShowMore = (events, date) => {
     setSelectedDateEvents(events);
     setModalOpen(true);
   };
 
-  const handleNavigate = (newDate) => {
+  const handleNavigate = useCallback((newDate) => {
     setSchedule([]);
     setScheduleAndUsers([]);
     setCurrentDate(newDate); // Update the visible date
-  };
+  }, []);
 
   return (
     <Box
@@ -274,27 +300,60 @@ export default function MyCalendar() {
           </Button>
         </Grid2>
       </Grid2>
-
       {showFilterOptions && (
         <>
-          {uniqueValues[currentFilterColumn]?.map((value) => (
-            <FormControlLabel
-              key={`${currentFilterColumn}-${value}`}
-              control={
-                <Checkbox
-                  checked={filters[currentFilterColumn]?.includes(value)}
-                  onChange={() =>
-                    handleCheckboxChange(currentFilterColumn, value)
+          {uniqueValues[currentFilterColumn]?.map((value) => {
+            // Check if value is an object (not an array)
+            if (typeof value === "object" && value !== null) {
+              return (
+                <FormControlLabel
+                  key={`${currentFilterColumn}-${value.employee}`} // Assuming value has an 'id' field for uniqueness
+                  control={
+                    <Checkbox
+                      checked={filters[currentFilterColumn]?.includes(
+                        value.employee
+                      )} // Use value.id or another unique identifier
+                      onChange={() =>
+                        handleCheckboxChange(
+                          currentFilterColumn,
+                          value.employee
+                        )
+                      }
+                      name={value.employee} // Or another unique property of the object
+                    />
                   }
-                  name={value}
+                  label={`${value.employee}`} // Assuming the object has a 'name' field
                 />
-              }
-              label={`${value}`}
-            />
-          ))}
+              );
+            }
+
+            // Default behavior when value is not an object
+            return (
+              <FormControlLabel
+                key={`${currentFilterColumn}-${value}`}
+                control={
+                  <Checkbox
+                    checked={filters[currentFilterColumn]?.includes(value)}
+                    onChange={() =>
+                      handleCheckboxChange(currentFilterColumn, value)
+                    }
+                    name={value}
+                  />
+                }
+                label={`${value}`}
+              />
+            );
+          })}
         </>
       )}
-
+      {openApplySchedule && (
+        <ApplySchedule
+          open={openApplySchedule}
+          handleClose={handleCloseApplySchedule}
+          scheduleInfo={scheduleInfo}
+          userInfo={userInfo}
+        />
+      )}
       <Calendar
         localizer={localizer}
         events={filteredDataArray}
@@ -302,37 +361,19 @@ export default function MyCalendar() {
         style={{ height: "100%" }}
         views={["month", "agenda"]}
         components={{
-          eventWrapper: (props) => <CustomEventWrapper {...props} />,
+          eventWrapper: (props) => (
+            <CustomEventWrapper {...props} onCardClick={handleCardClick} />
+          ),
         }}
         onNavigate={handleNavigate}
-        onShowMore={handleShowMore}
+        showAllEvents={true}
       />
       <Dialog
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         fullWidth
         maxWidth="sm"
-      >
-        <DialogContent>
-          <h2>
-            Shifts on{" "}
-            {selectedDateEvents.length > 0 &&
-              moment(selectedDateEvents[0]?.start).format("MMMM Do YYYY")}
-          </h2>
-          <ul>
-            {selectedDateEvents.map((event, index) => (
-              <li key={index}>
-                <Typography>{event.title}</Typography>
-              </li>
-            ))}
-          </ul>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setModalOpen(false)} color="primary">
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
+      ></Dialog>
     </Box>
   );
 }

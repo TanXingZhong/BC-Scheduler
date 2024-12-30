@@ -140,10 +140,6 @@ function EditSchedule({ open, handleClose, scheduleInfo, refresh }) {
         Edit Shift
       </DialogTitle>
       <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        <Typography>
-          Current Assigned: {scheduleInfo.employee} || {scheduleInfo.vacancy}{" "}
-          Empty
-        </Typography>
         <Grid container spacing={5}>
           <Grid size={{ xs: 12, md: 6 }}>
             {formFieldsLeft.map((field) => (

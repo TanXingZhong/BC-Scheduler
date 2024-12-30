@@ -13,8 +13,10 @@ import PropTypes from "prop-types";
 import FormLabel from "@mui/material/FormLabel";
 import FormControl from "@mui/material/FormControl";
 import Grid from "@mui/material/Grid2";
-import { toSGDate } from "../../config/convertTimeToSGT";
+import { toSGDate, timePrettier } from "../../config/convertTimeToSGT";
 import { useApplyShift } from "../hooks/Calendar/useApplyShift";
+import EmployeeInfoNoEdit from "./EmployeeInfoNoEdit";
+
 function ApplySchedule({ open, handleClose, scheduleInfo, userInfo }) {
   const { applyShift, isLoading, error } = useApplyShift();
   const handleSubmit = async (event) => {
@@ -49,7 +51,10 @@ function ApplySchedule({ open, handleClose, scheduleInfo, userInfo }) {
     {
       id: "end_date",
       label: "Time",
-      defaultValue: scheduleInfo.start_end_time,
+      defaultValue: timePrettier(
+        scheduleInfo.start_time,
+        scheduleInfo.end_time
+      ),
       isEditable: false,
     },
   ];
@@ -72,7 +77,7 @@ function ApplySchedule({ open, handleClose, scheduleInfo, userInfo }) {
     >
       <DialogTitle id="create-role-dialog-title">Apply Schedule</DialogTitle>
       <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        <Typography>Current Assigned: {scheduleInfo.employee}</Typography>
+        <EmployeeInfoNoEdit scheduleInfo={scheduleInfo} />
         <Grid container spacing={5}>
           <Grid size={{ xs: 12, md: 6 }}>
             {formFieldsLeft.map((field) => (

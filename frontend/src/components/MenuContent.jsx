@@ -13,6 +13,7 @@ import { Link } from "react-router-dom";
 const mainListItems = [
   { text: "Home", icon: <HomeRoundedIcon />, path: "/" },
   { text: "Calendar", icon: <PeopleRoundedIcon />, path: "/calendar" },
+  { text: "Leaves", icon: <PeopleRoundedIcon />, path: "/leaves" },
   {
     text: "Edit Schedule",
     icon: <PeopleRoundedIcon />,

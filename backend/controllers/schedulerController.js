@@ -178,6 +178,67 @@ const addUserToSchedule = async (req, res) => {
   }
 };
 
+const removeUserFromSchedule = async (req, res) => {
+  const { schedule_id, employee_id } = req.body;
+  console.log(schedule_id, employee_id);
+
+  if (!schedule_id || !employee_id) {
+    return res.status(400).json({
+      message: "schedule_id, employee_id required.",
+    });
+  }
+
+  try {
+    const exists = await db_schedule.checkScheduleIdExists(schedule_id);
+    if (!exists) {
+      return res.status(409).json({
+        message: "Schedule doesnt exist",
+      });
+    }
+    await db_schedule.removeScheduledWorker(schedule_id, employee_id);
+    return res.status(200).json({
+      message: `User ${employee_id} removed from schedule ${schedule_id}`,
+    });
+  } catch (err) {
+    console.error(err);
+    return res
+      .status(500)
+      .json({ message: "Error removing user from schedule" });
+  }
+};
+
+const changeUserFromSchedule = async (req, res) => {
+  const { schedule_id, employee_id, new_employee_id } = req.body;
+
+  if (!schedule_id || !employee_id || !new_employee_id) {
+    return res.status(400).json({
+      message: "schedule_id, employee_id and new_employee_id required.",
+    });
+  }
+
+  try {
+    const exists = await db_schedule.checkScheduleIdExists(schedule_id);
+    if (!exists) {
+      return res.status(409).json({
+        message: "Schedule doesnt exist",
+      });
+    }
+    await db_schedule.replaceScheduledWorker(
+      schedule_id,
+      employee_id,
+      new_employee_id
+    );
+    return res.status(200).json({
+      message: `User ${employee_id} replace with User ${new_employee_id} in schedule ${schedule_id}`,
+    });
+  } catch (err) {
+    console.error(err);
+    return res
+      .status(500)
+      .json({ message: "Error replacing user from schedule" });
+  }
+};
+
 module.exports = {
   getAllSchedules,
   createSchedules,
@@ -185,4 +246,6 @@ module.exports = {
   deleteSchedules,
   addUserToSchedule,
   createSchedulesAddUser,
+  removeUserFromSchedule,
+  changeUserFromSchedule,
 };

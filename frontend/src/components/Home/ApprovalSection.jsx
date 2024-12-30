@@ -1,9 +1,8 @@
-import Box from "@mui/material/Box";
-import Grid from "@mui/material/Grid2";
 import Typography from "@mui/material/Typography";
 import LeaveApproval from "./LeaveApproval";
 import ScheduleApproval from "./ScheduleApproval";
 import ApplicationList from "./ApplicationList";
+import LeaveApplicationList from "./LeaveApplicationList";
 
 export default function ApprovalSection() {
   return (
@@ -13,9 +12,18 @@ export default function ApprovalSection() {
         variant="subtitle2"
         gutterBottom
         sx={{ fontWeight: "600" }}
+      >
+        Your Leave Application
+      </Typography>
+      <LeaveApplicationList />
+      <Typography
+        component="h2"
+        variant="subtitle2"
+        gutterBottom
+        sx={{ fontWeight: "600" }}
         paddingTop={"20px"}
       >
-        Applications
+        Your Shift Applications
       </Typography>
       <ApplicationList />
       <Typography
@@ -23,6 +31,7 @@ export default function ApprovalSection() {
         variant="subtitle2"
         gutterBottom
         sx={{ fontWeight: "600" }}
+        paddingTop={"20px"}
       >
         Leave Approval
       </Typography>

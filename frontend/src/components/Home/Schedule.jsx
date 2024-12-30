@@ -7,14 +7,17 @@ import {
   Divider,
   Box,
 } from "@mui/material";
-import Grid from "@mui/material/Grid2";
-import DownloadIcon from "@mui/icons-material/Download";
-import DeleteIcon from "@mui/icons-material/Delete";
+
 import { useUserInfo } from "../../hooks/useUserInfo";
-import { toSGTimeShort, toSGDate } from "../../../config/convertTimeToSGT";
+import {
+  toSGTimeShort,
+  toSGDate,
+  timePrettier,
+} from "../../../config/convertTimeToSGT";
 
 export default function Schedule() {
   const { name, email, role_id, admin, userShifts } = useUserInfo();
+  console.log(userShifts);
   const items = userShifts
     .map((x) => ({
       id: x.schedule_id,
@@ -62,7 +65,7 @@ export default function Schedule() {
                     color="text.secondary"
                     component="span"
                   >
-                    Time: {item.start} - {item.end}
+                    Time: {timePrettier(item.start, item.end)}
                   </Typography>
                 </>
               }

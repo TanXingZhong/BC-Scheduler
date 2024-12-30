@@ -16,6 +16,23 @@ const getAllUsers = async (req, res) => {
   }
 };
 
+const getUserByUserId = async (req, res) => {
+  const { user_id } = req.body;
+  if (!user_id) {
+    return res.status(400).json({
+      message: "No user id input",
+    });
+  }
+  try {
+    const user = await db.getUserByidWithoutPassword(user_id);
+    return res.status(200).json({ employee: user });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Error fetching user." });
+  }
+};
+
 module.exports = {
   getAllUsers,
+  getUserByUserId,
 };

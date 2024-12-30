@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   Grid2,
   Box,
@@ -21,6 +21,8 @@ import { toSGTimeShort } from "../../config/convertTimeToSGT";
 import { dateTimeToDBDate } from "../../config/convertDateToDB";
 import AllocateSchedule from "../components/AllocateSchedule";
 import { useDeleteSchedule } from "../hooks/Calendar/useDeleteSchedule";
+import { useChangeUserFromSchedule } from "../hooks/Calendar/useChangeUserFromSchedule";
+import { useRemoveUserFromSchedule } from "../hooks/Calendar/useRemoveUserFromSchedule";
 
 export default function AdminCalendar() {
   const localizer = momentLocalizer(moment);
@@ -40,6 +42,11 @@ export default function AdminCalendar() {
   const selectedSlotsRef = useRef([]);
   const [isDeleteButtonVisible, setDeleteButtonVisible] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState([]);
+  const [transformedDataArray, setTransformedDataArray] = useState([]);
+  const [filteredDataArray, setFilteredData] = useState([]);
+  const { changeUser } = useChangeUserFromSchedule();
+  const { removeUser } = useRemoveUserFromSchedule();
+
   const onLoad = async (start) => {
     try {
       const [scheduleData, namesData] = await Promise.all([
@@ -55,6 +62,47 @@ export default function AdminCalendar() {
   };
 
   useEffect(() => {
+    const data = schedule.map((data) => {
+      // Find all users scheduled for this slot
+      const filledSlots = scheduleAndUsers
+        .filter((x) => x.schedule_id === data.schedule_id)
+        .map((slot) => ({
+          id: slot.id,
+          employee: slot.name,
+          role: slot.role_name,
+        }));
+
+      // Calculate the number of empty slots based on vacancie
+      const emptySlots = Array(data.vacancy)
+        .fill()
+        .map(() => ({
+          id: "",
+          employee: "EMPTY",
+        }));
+
+      // Combine filled and empty slots
+      const combinedSlots = [...filledSlots, ...emptySlots];
+
+      return {
+        schedule_id: data.schedule_id,
+        title: `${data.outlet_name}, ${toSGTimeShort(
+          data.start_time
+        )} - ${toSGTimeShort(data.end_time)}`,
+        outlet_name: data.outlet_name,
+        start: new Date(data.start_time),
+        end: new Date(data.end_time),
+        start_time: toSGTimeShort(data.start_time),
+        end_time: toSGTimeShort(data.end_time),
+        vacancy: data.vacancy,
+        array: combinedSlots,
+      };
+    });
+
+    setTransformedDataArray(data);
+    setFilteredData(data);
+  }, [schedule, scheduleAndUsers]);
+
+  useEffect(() => {
     const start = getMonthRange(currentDate);
     onLoad(start);
   }, [currentDate]);
@@ -66,52 +114,6 @@ export default function AdminCalendar() {
     return start;
   };
 
-  const handleNavigate = (newDate) => {
-    setSchedule([]);
-    setScheduleAndUsers([]);
-    setSelectedSlot([]);
-    selectedSlotsRef.current = [];
-    setCurrentDate(newDate); // Update the visible date
-    if (isDeleteButtonVisible) {
-      setDeleteButtonVisible(false);
-    }
-  };
-
-  // Transform the schedule data into the format that the calendar can use
-  const transformedDataArray = schedule.map((data) => {
-    // Find all users scheduled for this slot
-    const filledSlots = scheduleAndUsers
-      .filter((x) => x.schedule_id === data.schedule_id)
-      .map((slot) => ({
-        id: slot.id,
-        employee: slot.name,
-      }));
-
-    // Calculate the number of empty slots based on vacancie
-    const emptySlots = Array(data.vacancy)
-      .fill()
-      .map(() => ({
-        id: "",
-        employee: "EMPTY",
-      }));
-
-    // Combine filled and empty slots
-    const combinedSlots = [...filledSlots, ...emptySlots];
-
-    return {
-      schedule_id: data.schedule_id,
-      title: `${data.outlet_name}, ${toSGTimeShort(
-        data.start_time
-      )} - ${toSGTimeShort(data.end_time)}`,
-      outlet_name: data.outlet_name,
-      start: new Date(data.start_time),
-      end: new Date(data.end_time),
-      start_time: toSGTimeShort(data.start_time),
-      end_time: toSGTimeShort(data.end_time),
-      vacancy: data.vacancy,
-      array: combinedSlots,
-    };
-  });
   // Publish logic (for modal or other purposes)
   const [openPublish, setOpenPublish] = useState(false);
   const handleClickOpenPublish = () => {
@@ -128,12 +130,63 @@ export default function AdminCalendar() {
 
   useEffect(() => {
     const uniqueValuesByColumn = {};
-    for (const column of Object.keys(filters)) {
-      uniqueValuesByColumn[column] = [
-        ...new Set(transformedDataArray.flatMap((row) => row[column])),
-      ];
+    // if filters is empty, set filteredData to transformedDataArray
+    if (Object.keys(filters).length === 0) {
+      setFilteredData(transformedDataArray);
+      return;
+    } else {
+      for (const column of Object.keys(filters)) {
+        if (column === "array") {
+          uniqueValuesByColumn[column] = transformedDataArray
+            .flatMap((row) => row[column])
+            .reduce((unique, current) => {
+              // Check if the current object is already in the unique array based on custom comparison
+              if (!unique.some((item) => item.id === current.id)) {
+                unique.push(current); // Add it if not already included
+              }
+              return unique;
+            }, []);
+        } else {
+          uniqueValuesByColumn[column] = [
+            ...new Set(transformedDataArray.flatMap((row) => row[column])),
+          ];
+        }
+      }
+      setUniqueValues(uniqueValuesByColumn);
     }
-    setUniqueValues(uniqueValuesByColumn);
+
+    // only filters outletname and start_time, if the the chosen employees are in the event, it will be kept
+    const fisrtFilter = transformedDataArray.filter((event) => {
+      return Object.keys(filters).every((column) => {
+        // If the filter applies to an array column (like 'employee'), we need to check the array of objects
+        if (column === "array") {
+          return (
+            !filters[column].length ||
+            event.array.some((slot) => filters["array"].includes(slot.employee))
+          );
+        }
+        // Otherwise, apply the filter on the main column
+        return (
+          !filters[column].length || filters[column].includes(event[column])
+        );
+      });
+    });
+
+    // filter employee
+    if (filters["array"] === undefined) {
+      setFilteredData([]);
+    } else {
+      const secondFilter = fisrtFilter.map((event) => {
+        const filteredArray = event.array.filter((slot) =>
+          filters["array"].includes(slot.employee)
+        );
+        return {
+          ...event,
+          array: filteredArray,
+        };
+      });
+      setFilteredData(secondFilter);
+    }
   }, [filters]);
 
   // Handle filter column selection (toggle filters)
@@ -144,7 +197,6 @@ export default function AdminCalendar() {
       if (prevFilters[column]) {
         return prevFilters; // Don't update if already exists
       }
-
       return {
         ...prevFilters,
         [column]: uniqueValues[column] || [], // Initialize with all values selected
@@ -170,31 +222,12 @@ export default function AdminCalendar() {
     setCurrentFilterColumn(null);
   };
 
-  // Filtered data based on selected filters
-  const filteredDataArray = transformedDataArray.filter((event) => {
-    return Object.keys(filters).every((column) => {
-      // If the filter applies to an array column (like 'employee'), we need to check the array of objects
-      if (column === "employee") {
-        return (
-          !filters[column].length ||
-          event.array.some((slot) => filters[column].includes(slot.employee))
-        );
-      }
-      // Otherwise, apply the filter on the main column
-      return !filters[column].length || filters[column].includes(event[column]);
-    });
-  });
-
   const categories = [
+    { label: "array", name: "Employee" },
     { label: "outlet_name", name: "Outlet" },
     { label: "start_time", name: "Shifts" },
-    { label: "employee", name: "Employee" },
   ];
 
-  const handleShowMore = (events, date) => {
-    setSelectedDateEvents(events);
-    setModalOpen(true);
-  };
   const handleDelete = async () => {
     try {
       const deletionPromises = selectedSlotsRef.current.map((x) =>
@@ -210,20 +243,49 @@ export default function AdminCalendar() {
       console.error("Error deleting schedules", error);
     }
   };
+
   const [openAllocateSchedule, setOpenAllocateSchedule] = useState(false);
   const [scheduleInfo, setScheduleInfo] = useState({});
-  const [assigned, setAssigned] = useState([]);
-  const handleCardClick = (event, x) => {
-    setScheduleInfo(event);
-    setAssigned(x);
-    setOpenAllocateSchedule(true);
+  const handleRemoveUser = async (user_id) => {
+    await removeUser(scheduleInfo.schedule_id, user_id);
+    onLoad(getMonthRange(currentDate));
+    setOpenAllocateSchedule(false);
   };
+
+  const handleChangeUser = async (user_id, new_id) => {
+    await changeUser(scheduleInfo.schedule_id, user_id, new_id);
+    onLoad(getMonthRange(currentDate));
+    setOpenAllocateSchedule(false);
+  };
+  const handleCardClick = useCallback((event, x) => {
+    setScheduleInfo(event);
+    setOpenAllocateSchedule(true);
+  }, []);
+
+  const handleNavigate = useCallback((newDate) => {
+    setSchedule([]);
+    setScheduleAndUsers([]);
+    setSelectedSlot([]);
+    selectedSlotsRef.current = [];
+    setCurrentDate(newDate); // Update the visible date
+    if (isDeleteButtonVisible) {
+      setDeleteButtonVisible(false);
+    }
+  }, []);
+
+  const handleShowMore = (events, date) => {
+    setSelectedDateEvents(events);
+    setModalOpen(true);
+  };
+
   const handleRefresh = () => {
     onLoad(getMonthRange(currentDate));
   };
+
   const CustomEventWrapper = ({ event, onCardClick }) => {
     const title = event.title;
     const arr = event.array;
+
     return (
       <div>
         {arr.map((x, index) => (
@@ -231,6 +293,7 @@ export default function AdminCalendar() {
             key={index}
             variant="outlined"
             sx={{
+              width: "99%",
               fontSize: "10px",
               cursor: "pointer",
               alignItems: "center",
@@ -258,6 +321,7 @@ export default function AdminCalendar() {
       </div>
     );
   };
+
   return (
     <Box
       sx={{
@@ -301,35 +365,61 @@ export default function AdminCalendar() {
           </Button>
         </Grid2>
       </Grid2>
-
       {showFilterOptions && (
         <>
-          {uniqueValues[currentFilterColumn]?.map((value) => (
-            <FormControlLabel
-              key={`${currentFilterColumn}-${value}`}
-              control={
-                <Checkbox
-                  checked={filters[currentFilterColumn]?.includes(value)}
-                  onChange={() =>
-                    handleCheckboxChange(currentFilterColumn, value)
+          {uniqueValues[currentFilterColumn]?.map((value) => {
+            // Check if value is an object (not an array)
+            if (typeof value === "object" && value !== null) {
+              return (
+                <FormControlLabel
+                  key={`${currentFilterColumn}-${value.employee}`} // Assuming value has an 'id' field for uniqueness
+                  control={
+                    <Checkbox
+                      checked={filters[currentFilterColumn]?.includes(
+                        value.employee
+                      )} // Use value.id or another unique identifier
+                      onChange={() =>
+                        handleCheckboxChange(
+                          currentFilterColumn,
+                          value.employee
+                        )
+                      }
+                      name={value.employee} // Or another unique property of the object
+                    />
                   }
-                  name={value}
+                  label={`${value.employee}`} // Assuming the object has a 'name' field
                 />
-              }
-              label={`${value}`}
-            />
-          ))}
+              );
+            }
+
+            // Default behavior when value is not an object
+            return (
+              <FormControlLabel
+                key={`${currentFilterColumn}-${value}`}
+                control={
+                  <Checkbox
+                    checked={filters[currentFilterColumn]?.includes(value)}
+                    onChange={() =>
+                      handleCheckboxChange(currentFilterColumn, value)
+                    }
+                    name={value}
+                  />
+                }
+                label={`${value}`}
+              />
+            );
+          })}
         </>
       )}
-
       {openAllocateSchedule && (
         <AllocateSchedule
           open={openAllocateSchedule}
           handleClose={() => setOpenAllocateSchedule(false)}
           scheduleInfo={scheduleInfo}
           allUsersInfo={names}
-          assigned={assigned}
           refresh={handleRefresh}
+          handleChangeUser={handleChangeUser}
+          handleRemoveUser={handleRemoveUser}
         />
       )}
 
@@ -346,8 +436,8 @@ export default function AdminCalendar() {
               new Date(event.start) >= new Date(start) &&
               new Date(event.end) <= new Date(end)
           );
-          setSelectedSlot(slots);
-          selectedSlotsRef.current = selectedEvents;
+          setSelectedSlot(slots); // Update selected slot
+          selectedSlotsRef.current = selectedEvents; // Keep a reference to selected events
           if (selectedEvents.length > 0) {
             setDeleteButtonVisible(true);
           } else {
@@ -371,7 +461,7 @@ export default function AdminCalendar() {
         }}
         selectable
         onNavigate={handleNavigate}
-        onShowMore={handleShowMore}
+        showAllEvents={true}
       />
 
       <Publish
@@ -380,7 +470,6 @@ export default function AdminCalendar() {
         names={names}
         refresh={handleRefresh}
       />
-
       <Dialog
         open={modalOpen}
         onClose={() => setModalOpen(false)}

@@ -10,7 +10,6 @@ async function checkConflicts(shifts, start_time, end_time) {
 
   for (let i = 0; i < shifts.length; i++) {
     const shift = shifts[i];
-    console.log(shifts);
     const ls = new Date(shift.start_time),
       rs = new Date(shift.end_time);
 
@@ -143,6 +142,25 @@ async function getUserByid(id) {
   }
 }
 
+async function getUserByidWithoutPassword(id) {
+  console.log("userid", id);
+  const query =
+    "SELECT id, name, nric, email, phonenumber, sex, dob, bankName, bankAccountNo, address, workplace, occupation, driverLicense, firstAid, joinDate, admin, active, role_id, leaves, offs FROM users WHERE id = ?";
+  const values = [id];
+  try {
+    // Execute query using promise pool
+    const [rows, fields] = await pool.execute(query, values);
+
+    // Log the result to inspect
+    console.log("Database query result:", rows);
+
+    return rows; // Returns the rows (user data)
+  } catch (error) {
+    console.error("Error getting user:", error);
+    throw new Error("Error fetching user.");
+  }
+}
+
 // Check if user exists
 async function checkUserExists(email) {
   try {
@@ -261,4 +279,5 @@ module.exports = {
   updateUser,
   deleteUser,
   checkConflicts,
+  getUserByidWithoutPassword,
 };

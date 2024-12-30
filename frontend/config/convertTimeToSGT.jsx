@@ -84,3 +84,42 @@ export const toSGTimeShort = (date) => {
   const singaporeTime = new Date(date).toLocaleString("en-GB", options);
   return singaporeTime;
 };
+
+export const timePrettier = (startTime, endTime) => {
+  // Helper function to convert 24-hour time to 12-hour format with am/pm
+  const convertTo12HourFormat = (time) => {
+    let [hours, minutes] = time.split(":").map(Number);
+    const period = hours >= 12 ? "pm" : "am";
+    hours = hours % 12 || 12; // Adjust hours for 12-hour format
+    return `${hours}.${minutes < 10 ? "0" + minutes : minutes}${period}`;
+  };
+
+  // Helper function to calculate the time difference in hours and minutes
+  const calculateTimeDifference = (start, end) => {
+    const [startHours, startMinutes] = start.split(":").map(Number);
+    const [endHours, endMinutes] = end.split(":").map(Number);
+
+    let startTotalMinutes = startHours * 60 + startMinutes;
+    let endTotalMinutes = endHours * 60 + endMinutes;
+
+    if (endTotalMinutes < startTotalMinutes) {
+      endTotalMinutes += 24 * 60; // Account for end time being on the next day
+    }
+
+    const diffMinutes = endTotalMinutes - startTotalMinutes;
+    const diffHours = Math.floor(diffMinutes / 60);
+    const diffRemainingMinutes = diffMinutes % 60;
+
+    return `${diffHours}h ${diffRemainingMinutes}m`;
+  };
+
+  // Convert both times to 12-hour format
+  const startFormatted = convertTo12HourFormat(startTime);
+  const endFormatted = convertTo12HourFormat(endTime);
+
+  // Calculate the time difference
+  const timeDifference = calculateTimeDifference(startTime, endTime);
+
+  // Return the formatted result
+  return `${startFormatted} - ${endFormatted} - ${timeDifference}`;
+};

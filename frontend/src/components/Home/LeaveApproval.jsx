@@ -1,26 +1,55 @@
 import React from "react";
+import { useState, useEffect } from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import { Button } from "@mui/material";
 import "../../index.css";
+import { useGetPendingLeavesAndOffs } from "../../hooks/Home/useGetPendingLeavesAndOffs";
+import { toSGDate } from "../../../config/convertTimeToSGT";
+import { useActionLeaveOffs } from "../../hooks/Home/useActionLeaveOffs";
 
 export default function LeaveApproval() {
-  const rows = [
-    { id: 1, name: "Aaron", date: "2024-12-25" },
-    { id: 2, name: "Halim", date: "2024-12-26" },
-    { id: 3, name: "Colin", date: "2024-12-27" },
-    { id: 4, name: "Nirdesh", date: "2024-12-28" },
-    { id: 5, name: "Yuumi", date: "2024-12-28" },
-  ];
+  const { getPendingLeavesAndOffs, isLoading, error } =
+    useGetPendingLeavesAndOffs();
+  const [user_LeaveOffApplications, setUserLeaveOffApplications] = useState([]);
+  const {
+    approve_reject,
+    isLoading: isLoadingPut,
+    error: errorEditPut,
+  } = useActionLeaveOffs();
+
+  const onLoad = async () => {
+    try {
+      const data = await getPendingLeavesAndOffs();
+      setUserLeaveOffApplications(data);
+
+      setUserLeaveOffApplications((prevApplications) =>
+        prevApplications.map((application) => ({
+          ...application, // Keep all other fields the same
+          start_date: toSGDate(application.start_date), // Transform start_date
+          end_date: toSGDate(application.end_date), // Transform end_date
+        }))
+      );
+    } catch (err) {
+      console.error("Error loading leaves and offs application: ", err);
+    }
+  };
+
+  useEffect(() => {
+    onLoad();
+  }, []);
+
+  console.log(user_LeaveOffApplications);
 
   const columns = [
     {
       field: "name",
       headerName: "Name",
-      flex: 1,
-      width: 100, // default width for mobile
-      cellClassName: "name-column",
+      width: 100,
     },
-    { field: "date", headerName: "Date", width: 100 },
+    { field: "type", headerName: "Type", width: 100 },
+    { field: "start_date", headerName: "Start Date", width: 100 },
+    { field: "end_date", headerName: "End Date", width: 100 },
+    { field: "duration", headerName: "Duration", width: 150 },
     {
       field: "actions",
       headerName: "Actions",
@@ -33,7 +62,9 @@ export default function LeaveApproval() {
             color="success"
             size="small"
             sx={{ marginRight: 1 }}
-            onClick={() => handleAccept(params.row.id)}
+            onClick={() =>
+              handleAccept({ rows: params.row, action: "accepted" })
+            }
           >
             Accept
           </Button>
@@ -41,7 +72,9 @@ export default function LeaveApproval() {
             variant="contained"
             color="error"
             size="small"
-            onClick={() => handleReject(params.row.id)}
+            onClick={() =>
+              handleReject({ rows: params.row, action: "rejected" })
+            }
           >
             Reject
           </Button>
@@ -50,14 +83,26 @@ export default function LeaveApproval() {
     },
   ];
 
-  const handleAccept = (id) => {
-    console.log(`Accepted row with id: ${id}`);
-    // Add logic for accepting the row
+  const handleAccept = async (x) => {
+    await approve_reject(
+      x.rows.leave_offs_id,
+      x.rows.user_id,
+      x.rows.type,
+      x.rows.amt_used,
+      x.action
+    );
+    onLoad();
   };
 
-  const handleReject = (id) => {
-    console.log(`Rejected row with id: ${id}`);
-    // Add logic for rejecting the row
+  const handleReject = async (x) => {
+    await approve_reject(
+      x.rows.leave_offs_id,
+      x.rows.user_id,
+      x.rows.type,
+      x.rows.amt_used,
+      x.action
+    );
+    onLoad();
   };
 
   const handlePageSizeChange = (newPageSize) => {
@@ -70,8 +115,9 @@ export default function LeaveApproval() {
   return (
     <div style={{ height: 320, width: "100%", margin: "0 auto" }}>
       <DataGrid
-        rows={rows}
+        rows={user_LeaveOffApplications}
         columns={columns}
+        getRowId={(row) => row.leave_offs_id}
         pageSize={4}
         rowsPerPageOptions={[4]}
         pagination

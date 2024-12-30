@@ -102,8 +102,6 @@ function Publish({ open, handleClose, names, refresh }) {
       const endTime = document.getElementById("end_time").value;
       const [startHours, startMinutes] = startTime.split(":").map(Number);
       const [endHours, endMinutes] = endTime.split(":").map(Number);
-      const startTotalMinutes = startHours * 60 + startMinutes;
-      const endTotalMinutes = endHours * 60 + endMinutes;
       if (repeat !== "Never") {
         if (!cycleStart || cycleStart.length < 1) {
           setError("cycleStart", true, "Date is required.");
@@ -119,10 +117,6 @@ function Publish({ open, handleClose, names, refresh }) {
         }
         if (diffInDays < 0) {
           setError("cycleEnd", true, "Date should be after cycle start date.");
-          isValid = false;
-        }
-        if (startTotalMinutes > endTotalMinutes) {
-          setError("end_time", true, "End time should be after start time.");
           isValid = false;
         }
       }

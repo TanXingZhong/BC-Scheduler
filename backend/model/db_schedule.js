@@ -74,7 +74,7 @@ async function getAllSchedules(start_date) {
 
 async function getAllSchedulesAndUsers(start_date) {
   const query =
-    "SELECT s.schedule_id, s.vacancy, s.start_time, s.end_time, s.outlet_name, u.id, u.name FROM schedule s, confirmed_slots c, users u WHERE s.schedule_id = c.schedule_id AND u.id = c.user_id AND YEAR(start_time) = YEAR(?) AND MONTH(start_time) = MONTH(?)";
+    "SELECT s.schedule_id, s.vacancy, s.start_time, s.end_time, s.outlet_name, u.id, u.name, r.role_name FROM schedule s, confirmed_slots c, users u, roles r WHERE s.schedule_id = c.schedule_id AND u.id = c.user_id AND u.role_id = r.id AND YEAR(start_time) = YEAR(?) AND MONTH(start_time) = MONTH(?)";
   try {
     const [rows, fields] = await pool.execute(query, [start_date, start_date]);
     return rows;
@@ -181,7 +181,6 @@ async function checkConflictsUpdateVer(
 }
 
 async function addUserToSchedule(schedule_id, id) {
-  console.log(schedule_id, id);
   try {
     const schedule = await getScheduleById(schedule_id);
 
@@ -217,6 +216,41 @@ async function addUserToSchedule(schedule_id, id) {
   }
 }
 
+async function removeScheduledWorker(schedule_id, user_id) {
+  try {
+    const schedule = await getScheduleById(schedule_id);
+    const deleteQuery =
+      "DELETE FROM confirmed_slots WHERE schedule_id = ? AND user_id = ?";
+    await pool.execute(deleteQuery, [schedule_id, user_id]);
+    const new_vacancy = schedule[0].vacancy + 1;
+    const query = "UPDATE schedule SET vacancy = ? WHERE schedule_id = ?";
+    await pool.execute(query, [new_vacancy, schedule_id]);
+  } catch (err) {
+    throw new Error(err);
+  }
+}
+
+async function replaceScheduledWorker(schedule_id, user_id, newUser_id) {
+  try {
+    const schedule = await getScheduleById(schedule_id);
+    const newUserShfits = await getAllShiftsByUser(newUser_id);
+    if (
+      await checkConflicts(
+        newUserShfits,
+        schedule[0].start_time,
+        schedule[0].end_time
+      )
+    ) {
+      throw new Error("Shifts conflict");
+    }
+    const updateQuery =
+      "UPDATE confirmed_slots SET user_id = ? WHERE schedule_id = ? AND user_id = ?";
+    await pool.execute(updateQuery, [newUser_id, schedule_id, user_id]);
+  } catch (err) {
+    throw new Error(err);
+  }
+}
+
 module.exports = {
   addUserToSchedule,
   updateSchedule,
@@ -230,4 +264,6 @@ module.exports = {
   checkUserExistsInSchedule,
   getAllSchedulesAndUsers,
   getAllShiftsByUser,
+  removeScheduledWorker,
+  replaceScheduledWorker,
 };

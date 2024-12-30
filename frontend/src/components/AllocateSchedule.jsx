@@ -7,27 +7,30 @@ import {
   DialogTitle,
   TextField,
   Typography,
+  Box,
   MenuItem,
 } from "@mui/material";
 import PropTypes from "prop-types";
 import FormLabel from "@mui/material/FormLabel";
 import FormControl from "@mui/material/FormControl";
 import Grid from "@mui/material/Grid2";
-import { toSGDate } from "../../config/convertTimeToSGT";
+import { timePrettier, toSGDate } from "../../config/convertTimeToSGT";
 import { useAssignEmployee } from "../hooks/Calendar/useAssignEmployee";
 import { useDeleteSchedule } from "../hooks/Calendar/useDeleteSchedule";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import IconButton from "@mui/material/IconButton";
 import EditSchedule from "./EditSchedule";
+import EmployeeInfo from "./EmployeeInfo";
 
 function AllocateSchedule({
   open,
   handleClose,
   scheduleInfo,
   allUsersInfo,
-  assigned,
   refresh,
+  handleChangeUser,
+  handleRemoveUser,
 }) {
   const { assignEmployee, isLoading, error } = useAssignEmployee();
   const {
@@ -103,7 +106,10 @@ function AllocateSchedule({
     {
       id: "time",
       label: "Time",
-      defaultValue: scheduleInfo.start_time + " - " + scheduleInfo.end_time,
+      defaultValue: timePrettier(
+        scheduleInfo.start_time,
+        scheduleInfo.end_time
+      ),
       isEditable: false,
     },
   ];
@@ -158,10 +164,12 @@ function AllocateSchedule({
         </div>
       </DialogTitle>
       <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        <Typography>Current Slot: {assigned.employee}</Typography>
-        <Typography>
-          Shift Assigned: {scheduleInfo.array.map((x) => x.employee).join(", ")}
-        </Typography>
+        <EmployeeInfo
+          scheduleInfo={scheduleInfo}
+          handleDelete={handleRemoveUser}
+          handleChange={handleChangeUser}
+          allUsersInfo={allUsersInfo}
+        />
         <Grid container spacing={5}>
           <Grid size={{ xs: 12, md: 6 }}>
             {formFieldsLeft.map((field) => (

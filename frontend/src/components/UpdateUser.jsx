@@ -249,14 +249,12 @@ function UpdateUser({
       label: "Workplace",
       defaultValue: formData.workplace,
       placeholder: "Workplace",
-      defaultValue: "NA",
     },
     {
       id: "occupation",
       label: "Occupation",
       defaultValue: formData.occupation,
       placeholder: "Occupation",
-      defaultValue: "NA",
     },
   ];
 

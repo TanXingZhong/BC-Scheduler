@@ -82,6 +82,7 @@ export default function ApplicationList() {
         }
         pageSize={5}
         rowsPerPageOptions={[5]}
+        hideFooterSelectedRowCount
         sx={{
           "& .MuiDataGrid-columnHeaders": {
             backgroundColor: "secondary.main",
