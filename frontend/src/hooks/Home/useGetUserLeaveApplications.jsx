@@ -8,34 +8,26 @@ export const useGetUserLeaveApplications = () => {
     setIsLoading(true);
     setError(null);
 
-    try {
-      const response = await fetch(
-        "http://localhost:8080/users/appliedleaves",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            user_id,
-          }),
-        }
-      );
+    const response = await fetch("http://localhost:8080/users/appliedleaves", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        user_id,
+      }),
+    });
 
-      const json = await response.json();
+    const json = await response.json();
 
-      if (!response.ok) {
-        setIsLoading(false);
-        setError(json.message);
-        return;
-      }
-      if (response.ok) {
-        // update loading state
-        setIsLoading(false);
-        return json.rows;
-      }
-    } catch (error) {
-      console.log("Error getting user leaves and offs", error);
+    if (!response.ok) {
+      setIsLoading(false);
+      setError(json.message);
+      return;
+    }
+    if (response.ok) {
+      setIsLoading(false);
+      return json.rows;
     }
   };
 

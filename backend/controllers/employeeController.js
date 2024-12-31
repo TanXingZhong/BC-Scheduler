@@ -1,6 +1,5 @@
 const db = require("../model/db");
-const db_roles = require("../model/db_roles");
-const bcrypt = require("bcrypt");
+const db_schedule = require("../model/db_schedule");
 
 // @desc Get all users
 // @route GET /users
@@ -25,10 +24,11 @@ const getUserByUserId = async (req, res) => {
   }
   try {
     const user = await db.getUserByidWithoutPassword(user_id);
-    return res.status(200).json({ employee: user });
+    const userShfits = await db_schedule.getAllShiftsByUser(user_id);
+    return res.status(200).json({ employee: user, userShifts: userShfits });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: "Error fetching user." });
+    return res.status(500).json({ message: "Error fetching user info." });
   }
 };
 

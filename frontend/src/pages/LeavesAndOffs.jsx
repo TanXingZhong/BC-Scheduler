@@ -76,7 +76,7 @@ export default function leaveApplication(props) {
   const onLoad = async () => {
     try {
       const data = await getUserById(user_id);
-      setUserInfo(data[0]);
+      setUserInfo(data.employee[0]);
     } catch (err) {
       console.error("Error loading userInfo: ", err);
     }
@@ -193,18 +193,6 @@ export default function leaveApplication(props) {
       );
       dbEndDate = dateTimeToDBDate(new Date(dbEndDate).setHours(23, 59, 0, 0));
     }
-
-    console.log("Start Date:", dbStartDate);
-    console.log("End Date:", dbEndDate);
-    console.log("Type:", type);
-    console.log("Length:", length);
-    console.log("UserID:", user_id);
-    console.log("original-leaves:", userInfo.leaves);
-    console.log("original-offs:", userInfo.offs);
-
-    console.log("remaining-leaves:", userInfo.leaves);
-    console.log("remaining-offs:", userInfo.off);
-
     await leaveOffApply(
       user_id,
       type,

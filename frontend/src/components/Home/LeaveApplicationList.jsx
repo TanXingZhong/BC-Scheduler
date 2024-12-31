@@ -18,7 +18,6 @@ export default function LeaveApplicationList() {
     try {
       const data = await userLeaveApplications(user_id);
       setUser_LeaveApplications(data);
-      console.log("hi", user_LeaveApplications);
     } catch (err) {
       console.error("Error loading user leaves and offs: ", err);
     }

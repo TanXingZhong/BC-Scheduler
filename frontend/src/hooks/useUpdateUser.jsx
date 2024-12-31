@@ -4,35 +4,34 @@ import { useAuthContext } from "./useAuthContext";
 export const useUpdateUser = () => {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(null);
+  const [success, setSuccess] = useState(null);
   const { user } = useAuthContext();
 
   const updateUser = async (data) => {
     setIsLoading(true);
     setError(null);
-    try {
-      const response = await fetch("http://localhost:8080/users", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${user.accessToken}`,
-        },
-        body: JSON.stringify(data),
-      });
+    setSuccess(null);
 
-      const json = await response.json();
+    const response = await fetch("http://localhost:8080/users", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${user.accessToken}`,
+      },
+      body: JSON.stringify(data),
+    });
 
-      if (!response.ok) {
-        setIsLoading(false);
-        setError(json.message);
-      }
-      if (response.ok) {
-        // update loading state
-        setIsLoading(false);
-      }
-    } catch (error) {
-      console.log("Error updating user", error);
+    const json = await response.json();
+
+    if (!response.ok) {
+      setIsLoading(false);
+      setError(json.message);
+    }
+    if (response.ok) {
+      setIsLoading(false);
+      setSuccess(json.message);
     }
   };
 
-  return { updateUser, isLoading, error };
+  return { updateUser, isLoading, error, success };
 };

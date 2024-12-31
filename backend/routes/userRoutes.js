@@ -5,7 +5,6 @@ const leaveController = require("../controllers/leaveController");
 const verifyJWT = require("../middleware/verifyJWT");
 
 router.route("/leaveoffapply").post(leaveController.applyLeaveOffs);
-router.route("/leaveoff").get(leaveController.getAllPendingLeavesAndOffs);
 router.route("/appliedleaves").post(leaveController.getLeavesByUserId);
 router
   .route("/clearleaveapplication")
@@ -20,5 +19,6 @@ router
   .delete(usersController.deleteUser);
 
 router.route("/leaveoffapprovalaction").put(leaveController.actionLeaveOff);
+router.route("/leaveoff").get(leaveController.getAllPendingLeavesAndOffs);
 
 module.exports = router;

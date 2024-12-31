@@ -4,40 +4,37 @@ import { useAuthContext } from "../useAuthContext";
 export const useAssignEmployee = () => {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(null);
+  const [success, setSuccess] = useState(null);
   const { user } = useAuthContext();
 
   const assignEmployee = async (schedule_id, employee_id) => {
     setIsLoading(true);
     setError(null);
+    setSuccess(null);
 
-    try {
-      const response = await fetch("http://localhost:8080/schedules", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${user.accessToken}`,
-        },
-        body: JSON.stringify({
-          schedule_id,
-          employee_id
-        }),
-      });
+    const response = await fetch("http://localhost:8080/schedules", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${user.accessToken}`,
+      },
+      body: JSON.stringify({
+        schedule_id,
+        employee_id,
+      }),
+    });
 
-      const json = await response.json();
+    const json = await response.json();
 
-      if (!response.ok) {
-        setIsLoading(false);
-        setError(json.message);
-      }
-      if (response.ok) {
-        // update loading state
-        console.log("Assigned completed", json.success);
-        setIsLoading(false);
-      }
-    } catch (error) {
-      console.log("Error assigning employee to schedule", error);
+    if (!response.ok) {
+      setIsLoading(false);
+      setError(json.message);
+    }
+    if (response.ok) {
+      setIsLoading(false);
+      setSuccess(json.message);
     }
   };
 
-  return { assignEmployee, isLoading, error };
+  return { assignEmployee, isLoading, error, success };
 };

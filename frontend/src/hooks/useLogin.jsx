@@ -10,35 +10,27 @@ export const useLogin = () => {
     setIsLoading(true);
     setError(null);
 
-    try {
-      const response = await fetch("http://localhost:8080/auth", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-        credentials: "include", // Required to include cookies in the request
+    const response = await fetch("http://localhost:8080/auth", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+      credentials: "include",
+    });
+
+    const json = await response.json();
+
+    if (!response.ok) {
+      setIsLoading(false);
+      setError(json.message);
+    }
+    if (response.ok) {
+      dispatch({
+        type: "LOGIN",
+        payload: json,
       });
-
-      const json = await response.json();
-
-      if (!response.ok) {
-        setIsLoading(false);
-        setError(json.message);
-      }
-      if (response.ok) {
-        // update the auth context
-
-        dispatch({
-          type: "LOGIN",
-          payload: json,
-        });
-        // update loading state
-        setIsLoading(false);
-      }
-    } catch (error) {
-      console.error("Error auth", error);
-      setError(error);
+      setIsLoading(false);
     }
   };
 

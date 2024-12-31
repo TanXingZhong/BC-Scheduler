@@ -12,30 +12,25 @@ export const useGetUsersInfo = () => {
     setIsLoading(true);
     setError(null);
 
-    try {
-      const response = await fetch("http://localhost:8080/users", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${user.accessToken}`,
-        },
-      });
+    const response = await fetch("http://localhost:8080/users", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${user.accessToken}`,
+      },
+    });
 
-      const json = await response.json();
-      if (!response.ok) {
-        setIsLoading(false);
-        setError(json.message);
-      }
-      if (response.ok) {
-        // update loading state
-        setIsLoading(false);
-        dispatch({
-          type: "GET_DATA",
-          payload: { allDatas: json.rows, allRoles: json.allRoles },
-        });
-      }
-    } catch (error) {
-      console.log("Error getting userData", error);
+    const json = await response.json();
+    if (!response.ok) {
+      setIsLoading(false);
+      setError(json.message);
+    }
+    if (response.ok) {
+      setIsLoading(false);
+      dispatch({
+        type: "GET_DATA",
+        payload: { allDatas: json.rows, allRoles: json.allRoles },
+      });
     }
   };
 

@@ -13,7 +13,7 @@ import Stack from "@mui/material/Stack";
 import MuiCard from "@mui/material/Card";
 import { styled } from "@mui/material/styles";
 import ForgotPassword from "../components/ForgotPassword";
-import { SitemarkIcon } from "../components/CustomIcons";
+import logo from "../img/logo.jpg";
 import AppTheme from "../../shared-theme/AppTheme";
 import ColorModeSelect from "../../shared-theme/ColorModeSelect";
 import { useLogin } from "../hooks/useLogin";
@@ -123,7 +123,7 @@ export default function SignIn(props) {
           sx={{ position: "fixed", top: "1rem", right: "1rem" }}
         />
         <Card variant="outlined">
-          <SitemarkIcon />
+          <img src={logo} alt="Logo" />
           <Typography
             component="h1"
             variant="h4"
@@ -176,11 +176,8 @@ export default function SignIn(props) {
                 color={passwordError ? "error" : "primary"}
               />
             </FormControl>
-            <FormControlLabel
-              control={<Checkbox value="remember" color="primary" />}
-              label="Remember me"
-            />
             <ForgotPassword open={open} handleClose={handleClose} />
+            {error && validateInputs && <div className="error">{error}</div>}
             <Button
               type="submit"
               fullWidth
@@ -189,16 +186,6 @@ export default function SignIn(props) {
             >
               Sign in
             </Button>
-            {error && validateInputs && <div className="error">{error}</div>}
-            <Link
-              component="button"
-              type="button"
-              onClick={handleClickOpen}
-              variant="body2"
-              sx={{ alignSelf: "center" }}
-            >
-              Forgot your password?
-            </Link>
           </Box>
         </Card>
       </SignInContainer>

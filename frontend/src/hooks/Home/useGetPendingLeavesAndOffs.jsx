@@ -9,31 +9,24 @@ export const useGetPendingLeavesAndOffs = () => {
   const getPendingLeavesAndOffs = async () => {
     setIsLoading(true);
     setError(null);
-    try {
-      const response = await fetch("http://localhost:8080/users/leaveoff", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
 
-      const json = await response.json();
+    const response = await fetch("http://localhost:8080/users/leaveoff", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${user.accessToken}`,
+      },
+    });
 
-      if (!response.ok) {
-        setIsLoading(false);
-        setError(json.message);
-      }
-      if (response.ok) {
-        // update loading state
-        console.log(
-          "All Pending Leaves and Offs have been retrieved",
-          json.success
-        );
-        setIsLoading(false);
-        return json.rows;
-      }
-    } catch (error) {
-      console.log("Error getting user", error);
+    const json = await response.json();
+
+    if (!response.ok) {
+      setIsLoading(false);
+      setError(json.message);
+    }
+    if (response.ok) {
+      setIsLoading(false);
+      return json.rows;
     }
   };
 

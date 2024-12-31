@@ -1,32 +1,35 @@
 import { useState } from "react";
 
 export const useGetNames = () => {
-    const [error, setError] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [success, setSuccess] = useState(null);
 
-    const fetchNames = async () => {
-        try {
-            const response = await fetch("http://localhost:8080/employee", {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            });
+  const fetchNames = async () => {
+    setIsLoading(true);
+    setError(null);
+    setSuccess(null);
 
-            const json = await response.json();
-            if (!response.ok) {
-                setIsLoading(false);
-                setError(json.message || "Something went wrong");
-                return;
-            }
-            setIsLoading(false);
-            return json.rows;
-        } catch (error) {
-            console.log("Error getRoles", error);
-            setIsLoading(false);
-            setError("Error fetching all roles");
-        }
+    const response = await fetch("http://localhost:8080/employee", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const json = await response.json();
+    if (!response.ok) {
+      setIsLoading(false);
+      setError(json.message);
+      return;
     }
 
-    return { fetchNames, isLoading, error };
-}
+    if (response.ok) {
+      setIsLoading(false);
+      setSuccess(json.message);
+      return json.rows;
+    }
+  };
+
+  return { fetchNames, isLoading, error, success };
+};

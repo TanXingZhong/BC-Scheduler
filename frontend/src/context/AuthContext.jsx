@@ -14,15 +14,13 @@ export const authReducer = (state, action) => {
 
 export const AuthContextProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, {
-    user: null, // User initially null, will be loaded on token refresh.
+    user: null,
   });
-  console.log("AuthContext state:", state);
-  // Function to refresh the access token
   const refreshAccessToken = async () => {
     try {
       const response = await fetch("http://localhost:8080/auth/refresh", {
         method: "GET",
-        credentials: "include", // Ensures cookies are sent with the request
+        credentials: "include",
       });
       const json = await response.json();
 
@@ -32,18 +30,14 @@ export const AuthContextProvider = ({ children }) => {
           payload: json,
         });
       } else {
-        // If the refresh token is invalid or expired
-        console.error(json.message);
         dispatch({ type: "LOGOUT" });
       }
     } catch (error) {
-      console.error("Error refreshing access token:", error);
       dispatch({ type: "LOGOUT" });
     }
   };
 
   useEffect(() => {
-    // Attempt to refresh token on app load
     if (state.user == null) refreshAccessToken();
   }, []);
 

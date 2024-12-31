@@ -21,7 +21,6 @@ export default function LeaveApproval() {
     try {
       const data = await getPendingLeavesAndOffs();
       setUserLeaveOffApplications(data);
-
       setUserLeaveOffApplications((prevApplications) =>
         prevApplications.map((application) => ({
           ...application, // Keep all other fields the same
@@ -37,8 +36,6 @@ export default function LeaveApproval() {
   useEffect(() => {
     onLoad();
   }, []);
-
-  console.log(user_LeaveOffApplications);
 
   const columns = [
     {

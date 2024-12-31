@@ -25,8 +25,6 @@ const login = async (req, res) => {
 
   if (!match) return res.status(401).json({ message: "Unauthorized" });
 
-  const userShfits = await db_schedule.getAllShiftsByUser(foundUser[0].id);
-
   const accessToken = jwt.sign(
     {
       UserInfo: {
@@ -37,7 +35,6 @@ const login = async (req, res) => {
         admin: foundUser[0].admin,
         leaves: foundUser[0].leaves,
         offs: foundUser[0].offs,
-        userShifts: userShfits,
       },
     },
     process.env.ACCESS_TOKEN_SECRET,
@@ -83,7 +80,6 @@ const refresh = (req, res) => {
       if (!foundUser || foundUser.length == 0 || !foundUser[0].active)
         return res.status(401).json({ message: "Unauthorized" });
 
-      const userShfits = await db_schedule.getAllShiftsByUser(foundUser[0].id);
       const accessToken = jwt.sign(
         {
           UserInfo: {
@@ -94,7 +90,6 @@ const refresh = (req, res) => {
             admin: foundUser[0].admin,
             leaves: foundUser[0].leaves,
             offs: foundUser[0].offs,
-            userShifts: userShfits,
           },
         },
         process.env.ACCESS_TOKEN_SECRET,

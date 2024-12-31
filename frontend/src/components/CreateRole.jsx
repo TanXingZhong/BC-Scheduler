@@ -94,8 +94,9 @@ function CreateRole({ open, handleClose }) {
         ))}
       </DialogContent>
       <DialogActions sx={{ pb: 3, px: 3 }}>
+        {error && validateInputs && <div className="error">{error}</div>}
         <Button onClick={handleClose}>Cancel</Button>
-        <Button variant="contained" type="submit">
+        <Button variant="contained" type="submit" disabled={isLoading}>
           Create
         </Button>
       </DialogActions>

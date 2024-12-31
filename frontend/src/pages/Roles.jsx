@@ -198,9 +198,7 @@ const Roles = () => {
     try {
       await editRole(x);
       await onLoad();
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) {}
   };
   useEffect(() => {
     if (roleInfo && Object.keys(roleInfo).length > 0) {
@@ -209,7 +207,12 @@ const Roles = () => {
   }, [roleInfo]);
 
   return (
-    <Box sx={{ width: "100%", maxWidth: { sm: "100%", md: "1700px" } }}>
+    <Box
+      sx={{
+        width: "100%",
+        maxWidth: { sm: "100%", md: "1700px" },
+      }}
+    >
       <CorfirmationToDeleteRole
         open={openRoleDelete}
         handleClose={handleCloseRoleDelete}
