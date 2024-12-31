@@ -9,8 +9,8 @@ import Typography from "@mui/material/Typography";
 import MenuItem from "@mui/material/MenuItem";
 import { Switch, FormControlLabel } from "@mui/material";
 import MuiCard from "@mui/material/Card";
-import { styled } from "@mui/material/styles";
 import AppTheme from "../../shared-theme/AppTheme";
+import { styled } from "@mui/material/styles";
 import Grid from "@mui/material/Grid2";
 import { useSignup } from "../hooks/useSignup";
 

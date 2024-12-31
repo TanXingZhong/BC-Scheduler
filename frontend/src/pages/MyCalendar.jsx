@@ -8,8 +8,6 @@ import {
   Card,
   Typography,
   Dialog,
-  DialogActions,
-  DialogContent,
 } from "@mui/material";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
@@ -278,8 +276,7 @@ export default function MyCalendar() {
         width: "100%",
         maxWidth: { sm: "100%", md: "1700px" },
         height: "100vh",
-        overflowY: "hidden", // Disable vertical scrollbar
-        overflowX: "auto", // Enable horizontal scrollbar if necessary
+        overflowX: "auto",
       }}
     >
       <Grid2 container spacing={2} sx={{ marginBottom: "10px" }}>

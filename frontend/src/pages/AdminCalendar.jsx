@@ -328,12 +328,11 @@ export default function AdminCalendar() {
         width: "100%",
         maxWidth: { sm: "100%", md: "1700px" },
         height: "100vh",
-        overflowY: "scroll",
-        scrollbarWidth: "none",
+        overflowX: "auto",
       }}
     >
       <Grid2 container spacing={2} sx={{ marginBottom: "10px" }}>
-        {categories.map((x) => (
+        {categories.map((x, index) => (
           <Grid2 key={x.label}>
             <Button
               variant={filters[x.label]?.length ? "contained" : "outlined"}
@@ -422,13 +421,12 @@ export default function AdminCalendar() {
           handleRemoveUser={handleRemoveUser}
         />
       )}
-
       <Calendar
         localizer={localizer}
         events={filteredDataArray}
         defaultView="month"
         style={{ height: "100%" }}
-        views={["month", "agenda"]}
+        views={["agenda", "month"]}
         onSelectSlot={(slotInfo) => {
           const { start, end, slots } = slotInfo;
           const selectedEvents = filteredDataArray.filter(
@@ -470,32 +468,6 @@ export default function AdminCalendar() {
         names={names}
         refresh={handleRefresh}
       />
-      <Dialog
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        fullWidth
-        maxWidth="sm"
-      >
-        <DialogContent>
-          <h2>
-            Shifts on{" "}
-            {selectedDateEvents.length > 0 &&
-              moment(selectedDateEvents[0]?.start).format("MMMM Do YYYY")}
-          </h2>
-          <ul>
-            {selectedDateEvents.map((event, index) => (
-              <li key={index}>
-                <Typography>{event.title}</Typography>
-              </li>
-            ))}
-          </ul>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setModalOpen(false)} color="primary">
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Box>
   );
 }
