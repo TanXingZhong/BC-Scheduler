@@ -20,5 +20,6 @@ router
 
 router.route("/leaveoffapprovalaction").put(leaveController.actionLeaveOff);
 router.route("/leaveoff").get(leaveController.getAllPendingLeavesAndOffs);
+router.route("/getworkinghours").post(usersController.getWorkinghours);
 
 module.exports = router;

@@ -1,11 +1,13 @@
 import { useState, useEffect, Fragment } from "react";
 import {
+  CardContent,
   List,
   ListItem,
   ListItemText,
   Typography,
   Divider,
   Box,
+  Card,
 } from "@mui/material";
 import { useGetSingleUserInfo } from "../../hooks/useGetSingleUserInfo";
 import { useUserInfo } from "../../hooks/useUserInfo";
@@ -44,32 +46,23 @@ export default function Schedule() {
   return (
     <Box
       sx={{
-        maxHeight: 500, // Adjusted to fit approximately 10 items
+        maxHeight: 700, // Adjusted to fit approximately 10 items
         overflowY: "auto", // Enable vertical scrolling
       }}
     >
-      <List>
         {items.length > 0 ? (
           items.map((item, index) => (
             <Fragment key={item.id}>
-              <ListItem
+              <Card
                 sx={{
-                  bgcolor: "white",
-                  borderRadius: 1,
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                  "&:hover": { bgcolor: "#f0f0f0" },
                   marginBottom: 2, // Add margin between items
                 }}
               >
-                <ListItemText
-                  primary={
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+              <CardContent>
+              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
                       {item.date}
                     </Typography>
-                  }
-                  secondary={
-                    <>
-                      <Typography
+                    <Typography
                         variant="body2"
                         color="text.secondary"
                         component="span"
@@ -84,10 +77,8 @@ export default function Schedule() {
                       >
                         Time: {timePrettier(item.start, item.end)}
                       </Typography>
-                    </>
-                  }
-                />
-              </ListItem>
+              </CardContent>
+              </Card>
               {index < items.length - 1 && <Divider variant="inset" />}
             </Fragment>
           ))
@@ -96,7 +87,6 @@ export default function Schedule() {
             You have no shifts
           </Typography>
         )}
-      </List>
     </Box>
   );
 }
