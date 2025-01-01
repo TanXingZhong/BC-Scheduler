@@ -6,22 +6,27 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import Stack from "@mui/material/Stack";
 import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
-import AnalyticsRoundedIcon from "@mui/icons-material/AnalyticsRounded";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import PeopleRoundedIcon from "@mui/icons-material/PeopleRounded";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import EditCalendarIcon from "@mui/icons-material/EditCalendar";
+import AccessibilityIcon from "@mui/icons-material/Accessibility";
+import FreeBreakfastIcon from "@mui/icons-material/FreeBreakfast";
+
 import { Link } from "react-router-dom";
 
 const mainListItems = [
   { text: "Home", icon: <HomeRoundedIcon />, path: "/" },
-  { text: "Calendar", icon: <PeopleRoundedIcon />, path: "/calendar" },
+  { text: "Calendar", icon: <CalendarMonthIcon />, path: "/calendar" },
   {
     text: "Edit Schedule",
-    icon: <PeopleRoundedIcon />,
+    icon: <EditCalendarIcon />,
     path: "/edit-schedule",
   },
-  { text: "Leaves", icon: <PeopleRoundedIcon />, path: "/leaves" },
-  { text: "Users", icon: <AnalyticsRoundedIcon />, path: "/users" },
-  { text: "Create Account", icon: <PeopleRoundedIcon />, path: "/signup" },
-  { text: "Roles", icon: <PeopleRoundedIcon />, path: "/roles" },
+  { text: "Leaves", icon: <FreeBreakfastIcon />, path: "/leaves" },
+  { text: "Users", icon: <PeopleRoundedIcon />, path: "/users" },
+  { text: "Create Account", icon: <PersonAddIcon />, path: "/signup" },
+  { text: "Roles", icon: <AccessibilityIcon />, path: "/roles" },
 ];
 
 export default function MenuContent() {
