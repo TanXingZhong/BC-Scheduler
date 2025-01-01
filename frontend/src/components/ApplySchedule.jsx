@@ -6,8 +6,8 @@ import {
   DialogContent,
   DialogTitle,
   TextField,
-  Typography,
-  MenuItem,
+  Snackbar,
+  IconButton,
 } from "@mui/material";
 import PropTypes from "prop-types";
 import FormLabel from "@mui/material/FormLabel";
@@ -16,15 +16,36 @@ import Grid from "@mui/material/Grid2";
 import { toSGDate, timePrettier } from "../../config/convertTimeToSGT";
 import { useApplyShift } from "../hooks/Calendar/useApplyShift";
 import EmployeeInfoNoEdit from "./EmployeeInfoNoEdit";
+import CloseIcon from "@mui/icons-material/Close";
 
 function ApplySchedule({ open, handleClose, scheduleInfo, userInfo }) {
-  const { applyShift, isLoading, error } = useApplyShift();
+  const { applyShift, isLoading, error, success } = useApplyShift();
+  const [openApplySB, setOpenApplySB] = useState(false);
+
+  const handleCloseApplySB = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setOpenApplySB(false);
+  };
+
+  const actionApply = (
+    <IconButton
+      size="small"
+      aria-label="close"
+      color="inherit"
+      onClick={handleCloseApplySB}
+    >
+      <CloseIcon fontSize="small" />
+    </IconButton>
+  );
   const handleSubmit = async (event) => {
     event.preventDefault();
     const sche_Id = scheduleInfo.schedule_id;
     const employee_id = userInfo.user_id;
     await applyShift(sche_Id, employee_id);
-    handleClose();
+    setOpenApplySB(true);
   };
   const formFieldsLeft = [
     {
@@ -136,6 +157,13 @@ function ApplySchedule({ open, handleClose, scheduleInfo, userInfo }) {
           Apply
         </Button>
       </DialogActions>
+      <Snackbar
+        open={openApplySB}
+        autoHideDuration={6000}
+        onClose={handleCloseApplySB}
+        message={success ? success : error}
+        action={actionApply}
+      />
     </Dialog>
   );
 }

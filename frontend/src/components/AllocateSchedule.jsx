@@ -6,8 +6,8 @@ import {
   DialogContent,
   DialogTitle,
   TextField,
-  Typography,
-  Box,
+  IconButton,
+  Snackbar,
   MenuItem,
 } from "@mui/material";
 import PropTypes from "prop-types";
@@ -19,9 +19,9 @@ import { useAssignEmployee } from "../hooks/Calendar/useAssignEmployee";
 import { useDeleteSchedule } from "../hooks/Calendar/useDeleteSchedule";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
-import IconButton from "@mui/material/IconButton";
 import EditSchedule from "./EditSchedule";
 import EmployeeInfo from "./EmployeeInfo";
+import CloseIcon from "@mui/icons-material/Close";
 
 function AllocateSchedule({
   open,
@@ -31,12 +31,50 @@ function AllocateSchedule({
   refresh,
   handleChangeUser,
   handleRemoveUser,
+  handleChangeMSG,
 }) {
+  const [openAllocateSB, setAllocateSB] = useState(false);
+  const [openDeleteSB, setDeleteSB] = useState(false);
+  const handleCloseAllocateSB = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setAllocateSB(false);
+  };
+  const handleCloseDeleteSB = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setDeleteSB(false);
+  };
+  const actionAllocate = (
+    <IconButton
+      size="small"
+      aria-label="close"
+      color="inherit"
+      onClick={handleCloseAllocateSB}
+    >
+      <CloseIcon fontSize="small" />
+    </IconButton>
+  );
+  const actionDelete = (
+    <IconButton
+      size="small"
+      aria-label="close"
+      color="inherit"
+      onClick={handleCloseDeleteSB}
+    >
+      <CloseIcon fontSize="small" />
+    </IconButton>
+  );
   const { assignEmployee, isLoading, error, success } = useAssignEmployee();
   const {
     deleteSchedule,
     isLoading: isLoadingDelete,
     error: errorDelete,
+    success: successDelete,
   } = useDeleteSchedule();
   const [formData, setFormData] = useState(scheduleInfo || {});
   const transformDataForUserInfo = allUsersInfo.map((x) => {
@@ -75,6 +113,7 @@ function AllocateSchedule({
     const sche_Id = scheduleInfo.schedule_id;
     const employee_id = formData.employee_id;
     await assignEmployee(sche_Id, employee_id);
+    setAllocateSB(true);
     await refresh();
     // handleClose();
   };
@@ -119,11 +158,12 @@ function AllocateSchedule({
     handleClose();
   };
   const handleEdit = (x) => {
-    setOpenEdit(true); // Open the edit modal
+    setOpenEdit(true);
   };
 
   const handleDelete = async () => {
     await deleteSchedule(scheduleInfo.schedule_id);
+    setDeleteSB(true);
     await refresh();
   };
 
@@ -181,7 +221,9 @@ function AllocateSchedule({
           scheduleInfo={scheduleInfo}
           handleDelete={handleRemoveUser}
           handleChange={handleChangeUser}
+          close={handleClose}
           allUsersInfo={allUsersInfo}
+          handleChangeMSG={handleChangeMSG}
         />
         <Grid container spacing={5}>
           <Grid size={{ xs: 12, md: 6 }}>
@@ -260,8 +302,6 @@ function AllocateSchedule({
         </Grid>
       </DialogContent>
       <DialogActions sx={{ pb: 3, px: 3 }}>
-        {error && validateInputs && <div className="error">{error}</div>}
-        {success && validateInputs && <div className="success">{success}</div>}
         <Button onClick={handleClose}>Cancel</Button>
         <Button variant="contained" type="submit">
           Assign
@@ -276,6 +316,20 @@ function AllocateSchedule({
           refresh={refresh}
         />
       )}
+      <Snackbar
+        open={openAllocateSB}
+        autoHideDuration={6000}
+        onClose={handleCloseAllocateSB}
+        message={success ? success : error}
+        action={actionAllocate}
+      />
+      <Snackbar
+        open={openDeleteSB}
+        autoHideDuration={6000}
+        onClose={handleCloseDeleteSB}
+        message={successDelete ? successDelete : errorDelete}
+        action={actionDelete}
+      />
     </Dialog>
   );
 }

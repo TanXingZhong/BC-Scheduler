@@ -23,7 +23,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import { useCreateSchedule } from "../hooks/Calendar/useCreateSchedule";
 import { useCreateAdd } from "../hooks/Calendar/useCreateAdd";
 
-function Publish({ open, handleClose, names, refresh }) {
+function Publish({ open, handleClose, names, refresh, handleSetPublishSB }) {
   const [loading, setLoading] = useState(false);
   const [defaultError, setDefaultError] = useState({
     error: false,
@@ -247,6 +247,9 @@ function Publish({ open, handleClose, names, refresh }) {
     await Promise.all(schedulePromisesArr);
     await refresh();
     setLoading(false);
+    const data1 = success ? success : createAddSuccess;
+    const data2 = error ? error : createAddError;
+    handleSetPublishSB(data1, data2);
   };
 
   const formFieldsLeft = [
@@ -462,14 +465,6 @@ function Publish({ open, handleClose, names, refresh }) {
         )}
       </DialogContent>
       <DialogActions sx={{ pb: 3, px: 3 }}>
-        {(error || createAddError) && validateInputs && (
-          <div className="error">{error || createAddError}</div>
-        )}
-
-        {(success || createAddSuccess) && validateInputs && (
-          <div className="success">{success || createAddSuccess}</div>
-        )}
-
         <Button
           onClick={() => {
             handleClose();

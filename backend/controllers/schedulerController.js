@@ -1,4 +1,5 @@
 const db_schedule = require("../model/db_schedule");
+const db = require("../model/db");
 
 // @desc Get all schedule
 // @route GET /schedule
@@ -46,29 +47,57 @@ const createSchedules = async (req, res) => {
 
 const createSchedulesAddUser = async (req, res) => {
   const { outlet_name, start_time, end_time, vacancy, user_id } = req.body;
+
   // Confirm data
   if (!outlet_name || !start_time || !end_time || !vacancy) {
     return res.status(400).json({
       message: "outlet_name, start_time, end_time, and vacancy required.",
     });
   }
+
   // Create and store new schedule
-  try {
-    const rows = await db_schedule.addSchedule(
-      outlet_name,
-      start_time,
-      end_time,
-      vacancy
-    );
-    const schedule_id = rows.insertId;
-    for (user of user_id) {
-      await db_schedule.addUserToSchedule(schedule_id, user);
-    }
-    return res.status(201).json({
-      message: `New schedule at ${outlet_name} from ${start_time} to ${end_time} and assigned!`,
+  let accepted = [];
+  let promiseChain = Promise.resolve();
+
+  user_id.forEach((user) => {
+    promiseChain = promiseChain.then(() => {
+      return db_schedule.getAllShiftsByUser(user).then((userShifts) => {
+        return db
+          .checkConflicts(userShifts, start_time, end_time)
+          .then((hasConflict) => {
+            if (!hasConflict) {
+              accepted.push(user);
+            }
+          });
+      });
     });
+  });
+
+  try {
+    await promiseChain;
+
+    if (accepted.length > 0) {
+      const rows = await db_schedule.addSchedule(
+        outlet_name,
+        start_time,
+        end_time,
+        vacancy
+      );
+      const schedule_id = rows.insertId;
+      for (let user of accepted) {
+        const schedule = await db_schedule.getScheduleById(schedule_id);
+        await db_schedule.addUserToSchedule(schedule_id, user, schedule);
+      }
+
+      return res.status(201).json({
+        message: `Shift created and assigned!`,
+      });
+    } else {
+      return res.status(400).json({
+        message: `Some users have shifts conflict.`,
+      });
+    }
   } catch (err) {
-    console.error(err);
     return res.status(500).json({ message: "Error creating new schedule." });
   }
 };
@@ -151,10 +180,9 @@ const deleteSchedules = async (req, res) => {
 
 const addUserToSchedule = async (req, res) => {
   const { schedule_id, employee_id } = req.body;
-
   if (!schedule_id || !employee_id) {
     return res.status(400).json({
-      message: "schedule_id, employee_id required.",
+      message: "schedule_id and employee_id are required.",
     });
   }
 
@@ -168,19 +196,39 @@ const addUserToSchedule = async (req, res) => {
         message: "User already working in this time slot.",
       });
     }
-    await db_schedule.addUserToSchedule(schedule_id, employee_id);
+
+    const schedule = await db_schedule.getScheduleById(schedule_id);
+    if (!schedule) {
+      return res.status(404).json({
+        message: "Schedule not found.",
+      });
+    }
+
+    const userShifts = await db_schedule.getAllShiftsByUser(employee_id);
+    const hasConflict = await db.checkConflicts(
+      userShifts,
+      schedule[0].start_time,
+      schedule[0].end_time
+    );
+    if (hasConflict) {
+      return res.status(409).json({
+        message: "User shift has a conflict.",
+      });
+    }
+    await db_schedule.addUserToSchedule(schedule_id, employee_id, schedule);
     return res.status(200).json({
       message: `User ${employee_id} added to schedule ${schedule_id}`,
     });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: "Error adding user to schedule" });
+    console.error("Error in addUserToSchedule:", err);
+    return res.status(500).json({
+      message: "Error adding user to schedule.",
+    });
   }
 };
 
 const removeUserFromSchedule = async (req, res) => {
   const { schedule_id, employee_id } = req.body;
-  console.log(schedule_id, employee_id);
 
   if (!schedule_id || !employee_id) {
     return res.status(400).json({

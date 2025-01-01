@@ -1,5 +1,6 @@
 const db = require("../model/db");
 const db_schedule = require("../model/db_schedule");
+const bcrypt = require("bcrypt");
 
 // @desc Get all users
 // @route GET /users
@@ -32,7 +33,46 @@ const getUserByUserId = async (req, res) => {
   }
 };
 
+const changePassword = async (req, res) => {
+  const { user_id, oldPassword, newPassword } = req.body;
+
+  if (!user_id || !oldPassword || !newPassword) {
+    return res.status(400).json({
+      message: "Missing input",
+    });
+  }
+
+  try {
+    const user = await db.getUserByid(user_id);
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+    const match = await bcrypt.compare(oldPassword, user[0].password);
+    
+    if (!match) {
+      return res.status(401).json({
+        message: "Old password incorrect",
+      });
+    }
+
+    const hashedPwd = await bcrypt.hash(newPassword, 10);
+    await db.updatePassword(user_id, hashedPwd);
+
+    return res.status(200).json({
+      message: "Password updated",
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      message: "Error updating password",
+    });
+  }
+}
+
 module.exports = {
   getAllUsers,
   getUserByUserId,
+  changePassword,
 };

@@ -6,18 +6,41 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Snackbar,
   TextField,
+  IconButton,
 } from "@mui/material";
 import PropTypes from "prop-types";
 import FormLabel from "@mui/material/FormLabel";
 import FormControl from "@mui/material/FormControl";
 import { useCreateRole } from "../hooks/Roles/useCreateRole";
+import CloseIcon from "@mui/icons-material/Close";
 
 function CreateRole({ open, handleClose, handleRefresh }) {
   const [errorState, setErrorState] = useState({
     role_name: { error: false, message: "" },
   });
   const { createRole, isLoading, error, success } = useCreateRole();
+  const [openCreateSB, setOpenCreateSB] = useState(false);
+
+  const handleCloseCreateSB = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setOpenCreateSB(false);
+  };
+
+  const actionCreate = (
+    <IconButton
+      size="small"
+      aria-label="close"
+      color="inherit"
+      onClick={handleCloseCreateSB}
+    >
+      <CloseIcon fontSize="small" />
+    </IconButton>
+  );
 
   const setError = (field, error, message) => {
     setErrorState((prevState) => ({
@@ -46,6 +69,7 @@ function CreateRole({ open, handleClose, handleRefresh }) {
     }
     const role_name = document.getElementById("role_name").value.trim();
     await createRole(role_name);
+    setOpenCreateSB(true);
     handleRefresh();
   };
 
@@ -94,13 +118,18 @@ function CreateRole({ open, handleClose, handleRefresh }) {
         ))}
       </DialogContent>
       <DialogActions sx={{ pb: 3, px: 3 }}>
-        {error && validateInputs && <div className="error">{error}</div>}
-        {success && validateInputs && <div className="success">{success}</div>}
         <Button onClick={handleClose}>Cancel</Button>
         <Button variant="contained" type="submit" disabled={isLoading}>
           Create
         </Button>
       </DialogActions>
+      <Snackbar
+        open={openCreateSB}
+        autoHideDuration={6000}
+        onClose={handleCloseCreateSB}
+        message={success ? success : error}
+        action={actionCreate}
+      />
     </Dialog>
   );
 }
