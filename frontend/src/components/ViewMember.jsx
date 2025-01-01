@@ -34,7 +34,6 @@ export default function ViewMember({ open, handleClose, data }) {
         handleClose;
       }}
       maxWidth="sm"
-      fullWidth
       aria-labelledby="view-member-dialog-title"
     >
       <DialogTitle>{`Members in ${roleName}`}</DialogTitle>

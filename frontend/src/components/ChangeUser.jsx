@@ -12,7 +12,6 @@ import PropTypes from "prop-types";
 import FormLabel from "@mui/material/FormLabel";
 import FormControl from "@mui/material/FormControl";
 import Grid from "@mui/material/Grid2";
-
 function ChangeUser({
   open,
   handleClose,
@@ -22,6 +21,7 @@ function ChangeUser({
   assignedUser,
 }) {
   const [formData, setFormData] = useState(assignedUser);
+
   const transformDataForUserInfo = allUsersInfo.map((x) => {
     return {
       value: x.id,
@@ -50,13 +50,13 @@ function ChangeUser({
     return isValid;
   };
 
-  const handleSubmit = async (event) => {
+  const handleClick = async () => {
     event.preventDefault();
     if (!validateInputs()) {
       return;
     }
     await handleChange(assignedUser, formData);
-    handleClose();
+    await handleClose();
   };
   const formFieldsLeft = [
     {
@@ -81,11 +81,6 @@ function ChangeUser({
         handleClose;
       }}
       aria-labelledby="create-role-dialog-title"
-      PaperProps={{
-        component: "form",
-        onSubmit: handleSubmit,
-        sx: { backgroundImage: "none" },
-      }}
     >
       <DialogTitle
         id="change-emplyee-dialog-title"
@@ -126,7 +121,7 @@ function ChangeUser({
       </DialogContent>
       <DialogActions sx={{ pb: 3, px: 3 }}>
         <Button onClick={handleClose}>Cancel</Button>
-        <Button variant="contained" type="submit">
+        <Button variant="contained" onClick={handleClick}>
           Re-Assign
         </Button>
       </DialogActions>

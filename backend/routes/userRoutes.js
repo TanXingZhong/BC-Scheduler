@@ -6,6 +6,7 @@ const verifyJWT = require("../middleware/verifyJWT");
 
 router.route("/leaveoffapply").post(leaveController.applyLeaveOffs);
 router.route("/appliedleaves").post(leaveController.getLeavesByUserId);
+
 router
   .route("/clearleaveapplication")
   .post(leaveController.clearLeaveApplication);
@@ -17,6 +18,7 @@ router
   .post(usersController.createNewUser)
   .patch(usersController.updateUser)
   .delete(usersController.deleteUser);
+router.route("/reset-password").post(usersController.resetPassword);
 
 router.route("/leaveoffapprovalaction").put(leaveController.actionLeaveOff);
 router.route("/leaveoff").get(leaveController.getAllPendingLeavesAndOffs);
