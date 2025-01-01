@@ -12,6 +12,7 @@ import { useGetUsersInfo } from "../hooks/useGetUsersInfo";
 import { useUserContext } from "../hooks/useUserContext";
 import { useDeleteUser } from "../hooks/useDeleteUser";
 import { useUpdateUser } from "../hooks/useUpdateUser";
+import { useResetPassword } from "../hooks/useResetPassword";
 import Comfirmation from "../components/Comfirmation";
 import UpdateUser from "../components/UpdateUser";
 import { toSGDate } from "../../config/convertTimeToSGT";
@@ -20,6 +21,9 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Snackbar from "@mui/material/Snackbar";
 import CloseIcon from "@mui/icons-material/Close";
+import LockResetIcon from '@mui/icons-material/LockReset';
+import ResetPasswordForm from "../components/ResetPassword";
+
 
 const Users = () => {
   const { user } = useUserContext();
@@ -40,6 +44,12 @@ const Users = () => {
     error: errorUpdateUser,
     success: successUpdateUser,
   } = useUpdateUser();
+  const {
+    resetPasswordHook,
+    isLoading: isLoadingResetPassword,
+    error: errorResetPassword,
+    success: successResetPassword,
+  } = useResetPassword();
 
   const columns = [
     { field: "name", headerName: "Name", editable: false, width: 150 },
@@ -117,7 +127,6 @@ const Users = () => {
       headerName: "First Aid",
       editable: false,
       width: 70,
-      valueFormatter: (params) => (params == 1 ? "True" : "False"),
     },
     {
       field: "joinDate",
@@ -129,7 +138,7 @@ const Users = () => {
     {
       field: "actions",
       headerName: "Actions",
-      width: 100,
+      width: 125,
       headerAlign: "center",
       align: "center",
       renderCell: (params) => (
@@ -144,6 +153,18 @@ const Users = () => {
           >
             <EditIcon fontSize="small" sx={{ color: "blue" }} />
           </IconButton>
+
+          <IconButton
+            sx={{
+              border: "none",
+              borderRadius: "50%",
+            }}
+            aria-label="edit"
+            onClick={() => handleClickOpenResetPassword(params.row)}
+          >
+            <LockResetIcon fontSize="small" sx={{ color: "blue" }} />
+          </IconButton>
+
           <IconButton
             sx={{
               border: "none",
@@ -161,10 +182,15 @@ const Users = () => {
 
   const [openDelete, setOpenDelete] = useState(false);
   const [openUpdate, setOpenUpdate] = useState(false);
+  const [openResetPassword, setOpenResetPassword] = useState(false);
+
   const [userInfo, setUserInfo] = useState(null);
+  const [resetPassword, setResetPassword] = useState(null);
   const [allRoles, setAllRoles] = useState([]);
   const [openDeleteSnackbar, setOpenDeleteSnackbar] = useState(false);
   const [openUpdateSnackbar, setOpenUpdateSnackbar] = useState(false);
+  const [openResetPasswordSnackbar, setOpenResetPasswordSnackbar] = useState(false);
+
 
   const rowsMemoized = useMemo(
     () => (user ? user.allDatas || [] : []),
@@ -185,6 +211,7 @@ const Users = () => {
     setOpenDelete(true);
   };
   const [loading, setLoading] = useState(false); // To track if data is loading
+
   const handleClickOpenUpdate = useCallback((x) => {
     setLoading(true); // Set loading to true when the dialog is opened
     setUserInfo({});
@@ -198,19 +225,41 @@ const Users = () => {
     }, 0);
   });
 
+  const handleClickOpenResetPassword = useCallback((x) => {
+    setLoading(true); // Set loading to true when the dialog is opened
+    setResetPassword({});
+
+    const data = {
+      user_id: x.id,
+    }
+
+    // Simulate data fetching or just set the data
+    setTimeout(() => {
+      setResetPassword(data);
+      setLoading(false); // Once the data is set, set loading to false
+    }, 0);
+  });
+
   useEffect(() => {
     if (userInfo && Object.keys(userInfo).length > 0 && allRoles.length > 0) {
       setOpenUpdate(true);
     }
   }, [userInfo, allRoles]);
 
-  const handleClose = () => {
-    setOpenDelete(false);
-  };
+  useEffect(() => {
+    if (resetPassword) {
+      setOpenResetPassword(true);
+    }
+  }, [resetPassword]);
 
   const handleCloseUpdate = () => {
     setOpenUpdate(false);
   };
+
+  const handleCloseResetPassword = () => {
+    setOpenResetPassword(false);
+  };
+  
 
   const handleUpdateUserInfo = async (data) => {
     try {
@@ -223,6 +272,16 @@ const Users = () => {
       console.error(err);
     }
   };
+
+  const handleResetPassword = async (data) => {
+    try {
+      await resetPasswordHook(data);
+      handleClickUpdate();
+      await onLoad();
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
   const handleContinue = async (email) => {
     try {
@@ -247,6 +306,16 @@ const Users = () => {
     setOpenUpdateSnackbar(false);
   };
 
+  const handleCloseResetPasswordSnackbar = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setOpenResetPasswordSnackbar(false);
+  };
+
+
+
   const actionUpdate = (
     <Fragment>
       <IconButton
@@ -259,6 +328,22 @@ const Users = () => {
       </IconButton>
     </Fragment>
   );
+
+  const actionResetPassword = (
+    <Fragment>
+      <IconButton
+        size="small"
+        aria-label="close"
+        color="inherit"
+        onClick={handleCloseResetPasswordSnackbar}
+      >
+        <CloseIcon fontSize="small" />
+      </IconButton>
+    </Fragment>
+  );
+
+
+
 
   const handleClickDelete = () => {
     setOpenDeleteSnackbar(true);
@@ -289,6 +374,10 @@ const Users = () => {
     onLoad();
   }, []);
 
+  useEffect(() => {
+    console.log(resetPassword);
+  }, [resetPassword]);
+
   return (
     <Box sx={{ width: "100%", maxWidth: { sm: "100%", md: "1700px" } }}>
       <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
@@ -296,7 +385,7 @@ const Users = () => {
       </Typography>
       <Comfirmation
         open={openDelete}
-        handleClose={handleClose}
+        handleClose={handleCloseUpdate}
         handleContinue={handleContinue}
         email={selectedEmail}
       />
@@ -332,6 +421,40 @@ const Users = () => {
           )}
         </>
       )}
+
+      {/* Conditionally render ResetPasswordForm only when resetPassword is set */}
+      {loading ? (
+        <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100%",
+        }}
+        >
+          <Typography variant="h6" color="textSecondary">
+            Loading user informations...
+          </Typography>
+          <CircularProgress sx={{ ml: 2 }} />
+        </Box>
+      ) : resetPassword ? (
+        <ResetPasswordForm
+          open={openResetPassword}
+          handleClose={handleCloseResetPassword}
+          handleResetPassword={handleResetPassword}
+          userId={resetPassword.user_id}
+          openSB={() => setOpenResetPasswordSnackbar(true)}
+        />
+      ) : (
+        <>
+          {openUpdate && (
+            <Typography color="error" variant="body2" sx={{ mt: 2 }}>
+              Failed to load user data or roles. Please try again later.
+            </Typography>
+          )}
+        </>
+      )}
+
       <DataGrid
         checkboxSelection
         rows={rowsMemoized}
@@ -358,6 +481,14 @@ const Users = () => {
         action={actionUpdate}
       />
       <Snackbar
+        open={openResetPasswordSnackbar}
+        autoHideDuration={6000}
+        onClose={handleCloseResetPasswordSnackbar}
+        message={successResetPassword ? successResetPassword : errorResetPassword}
+        action={actionResetPassword}
+      />
+      <Snackbar
+
         open={openDeleteSnackbar}
         autoHideDuration={6000}
         onClose={handleCloseDeleteSnackbar}

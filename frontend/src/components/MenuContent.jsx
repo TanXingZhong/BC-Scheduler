@@ -27,6 +27,8 @@ const mainListItems = [
   { text: "Users", icon: <PeopleRoundedIcon />, path: "/users" },
   { text: "Create Account", icon: <PersonAddIcon />, path: "/signup" },
   { text: "Roles", icon: <AccessibilityIcon />, path: "/roles" },
+  { text: "Change Password", icon: <AccessibilityIcon />, path: "/change-password" },
+
 ];
 
 export default function MenuContent() {

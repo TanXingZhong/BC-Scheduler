@@ -47,7 +47,7 @@ export default function MyCalendar() {
     const data = schedule.map((data) => {
       // Find all users scheduled for this slot
       const filledSlots = scheduleAndUsers
-        .filter((x) => x.schedule_id === data.schedule_id)
+        .filter((x) => (x.schedule_id === data.schedule_id))
         .map((slot) => ({
           id: slot.id,
           employee: slot.name,
@@ -110,7 +110,8 @@ export default function MyCalendar() {
       return;
     } else {
       for (const column of Object.keys(filters)) {
-        if (column === "employee") {
+        if(column === "employee") {
+
           uniqueValuesByColumn[column] = transformedDataArray
             .flatMap((row) => row["array"])
             .reduce((unique, current) => {
@@ -146,9 +147,8 @@ export default function MyCalendar() {
         if (column === "employee") {
           return (
             !filters[column].length ||
-            event.array.some((slot) =>
-              filters["employee"].includes(slot.employee)
-            )
+            event.array.some((slot) => filters["employee"].includes(slot.employee))
+
           );
         }
         if (column === "role") {
@@ -168,7 +168,7 @@ export default function MyCalendar() {
     if (filters["employee"] === undefined) {
       setFilteredData([]);
       return;
-    }
+    } 
     const secondFilter = fisrtFilter.map((event) => {
       const filteredArray = event.array.filter((slot) =>
         filters["employee"].includes(slot.employee)
@@ -184,6 +184,7 @@ export default function MyCalendar() {
       setFilteredData([]);
       return;
     }
+
     const thirdFilter = secondFilter.map((event) => {
       const filteredArray = event.array.filter((slot) =>
         filters["role"].includes(slot.role)
@@ -334,32 +335,51 @@ export default function MyCalendar() {
         <>
           {uniqueValues[currentFilterColumn]?.map((value) => {
             // Check if value is an object (not an array)
-            if (
-              typeof value === "object" &&
-              currentFilterColumn === "employee" &&
-              value !== null
-            ) {
-              return (
-                <FormControlLabel
-                  key={`${currentFilterColumn}-${value.employee}`} // Assuming value has an 'id' field for uniqueness
-                  control={
-                    <Checkbox
-                      checked={filters[currentFilterColumn]?.includes(
-                        value.employee
-                      )} // Use value.id or another unique identifier
-                      onChange={() =>
-                        handleCheckboxChange(
-                          currentFilterColumn,
-                          value.employee
-                        )
-                      }
-                      name={value.employee} // Or another unique property of the object
-                    />
-                  }
-                  label={`${value.employee}`} // Assuming the object has a 'name' field
-                />
-              );
-            }
+            if (typeof value === "object" && currentFilterColumn === "employee" && value !== null) {
+                          return (
+                            <FormControlLabel
+                              key={`${currentFilterColumn}-${value.employee}`} // Assuming value has an 'id' field for uniqueness
+                              control={
+                                <Checkbox
+                                  checked={filters[currentFilterColumn]?.includes(
+                                    value.employee
+                                  )} // Use value.id or another unique identifier
+                                  onChange={() =>
+                                    handleCheckboxChange(
+                                      currentFilterColumn,
+                                      value.employee
+                                    )
+                                  }
+                                  name={value.employee} // Or another unique property of the object
+                                />
+                              }
+                              label={`${value.employee}`} // Assuming the object has a 'name' field
+                            />
+                          );
+                        }
+                        
+                        if (typeof value === "object" && currentFilterColumn === "role" && value !== null) {
+                          return (
+                            <FormControlLabel
+                              key={`${currentFilterColumn}-${value.role}`} // Assuming value has an 'id' field for uniqueness
+                              control={
+                                <Checkbox
+                                  checked={filters[currentFilterColumn]?.includes(
+                                    value.role
+                                  )} // Use value.id or another unique identifier
+                                  onChange={() =>
+                                    handleCheckboxChange(
+                                      currentFilterColumn,
+                                      value.role
+                                    )
+                                  }
+                                  name={value.role} // Or another unique property of the object
+                                />
+                              }
+                              label={`${value.role}`} // Assuming the object has a 'name' field
+                            />
+                          );
+                        }
 
             if (
               typeof value === "object" &&

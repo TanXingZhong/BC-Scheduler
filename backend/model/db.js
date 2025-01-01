@@ -254,9 +254,23 @@ async function updateUser(data) {
   }
 }
 
-async function deleteUser(email) {
-  const query = "DELETE FROM users WHERE email = ?";
-  const values = [email];
+async function updatePassword(id, password) {
+  const query = "UPDATE users SET password = ? WHERE id = ?";
+  const values = [password, id];
+
+  try {
+    const [result] = await pool.execute(query, values);
+    console.log("Password updated successfully", result);
+    return result;
+  } catch (err) {
+    console.error("Error updating password:", err);
+    throw new Error(err);
+  }
+}
+
+async function deleteUser(id) {
+  const query = "DELETE FROM users WHERE id = ?";
+  const values = [id];
 
   try {
     const [result] = await pool.execute(query, values);
@@ -279,4 +293,5 @@ module.exports = {
   deleteUser,
   checkConflicts,
   getUserByidWithoutPassword,
+  updatePassword,
 };

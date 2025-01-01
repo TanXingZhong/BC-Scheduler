@@ -13,6 +13,8 @@ import LeavesAndOffs from "./pages/LeavesAndOffs";
 import Users from "./pages/Users";
 import HomeGrid from "./components/Home/HomeGrid";
 import Roles from "./pages/Roles";
+import ResetPasswordForm from "./components/ResetPassword";
+import ChangePassword from "./pages/ChangePassword";
 // export const Dashboard = lazy(() => import("./Dashboard"));
 // export const SignIn = lazy(() => import("./pages/SignIn"));
 // export const SignUp = lazy(() => import("./pages/SignUp"));
@@ -47,6 +49,7 @@ function App() {
         <Route path="users" element={<Users />} />
         <Route path="signup" element={<SignUp />} />
         <Route path="roles" element={<Roles />} />
+        <Route path="change-password" element={<ChangePassword />}/>
       </Route>
       <Route path="/login" element={!user ? <SignIn /> : <Navigate to="/" />} />
       <Route
