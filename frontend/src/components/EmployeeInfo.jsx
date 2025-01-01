@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { Box, Typography, IconButton } from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ChangeUser from "./ChangeUser";
+import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
+import Divider from "@mui/material/Divider";
 
 const EmployeeInfo = ({
   scheduleInfo,
@@ -36,14 +37,30 @@ const EmployeeInfo = ({
         >
           <Typography>{x.employee + " (" + (x.role || "") + ")"}</Typography>
 
-          <Box>
-            <IconButton aria-label="edit" onClick={() => handleEdit(x.id)}>
-              <EditIcon fontSize="small" />
-            </IconButton>
-            <IconButton aria-label="delete" onClick={() => handleDelete(x.id)}>
-              <DeleteIcon fontSize="small" />
-            </IconButton>
-          </Box>
+          {x.employee != "EMPTY" && (
+            <Box>
+              <IconButton
+                sx={{
+                  border: "none",
+                  borderRadius: "50%",
+                }}
+                aria-label="edit"
+                onClick={() => handleEdit(x.id)}
+              >
+                <ManageAccountsIcon fontSize="small" sx={{ color: "blue" }} />
+              </IconButton>
+              <IconButton
+                sx={{
+                  border: "none",
+                  borderRadius: "50%",
+                }}
+                aria-label="delete"
+                onClick={() => handleDelete(x.id)}
+              >
+                <DeleteIcon fontSize="small" sx={{ color: "red" }} />
+              </IconButton>
+            </Box>
+          )}
         </Box>
       ))}
 
@@ -57,6 +74,7 @@ const EmployeeInfo = ({
           assignedUser={assignedUser}
         />
       )}
+      <Divider />
     </Box>
   );
 };

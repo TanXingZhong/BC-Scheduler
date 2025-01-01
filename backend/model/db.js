@@ -88,7 +88,9 @@ async function getAllUsers() {
       roles.role_name,  -- role name from the roles table
       users.active, 
       users.joinDate, 
-      users.admin 
+      users.admin,
+      users.leaves,
+      users.offs
     FROM users
     JOIN roles ON users.role_id = roles.id`;
   try {
@@ -221,7 +223,7 @@ async function addUser(
 
 async function updateUser(data) {
   const query =
-    "UPDATE users SET name = ?, nric = ? , phonenumber = ?, sex = ?, dob = ?, bankName = ?, bankAccountNo = ?, address = ?, workplace = ?, occupation = ?, driverLicense = ?, firstAid = ?, joinDate = ?, role_id = ?, active = ?, admin = ? WHERE id = ?";
+    "UPDATE users SET name = ?, nric = ? , phonenumber = ?, sex = ?, dob = ?, bankName = ?, bankAccountNo = ?, address = ?, workplace = ?, occupation = ?, driverLicense = ?, firstAid = ?, joinDate = ?, role_id = ?, active = ?, admin = ?, leaves = ?, offs = ? WHERE id = ?";
   const values = [
     data.name,
     data.nric,
@@ -239,6 +241,8 @@ async function updateUser(data) {
     data.role_id,
     data.active,
     data.admin,
+    data.leaves,
+    data.offs,
     data.id,
   ];
 

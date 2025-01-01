@@ -15,19 +15,13 @@ export default function LeaveApplicationList() {
   const { user_id } = useUserInfo();
 
   const onLoad = async () => {
-    try {
-      const data = await userLeaveApplications(user_id);
-      setUser_LeaveApplications(data);
-    } catch (err) {
-      console.error("Error loading user leaves and offs: ", err);
-    }
+    const data = await userLeaveApplications(user_id);
+    if (data) setUser_LeaveApplications(data);
   };
 
   useEffect(() => {
     onLoad();
   }, []);
-
-  const rows = user_LeaveApplications;
 
   const columns = [
     { field: "type", headerName: "Type", width: 100 },
@@ -139,7 +133,7 @@ export default function LeaveApplicationList() {
   return (
     <Box style={{ height: 320, margin: "0 auto" }}>
       <DataGrid
-        rows={rows}
+        rows={user_LeaveApplications}
         columns={columns}
         getRowClassName={(params) =>
           params.indexRelativeToCurrentPage % 2 === 0 ? "even" : "odd"

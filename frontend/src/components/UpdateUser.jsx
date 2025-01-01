@@ -53,6 +53,8 @@ function UpdateUser({
     bankName: { error: false, message: "" },
     bankAccountNo: { error: false, message: "" },
     address: { error: false, message: "" },
+    leaves: { error: false, message: "" },
+    offs: { error: false, message: "" },
   });
 
   const setError = (field, error, message) => {
@@ -71,6 +73,8 @@ function UpdateUser({
     const bankName = document.getElementById("bankName");
     const bankAccountNo = document.getElementById("bankAccountNo");
     const address = document.getElementById("address");
+    const leaves = document.getElementById("leaves");
+    const offs = document.getElementById("offs");
 
     let isValid = true;
 
@@ -103,6 +107,46 @@ function UpdateUser({
       isValid = false;
     } else {
       setError("phonenumber", false, "");
+    }
+
+    // Validate Leaves
+    if (!leaves.value) {
+      setError("leaves", true, "Leaves is required.");
+      isValid = false;
+    } else if (!/^(?:\d+|\d+\.(?:0|5))$/.test(leaves.value)) {
+      // Allow whole numbers or numbers with .0 or .5 only
+      setError(
+        "leaves",
+        true,
+        "Leaves must be a valid number (whole, .0, or .5 only)."
+      );
+      isValid = false;
+    } else if (parseFloat(leaves.value) < 0) {
+      // Ensure the value is >= 0
+      setError("leaves", true, "Leaves must be greater than or equal to 0.");
+      isValid = false;
+    } else {
+      setError("leaves", false, "");
+    }
+
+    // Validate Offs
+    if (!offs.value) {
+      setError("offs", true, "Offs is required.");
+      isValid = false;
+    } else if (!/^(?:\d+|\d+\.(?:0|5))$/.test(offs.value)) {
+      // Allow whole numbers or numbers with .0 or .5 only
+      setError(
+        "offs",
+        true,
+        "Offs must be a valid number (whole, .0, or .5 only)."
+      );
+      isValid = false;
+    } else if (parseFloat(offs.value) < 0) {
+      // Ensure the value is >= 0
+      setError("offs", true, "Offs must be greater than or equal to 0.");
+      isValid = false;
+    } else {
+      setError("offs", false, "");
     }
 
     // Validate Date of Birth
@@ -217,6 +261,14 @@ function UpdateUser({
       error: false,
       helperText: "",
     },
+    {
+      id: "address",
+      label: "Address",
+      defaultValue: formData.address,
+      placeholder: "Address",
+      error: errorState.address.error,
+      helperText: errorState.address.message,
+    },
   ];
 
   const formFieldsRight = [
@@ -236,14 +288,7 @@ function UpdateUser({
       error: errorState.bankAccountNo.error,
       helperText: errorState.bankAccountNo.message,
     },
-    {
-      id: "address",
-      label: "Address",
-      defaultValue: formData.address,
-      placeholder: "Address",
-      error: errorState.address.error,
-      helperText: errorState.address.message,
-    },
+
     {
       id: "workplace",
       label: "Workplace",
@@ -255,6 +300,23 @@ function UpdateUser({
       label: "Occupation",
       defaultValue: formData.occupation,
       placeholder: "Occupation",
+    },
+
+    {
+      id: "leaves",
+      label: "Leaves",
+      defaultValue: formData.leaves,
+      placeholder: "0",
+      error: errorState.leaves.error,
+      helperText: errorState.leaves.message,
+    },
+    {
+      id: "offs",
+      label: "Offs",
+      defaultValue: formData.offs,
+      placeholder: "0",
+      error: errorState.offs.error,
+      helperText: errorState.offs.message,
     },
   ];
 

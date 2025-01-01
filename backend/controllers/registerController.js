@@ -40,7 +40,7 @@ const handleNewUser = async (req, res) => {
   try {
     const userExists = await db.checkUserExists(email);
     if (userExists) {
-      return res.status(409).json({ message: "Username already taken" });
+      return res.status(409).json({ message: "Email already taken" });
     }
 
     //Encrypt the password
@@ -67,7 +67,7 @@ const handleNewUser = async (req, res) => {
     );
 
     //Respond with a success message
-    res.status(201).json({ success: `New user ${email} created!` });
+    res.status(201).json({ message: `New user ${email} created!` });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Error creating new user." });

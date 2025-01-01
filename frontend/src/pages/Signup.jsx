@@ -45,7 +45,7 @@ const SignUpContainer = styled(Box)(({ theme }) => ({
 }));
 
 export default function SignUp(props) {
-  const { signup, error, isLoading } = useSignup();
+  const { signup, error, isLoading, success } = useSignup();
   const [errorState, setErrorState] = useState({
     name: { error: false, message: "" },
     nric: { error: false, message: "" },
@@ -431,11 +431,16 @@ export default function SignUp(props) {
                 </FormControl>
               </Grid>
             </Grid>
+            {error && validateInputs && <div className="error">{error}</div>}
+            {success && validateInputs && (
+              <div className="success">{success}</div>
+            )}
             <Button
               type="submit"
               fullWidth
               variant="contained"
               onClick={validateInputs}
+              disabled={isLoading}
             >
               Sign up
             </Button>

@@ -10,27 +10,21 @@ export const useDeleteRole = () => {
     setIsLoading(true);
     setError(null);
 
-    try {
-      const response = await fetch("http://localhost:8080/roles", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${user.accessToken}`,
-        },
-        body: JSON.stringify({ role_name }),
-      });
-      const json = await response.json();
-      if (!response.ok) {
-        setIsLoading(false);
-        setError(json.message);
-      }
-      if (response.ok) {
-        // update loading state
-        console.log(json.success);
-        setIsLoading(false);
-      }
-    } catch (error) {
-      console.log("Error Deleting role", error);
+    const response = await fetch("http://localhost:8080/roles", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${user.accessToken}`,
+      },
+      body: JSON.stringify({ role_name }),
+    });
+    const json = await response.json();
+    if (!response.ok) {
+      setIsLoading(false);
+      setError(json.message);
+    }
+    if (response.ok) {
+      setIsLoading(false);
     }
   };
 

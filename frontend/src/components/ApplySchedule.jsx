@@ -24,7 +24,6 @@ function ApplySchedule({ open, handleClose, scheduleInfo, userInfo }) {
     const sche_Id = scheduleInfo.schedule_id;
     const employee_id = userInfo.user_id;
     await applyShift(sche_Id, employee_id);
-    console.log(error);
     handleClose();
   };
   const formFieldsLeft = [

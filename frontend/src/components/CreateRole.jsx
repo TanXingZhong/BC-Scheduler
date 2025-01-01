@@ -13,22 +13,23 @@ import FormLabel from "@mui/material/FormLabel";
 import FormControl from "@mui/material/FormControl";
 import { useCreateRole } from "../hooks/Roles/useCreateRole";
 
-function CreateRole({ open, handleClose }) {
+function CreateRole({ open, handleClose, handleRefresh }) {
   const [errorState, setErrorState] = useState({
     role_name: { error: false, message: "" },
   });
+  const { createRole, isLoading, error, success } = useCreateRole();
+
   const setError = (field, error, message) => {
     setErrorState((prevState) => ({
       ...prevState,
       [field]: { error, message },
     }));
   };
-  const { createRole, isLoading, error } = useCreateRole();
 
   const validateInputs = () => {
     const role_name = document.getElementById("role_name");
     let isValid = true;
-    if (!role_name.value || role_name.value.length < 1) {
+    if (!role_name.value || role_name.value.trim().length < 1) {
       setError("role_name", true, "Role name is required.");
       isValid = false;
     } else {
@@ -43,10 +44,11 @@ function CreateRole({ open, handleClose }) {
     if (!isValid) {
       return;
     }
-    const role_name = document.getElementById("role_name").value;
+    const role_name = document.getElementById("role_name").value.trim();
     await createRole(role_name);
-    handleClose();
+    handleRefresh();
   };
+
   const formField = [
     {
       id: "role_name",
@@ -56,15 +58,14 @@ function CreateRole({ open, handleClose }) {
       helperText: errorState.role_name.message,
     },
   ];
+
   return (
     <Dialog
       open={open}
       onClose={(_, reason) => {
-        // Prevent closing on backdrop click or escape
         if (reason === "backdropClick" || reason === "escapeKeyDown") {
           return;
         }
-        handleClose;
       }}
       aria-labelledby="create-role-dialog-title"
       PaperProps={{
@@ -76,7 +77,7 @@ function CreateRole({ open, handleClose }) {
       <DialogTitle id="create-role-dialog-title">Create Role</DialogTitle>
       <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
         {formField.map((field) => (
-          <FormControl key={field.id} fullWidth sx={{ marginBottom: 2 }}>
+          <FormControl key={field.id} fullWidth>
             <FormLabel htmlFor={field.id}>{field.label}</FormLabel>
             <TextField
               autoComplete={field.id}
@@ -85,7 +86,6 @@ function CreateRole({ open, handleClose }) {
               fullWidth
               variant="outlined"
               placeholder={field.placeholder}
-              value={field.value}
               error={field.error}
               helperText={field.helperText}
               color={field.error ? "error" : "primary"}
@@ -95,6 +95,7 @@ function CreateRole({ open, handleClose }) {
       </DialogContent>
       <DialogActions sx={{ pb: 3, px: 3 }}>
         {error && validateInputs && <div className="error">{error}</div>}
+        {success && validateInputs && <div className="success">{success}</div>}
         <Button onClick={handleClose}>Cancel</Button>
         <Button variant="contained" type="submit" disabled={isLoading}>
           Create

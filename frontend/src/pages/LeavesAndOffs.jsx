@@ -7,7 +7,6 @@ import FormControl from "@mui/material/FormControl";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import MenuItem from "@mui/material/MenuItem";
-import { Switch, FormControlLabel } from "@mui/material";
 import MuiCard from "@mui/material/Card";
 import { styled } from "@mui/material/styles";
 import AppTheme from "../../shared-theme/AppTheme";
@@ -16,6 +15,7 @@ import { useLeaveOffApps } from "../hooks/useLeaveOffApps";
 import { useGetSingleUserInfo } from "../hooks/useGetSingleUserInfo";
 import { useUserInfo } from "../hooks/useUserInfo";
 import { dateTimeToDBDate } from "../../config/convertDateToDB";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: "flex",
@@ -48,7 +48,7 @@ const LeavesAndOffsContainer = styled(Box)(({ theme }) => ({
 }));
 
 export default function leaveApplication(props) {
-  const { leaveOffApply, error, isLoading } = useLeaveOffApps();
+  const { leaveOffApply, error, isLoading, success } = useLeaveOffApps();
   const {
     getUserById,
     error: singleUserError,
@@ -64,8 +64,6 @@ export default function leaveApplication(props) {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  const [DBstartDate, setDBStartDate] = useState("");
-  const [DBendDate, setDBEndDate] = useState("");
   const amt_used = useRef(0);
 
   const [type, setType] = useState("Leave");
@@ -203,7 +201,8 @@ export default function leaveApplication(props) {
     );
 
     const updatedUser = await getUserById(user_id);
-    setUserInfo(updatedUser[0]);
+    console.log(updatedUser);
+    setUserInfo(updatedUser.employee[0]);
   };
 
   const formFieldsLeft = [
@@ -249,10 +248,31 @@ export default function leaveApplication(props) {
       <CssBaseline enableColorScheme />
       <LeavesAndOffsContainer direction="column" justifyContent="space-between">
         <Card variant="outlined">
-          <Typography>
-            Leave Balance: {userInfo ? userInfo.leaves : 0}
-          </Typography>
-          <Typography>Offs Balance: {userInfo ? userInfo.offs : 0}</Typography>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row", // Places the icon to the right
+              gap: 2,
+              alignItems: "center",
+            }}
+          >
+            <CalendarMonthIcon fontSize="large" />
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                textAlign: "left",
+              }}
+            >
+              <Typography>
+                Leave Balance: {userInfo ? userInfo.leaves : 0}
+              </Typography>
+              <Typography>
+                Offs Balance: {userInfo ? userInfo.offs : 0}
+              </Typography>
+            </Box>
+          </Box>
+
           <Typography
             component="h1"
             variant="h4"
@@ -358,9 +378,18 @@ export default function leaveApplication(props) {
                 ))}
               </Grid>
             </Grid>
-            <Button type="submit" fullWidth variant="contained">
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              disabled={isLoading}
+            >
               Apply
             </Button>
+            {error && validateInputs && <div className="error">{error}</div>}
+            {success && validateInputs && (
+              <div className="success">{success}</div>
+            )}
           </Box>
         </Card>
       </LeavesAndOffsContainer>

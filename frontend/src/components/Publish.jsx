@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Button,
   Checkbox,
@@ -16,20 +16,27 @@ import {
   TextField,
   Box,
 } from "@mui/material";
+import { green } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import Grid from "@mui/material/Grid2";
+import CircularProgress from "@mui/material/CircularProgress";
 import { useCreateSchedule } from "../hooks/Calendar/useCreateSchedule";
 import { useCreateAdd } from "../hooks/Calendar/useCreateAdd";
 
 function Publish({ open, handleClose, names, refresh }) {
+  const [loading, setLoading] = useState(false);
+  const [defaultError, setDefaultError] = useState({
+    error: false,
+    message: "",
+  });
   const [errorState, setErrorState] = useState({
-    outlet_name: { error: false, message: "" },
-    vacancy: { error: false, message: "" },
-    date: { error: false, message: "" },
-    start_time: { error: false, message: "" },
-    end_time: { error: false, message: "" },
-    cycleStart: { error: false, message: "" },
-    cycleEnd: { error: false, message: "" },
+    outlet_name: defaultError,
+    vacancy: defaultError,
+    date: defaultError,
+    start_time: defaultError,
+    end_time: defaultError,
+    cycleStart: defaultError,
+    cycleEnd: defaultError,
   });
   const setError = (field, error, message) => {
     setErrorState((prevState) => ({
@@ -42,20 +49,27 @@ function Publish({ open, handleClose, names, refresh }) {
   const [cycleStart, setCycleStart] = useState("");
   const [cycleEnd, setCycleEnd] = useState("");
   const [employee, setEmployee] = useState([]);
-  const { createSchedule, error, isLoading } = useCreateSchedule();
-
-  const reset = () => {
-    setRepeat("Never");
-    setSelectedDays([]);
-    setCycleStart("");
-    setCycleEnd("");
-    setEmployee([]);
-  };
+  const { createSchedule, error, isLoading, success } = useCreateSchedule();
   const {
     createAdd,
     error: createAddError,
     isLoading: createAddLoading,
+    success: createAddSuccess,
   } = useCreateAdd();
+
+  useEffect(() => {
+    if (createAddSuccess || success) {
+      setRepeat("Never");
+      setSelectedDays([]);
+      setCycleStart("");
+      setCycleEnd("");
+      setEmployee([]);
+      setDefaultError({
+        error: false,
+        message: "",
+      });
+    }
+  }, [success, createAddSuccess]);
 
   const handleChange = (event) => {
     setEmployee(event.target.value);
@@ -141,7 +155,7 @@ function Publish({ open, handleClose, names, refresh }) {
     if (!validateInputs()) {
       return;
     }
-
+    setLoading(true);
     const schedulePromisesArr = [];
     const outletName = document.getElementById("outlet_name").value.trim();
     const date = document.getElementById("date").value;
@@ -229,14 +243,10 @@ function Publish({ open, handleClose, names, refresh }) {
         }
       }
     }
-    try {
-      await Promise.all(schedulePromisesArr);
-      await refresh();
-      reset();
-      handleClose();
-    } catch (error) {
-      console.error("Error creating schedules:", error);
-    }
+
+    await Promise.all(schedulePromisesArr);
+    await refresh();
+    setLoading(false);
   };
 
   const formFieldsLeft = [
@@ -294,7 +304,6 @@ function Publish({ open, handleClose, names, refresh }) {
         if (reason === "backdropClick" || reason === "escapeKeyDown") {
           return;
         }
-        reset();
         handleClose();
       }}
       aria-labelledby="create-role-dialog-title"
@@ -453,17 +462,39 @@ function Publish({ open, handleClose, names, refresh }) {
         )}
       </DialogContent>
       <DialogActions sx={{ pb: 3, px: 3 }}>
+        {(error || createAddError) && validateInputs && (
+          <div className="error">{error || createAddError}</div>
+        )}
+
+        {(success || createAddSuccess) && validateInputs && (
+          <div className="success">{success || createAddSuccess}</div>
+        )}
+
         <Button
           onClick={() => {
-            reset();
             handleClose();
           }}
         >
           Cancel
         </Button>
-        <Button variant="contained" type="submit">
-          Create
-        </Button>
+        <Box sx={{ m: 1, position: "relative" }}>
+          <Button variant="contained" disabled={loading} type="submit">
+            Create
+          </Button>
+          {loading && (
+            <CircularProgress
+              size={24}
+              sx={{
+                color: green[500],
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                marginTop: "-12px",
+                marginLeft: "-12px",
+              }}
+            />
+          )}
+        </Box>
       </DialogActions>
     </Dialog>
   );

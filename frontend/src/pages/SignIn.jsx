@@ -183,6 +183,7 @@ export default function SignIn(props) {
               fullWidth
               variant="contained"
               onClick={validateInputs}
+              disabled={isLoading}
             >
               Sign in
             </Button>

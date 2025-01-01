@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
-import { CircularProgress, Typography, Box, Link } from "@mui/material";
+import { CircularProgress, Typography, Box, IconButton } from "@mui/material";
 import { useGetUsersInfo } from "../hooks/useGetUsersInfo";
 import { useUserContext } from "../hooks/useUserContext";
 import { useDeleteUser } from "../hooks/useDeleteUser";
@@ -9,6 +9,8 @@ import Comfirmation from "../components/Comfirmation";
 import UpdateUser from "../components/UpdateUser";
 import { toSGDate } from "../../config/convertTimeToSGT";
 import { dateTimeToDBDate } from "../../config/convertDateToDB";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 const Users = () => {
   const { user } = useUserContext();
@@ -46,6 +48,18 @@ const Users = () => {
       valueFormatter: (params) => (params == 1 ? "True" : "False"),
       editable: false,
       width: 150,
+    },
+    {
+      field: "leaves",
+      headerName: "Leaves",
+      editable: false,
+      width: 80,
+    },
+    {
+      field: "offs",
+      headerName: "Offs",
+      editable: false,
+      width: 80,
     },
     {
       field: "dob",
@@ -108,48 +122,27 @@ const Users = () => {
       headerAlign: "center",
       align: "center",
       renderCell: (params) => (
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center", // Center horizontally within the Box
-            alignItems: "center", // Center vertically within the Box
-            width: "100%",
-          }}
-        >
-          <Link
-            component="button"
+        <Box>
+          <IconButton
+            sx={{
+              border: "none",
+              borderRadius: "50%",
+            }}
+            aria-label="edit"
             onClick={() => handleClickOpenUpdate(params.row)}
-            variant="body2"
-            underline="hover"
-            sx={{
-              color: "primary.main",
-              fontWeight: "bold",
-              textAlign: "center", // Center the text inside the link
-              display: "flex", // Set Link to use flexbox
-              justifyContent: "center", // Center the content of Link
-              alignItems: "center", // Center vertically
-              padding: 1, // Optional: add padding inside Link for better spacing
-            }}
           >
-            Edit
-          </Link>
-          <Link
-            component="button"
+            <EditIcon fontSize="small" sx={{ color: "blue" }} />
+          </IconButton>
+          <IconButton
+            sx={{
+              border: "none",
+              borderRadius: "50%",
+            }}
+            aria-label="delete"
             onClick={() => handleClickOpenDelete(params.row.email)}
-            variant="body2"
-            underline="hover"
-            sx={{
-              color: "error.main",
-              fontWeight: "bold",
-              textAlign: "center", // Center the text inside the link
-              display: "flex", // Set Link to use flexbox
-              justifyContent: "center", // Center the content of Link
-              alignItems: "center", // Center vertically
-              padding: 1, // Optional: add padding inside Link for better spacing
-            }}
           >
-            Delete
-          </Link>
+            <DeleteIcon fontSize="small" sx={{ color: "red" }} />
+          </IconButton>
         </Box>
       ),
     },

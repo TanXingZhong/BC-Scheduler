@@ -20,12 +20,8 @@ export default function Schedule() {
   const [userShifts, setUserShifts] = useState([]);
   const { user_id } = useUserInfo();
   const onLoad = async () => {
-    try {
-      const data = await getUserById(user_id);
-      setUserShifts(data.userShifts);
-    } catch (err) {
-      console.error("Error loading userInfo: ", err);
-    }
+    const data = await getUserById(user_id);
+    if (data) setUserShifts(data.userShifts);
   };
 
   useEffect(() => {

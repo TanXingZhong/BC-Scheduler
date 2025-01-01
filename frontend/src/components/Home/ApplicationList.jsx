@@ -13,19 +13,13 @@ export default function ApplicationList() {
   const { clearApplications } = useClearUserApplication();
   const { user_id } = useUserInfo();
   const onLoad = async () => {
-    try {
-      const data = await userApplications(user_id);
-      setUser_Applications(data);
-    } catch (err) {
-      console.error("Error loading schedules: ", err);
-    }
+    const data = await userApplications(user_id);
+    if (data) setUser_Applications(data);
   };
 
   useEffect(() => {
     onLoad();
   }, []);
-
-  const rows = user_Applications;
 
   const columns = [
     { field: "outlet_name", headerName: "Outlet", width: 150 },
@@ -75,7 +69,7 @@ export default function ApplicationList() {
   return (
     <Box style={{ height: 320, margin: "0 auto" }}>
       <DataGrid
-        rows={rows}
+        rows={user_Applications}
         columns={columns}
         getRowClassName={(params) =>
           params.indexRelativeToCurrentPage % 2 === 0 ? "even" : "odd"

@@ -77,7 +77,9 @@ const updateUser = async (req, res) => {
     !data.joinDate ||
     !data.role_id ||
     data.active == null ||
-    data.admin == null
+    data.admin == null ||
+    data.leaves == null ||
+    data.offs == null
   ) {
     return res.status(400).json({ message: "Missing Informations" });
   }

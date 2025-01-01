@@ -32,7 +32,7 @@ function AllocateSchedule({
   handleChangeUser,
   handleRemoveUser,
 }) {
-  const { assignEmployee, isLoading, error } = useAssignEmployee();
+  const { assignEmployee, isLoading, error, success } = useAssignEmployee();
   const {
     deleteSchedule,
     isLoading: isLoadingDelete,
@@ -64,7 +64,6 @@ function AllocateSchedule({
     } else {
       setError("employee_id", false, "");
     }
-
     return isValid;
   };
 
@@ -77,7 +76,7 @@ function AllocateSchedule({
     const employee_id = formData.employee_id;
     await assignEmployee(sche_Id, employee_id);
     await refresh();
-    handleClose();
+    // handleClose();
   };
   const formFieldsLeft = [
     {
@@ -155,10 +154,24 @@ function AllocateSchedule({
       >
         Assign Employee
         <div>
-          <IconButton aria-label="edit" onClick={handleEdit}>
+          <IconButton
+            sx={{
+              border: "none",
+              borderRadius: "50%",
+            }}
+            aria-label="edit"
+            onClick={handleEdit}
+          >
             <EditIcon />
           </IconButton>
-          <IconButton aria-label="delete" onClick={handleDelete}>
+          <IconButton
+            sx={{
+              border: "none",
+              borderRadius: "50%",
+            }}
+            aria-label="delete"
+            onClick={handleDelete}
+          >
             <DeleteIcon />
           </IconButton>
         </div>
@@ -247,6 +260,8 @@ function AllocateSchedule({
         </Grid>
       </DialogContent>
       <DialogActions sx={{ pb: 3, px: 3 }}>
+        {error && validateInputs && <div className="error">{error}</div>}
+        {success && validateInputs && <div className="success">{success}</div>}
         <Button onClick={handleClose}>Cancel</Button>
         <Button variant="contained" type="submit">
           Assign

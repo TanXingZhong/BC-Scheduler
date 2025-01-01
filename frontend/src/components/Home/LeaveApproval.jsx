@@ -18,24 +18,19 @@ export default function LeaveApproval() {
   } = useActionLeaveOffs();
 
   const onLoad = async () => {
-    try {
-      const data = await getPendingLeavesAndOffs();
-      setUserLeaveOffApplications(data);
-      setUserLeaveOffApplications((prevApplications) =>
-        prevApplications.map((application) => ({
-          ...application, // Keep all other fields the same
-          start_date: toSGDate(application.start_date), // Transform start_date
-          end_date: toSGDate(application.end_date), // Transform end_date
-        }))
-      );
-    } catch (err) {
-      console.error("Error loading leaves and offs application: ", err);
-    }
+    const data = await getPendingLeavesAndOffs();
+    if (data) setUserLeaveOffApplications(data);
   };
 
   useEffect(() => {
     onLoad();
   }, []);
+
+  const items = user_LeaveOffApplications.map((application) => ({
+    ...application,
+    start_date: toSGDate(application.start_date),
+    end_date: toSGDate(application.end_date),
+  }));
 
   const columns = [
     {
@@ -112,7 +107,7 @@ export default function LeaveApproval() {
   return (
     <div style={{ height: 320, width: "100%", margin: "0 auto" }}>
       <DataGrid
-        rows={user_LeaveOffApplications}
+        rows={items}
         columns={columns}
         getRowId={(row) => row.leave_offs_id}
         pageSize={4}

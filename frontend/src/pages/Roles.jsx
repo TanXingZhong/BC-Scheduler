@@ -5,7 +5,7 @@ import {
   Typography,
   Button,
   Box,
-  Link,
+  IconButton,
   FormControl,
 } from "@mui/material";
 import Search from "../components/Search";
@@ -17,6 +17,8 @@ import ViewMember from "../components/ViewMember";
 import EditRole from "../components/EditRole";
 import { useEditRole } from "../hooks/Roles/useEditRole";
 import CreateRole from "../components/CreateRole";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 
 const Roles = () => {
   const { fetchRoles, isLoading, error } = useGetRoles(); // Use the custom hook
@@ -77,48 +79,27 @@ const Roles = () => {
       headerAlign: "center",
       align: "center",
       renderCell: (params) => (
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center", // Center horizontally within the Box
-            alignItems: "center", // Center vertically within the Box
-            width: "100%",
-          }}
-        >
-          <Link
-            component="button"
+        <Box>
+          <IconButton
+            sx={{
+              border: "none",
+              borderRadius: "50%",
+            }}
+            aria-label="edit"
             onClick={() => handleClickOpenEditRole(params.row)}
-            variant="body2"
-            underline="hover"
-            sx={{
-              color: "primary.main",
-              fontWeight: "bold",
-              textAlign: "center", // Center the text inside the link
-              display: "flex", // Set Link to use flexbox
-              justifyContent: "center", // Center the content of Link
-              alignItems: "center", // Center vertically
-              padding: 1, // Optional: add padding inside Link for better spacing
-            }}
           >
-            Edit
-          </Link>
-          <Link
-            component="button"
+            <EditIcon fontSize="small" sx={{ color: "blue" }} />
+          </IconButton>
+          <IconButton
+            sx={{
+              border: "none",
+              borderRadius: "50%",
+            }}
+            aria-label="delete"
             onClick={() => handleClickOpenRoleDelete(params.row.role_name)}
-            variant="body2"
-            underline="hover"
-            sx={{
-              color: "error.main",
-              fontWeight: "bold",
-              textAlign: "center", // Center the text inside the link
-              display: "flex", // Set Link to use flexbox
-              justifyContent: "center", // Center the content of Link
-              alignItems: "center", // Center vertically
-              padding: 1, // Optional: add padding inside Link for better spacing
-            }}
           >
-            Delete
-          </Link>
+            <DeleteIcon fontSize="small" sx={{ color: "red" }} />
+          </IconButton>
         </Box>
       ),
     },
@@ -134,12 +115,8 @@ const Roles = () => {
   const [openCreateRole, setOpenCreateRole] = useState(false);
 
   const onLoad = async () => {
-    try {
-      const val = await fetchRoles();
-      setData(val);
-    } catch (err) {
-      console.error("Error loading users:", err);
-    }
+    const val = await fetchRoles();
+    setData(val);
   };
   useEffect(() => {
     onLoad();
@@ -172,15 +149,12 @@ const Roles = () => {
   };
 
   const handleContinueRoleDelete = async (x) => {
-    try {
-      await deleteRole(x);
-    } catch (err) {
-      console.error("Error deleting role:", err);
-    }
+    await deleteRole(x);
     setOpenRoleDelete(false);
+    onLoad();
   };
 
-  const [loading, setLoading] = useState(false); // To track if data is loading
+  const [loading, setLoading] = useState(false);
   const handleClickOpenEditRole = (x) => {
     setLoading(true);
     setRoleInfo({});
@@ -194,11 +168,13 @@ const Roles = () => {
     setOpenCreateRole(true);
   };
 
+  const handleRefresh = () => {
+    onLoad();
+  };
+
   const handleContinueEditRole = async (x) => {
-    try {
-      await editRole(x);
-      await onLoad();
-    } catch (err) {}
+    await editRole(x);
+    await onLoad();
   };
   useEffect(() => {
     if (roleInfo && Object.keys(roleInfo).length > 0) {
@@ -219,7 +195,11 @@ const Roles = () => {
         handleContinue={handleContinueRoleDelete}
         role_name={role_name}
       />
-      <CreateRole open={openCreateRole} handleClose={handleCloseCreateRole} />
+      <CreateRole
+        open={openCreateRole}
+        handleClose={handleCloseCreateRole}
+        handleRefresh={handleRefresh}
+      />
       <ViewMember
         open={openViewMember}
         handleClose={handleCloseViewMember}
