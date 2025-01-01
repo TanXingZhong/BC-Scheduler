@@ -19,10 +19,13 @@ import { toSGDate } from "../../config/convertTimeToSGT";
 import { dateTimeToDBDate } from "../../config/convertDateToDB";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import Snackbar from "@mui/material/Snackbar";
-import CloseIcon from "@mui/icons-material/Close";
-import LockResetIcon from "@mui/icons-material/LockReset";
-import ResetPasswordForm from "../components/ResetPassword";
+import Snackbar from '@mui/material/Snackbar';
+import CloseIcon from '@mui/icons-material/Close';
+import Grid from "@mui/material/Grid2";
+import FormLabel from "@mui/material/FormLabel";
+import FormControl from "@mui/material/FormControl";
+import TextField from "@mui/material/TextField";
+import { useGetWorkingHours } from "../hooks/useGetWorkingHours";
 
 const Users = () => {
   const { user } = useUserContext();
