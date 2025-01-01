@@ -24,6 +24,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import LockResetIcon from '@mui/icons-material/LockReset';
 import ResetPasswordForm from "../components/ResetPassword";
 
+
 const Users = () => {
   const { user } = useUserContext();
   const {
@@ -190,6 +191,7 @@ const Users = () => {
   const [openUpdateSnackbar, setOpenUpdateSnackbar] = useState(false);
   const [openResetPasswordSnackbar, setOpenResetPasswordSnackbar] = useState(false);
 
+
   const rowsMemoized = useMemo(
     () => (user ? user.allDatas || [] : []),
     [user?.allDatas]
@@ -313,6 +315,7 @@ const Users = () => {
   };
 
 
+
   const actionUpdate = (
     <Fragment>
       <IconButton
@@ -338,6 +341,7 @@ const Users = () => {
       </IconButton>
     </Fragment>
   );
+
 
 
 
@@ -484,6 +488,7 @@ const Users = () => {
         action={actionResetPassword}
       />
       <Snackbar
+
         open={openDeleteSnackbar}
         autoHideDuration={6000}
         onClose={handleCloseDeleteSnackbar}

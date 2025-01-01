@@ -46,6 +46,7 @@ async function checkVacantSchedule(schedule_id) {
 }
 
 async function addSchedule(outlet_name, start_time, end_time, vacancy) {
+  console.log(outlet_name, start_time, end_time, vacancy);
   const query =
     "INSERT INTO schedule (outlet_name, start_time, end_time, vacancy) VALUES (?, ?, ?, ?)";
   try {
@@ -180,33 +181,17 @@ async function checkConflictsUpdateVer(
   return false;
 }
 
-async function addUserToSchedule(schedule_id, id) {
+async function addUserToSchedule(schedule_id, id, schedule) {
   try {
-    const schedule = await getScheduleById(schedule_id);
-
     const new_vacancy = schedule[0].vacancy - 1;
-
     if (new_vacancy < 0) {
       throw new Error("Vacancy is less than 0");
     }
-
-    const userShifts = await getAllShiftsByUser(id);
-    if (
-      await checkConflicts(
-        userShifts,
-        schedule[0].start_time,
-        schedule[0].end_time
-      )
-    ) {
-      throw new Error("Shifts conflict"); 
-    }
-
     const query = "UPDATE schedule SET vacancy = ? WHERE schedule_id = ?";
     const [rows, fields] = await pool.execute(query, [
       new_vacancy,
       schedule_id,
     ]);
-
     const insertQuery =
       "INSERT INTO confirmed_slots (schedule_id, user_id) VALUES (?, ?)";
     await pool.execute(insertQuery, [schedule_id, id]);

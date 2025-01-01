@@ -8,7 +8,10 @@ import {
   Card,
   Typography,
   Dialog,
+  IconButton,
+  Snackbar,
 } from "@mui/material";
+
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
@@ -17,7 +20,7 @@ import { toSGTimeShort } from "../../config/convertTimeToSGT";
 import { dateTimeToDBDate } from "../../config/convertDateToDB";
 import ApplySchedule from "../components/ApplySchedule";
 import { useUserInfo } from "../hooks/useUserInfo";
-
+import CloseIcon from "@mui/icons-material/Close";
 const localizer = momentLocalizer(moment);
 
 export default function MyCalendar() {
@@ -108,6 +111,7 @@ export default function MyCalendar() {
     } else {
       for (const column of Object.keys(filters)) {
         if(column === "employee") {
+
           uniqueValuesByColumn[column] = transformedDataArray
             .flatMap((row) => row["array"])
             .reduce((unique, current) => {
@@ -144,6 +148,7 @@ export default function MyCalendar() {
           return (
             !filters[column].length ||
             event.array.some((slot) => filters["employee"].includes(slot.employee))
+
           );
         }
         if (column === "role") {
@@ -179,6 +184,7 @@ export default function MyCalendar() {
       setFilteredData([]);
       return;
     }
+
     const thirdFilter = secondFilter.map((event) => {
       const filteredArray = event.array.filter((slot) =>
         filters["role"].includes(slot.role)
@@ -375,6 +381,30 @@ export default function MyCalendar() {
                           );
                         }
 
+            if (
+              typeof value === "object" &&
+              currentFilterColumn === "role" &&
+              value !== null
+            ) {
+              return (
+                <FormControlLabel
+                  key={`${currentFilterColumn}-${value.role}`} // Assuming value has an 'id' field for uniqueness
+                  control={
+                    <Checkbox
+                      checked={filters[currentFilterColumn]?.includes(
+                        value.role
+                      )} // Use value.id or another unique identifier
+                      onChange={() =>
+                        handleCheckboxChange(currentFilterColumn, value.role)
+                      }
+                      name={value.role} // Or another unique property of the object
+                    />
+                  }
+                  label={`${value.role}`} // Assuming the object has a 'name' field
+                />
+              );
+            }
+
             // Default behavior when value is not an object
             return (
               <FormControlLabel
@@ -402,12 +432,13 @@ export default function MyCalendar() {
           userInfo={userInfo}
         />
       )}
+
       <Calendar
         localizer={localizer}
         events={filteredDataArray}
         defaultView="month"
         style={{ height: "100%" }}
-        views={["month", "agenda"]}
+        views={["agenda", "month"]}
         components={{
           eventWrapper: (props) => (
             <CustomEventWrapper {...props} onCardClick={handleCardClick} />

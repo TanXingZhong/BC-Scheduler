@@ -7,9 +7,8 @@ import {
   FormControlLabel,
   Card,
   Typography,
-  Dialog,
-  DialogActions,
-  DialogContent,
+  Snackbar,
+  IconButton,
 } from "@mui/material";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
@@ -23,11 +22,12 @@ import AllocateSchedule from "../components/AllocateSchedule";
 import { useDeleteSchedule } from "../hooks/Calendar/useDeleteSchedule";
 import { useChangeUserFromSchedule } from "../hooks/Calendar/useChangeUserFromSchedule";
 import { useRemoveUserFromSchedule } from "../hooks/Calendar/useRemoveUserFromSchedule";
+import CloseIcon from "@mui/icons-material/Close";
 
 export default function AdminCalendar() {
   const localizer = momentLocalizer(moment);
   const { fetchNames } = useGetNames();
-  const { fetchSchedule, isLoading, error } = useGetCalendar();
+  const { fetchSchedule } = useGetCalendar();
   const [names, setNames] = useState([]);
   const [schedule, setSchedule] = useState([]);
   const [scheduleAndUsers, setScheduleAndUsers] = useState([]);
@@ -36,16 +36,111 @@ export default function AdminCalendar() {
     deleteSchedule,
     isLoading: isLoadingDelete,
     error: errorDelete,
+    success: successDelete,
   } = useDeleteSchedule();
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedDateEvents, setSelectedDateEvents] = useState([]);
   const selectedSlotsRef = useRef([]);
   const [isDeleteButtonVisible, setDeleteButtonVisible] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState([]);
   const [transformedDataArray, setTransformedDataArray] = useState([]);
   const [filteredDataArray, setFilteredData] = useState([]);
-  const { changeUser } = useChangeUserFromSchedule();
-  const { removeUser } = useRemoveUserFromSchedule();
+  const {
+    changeUser,
+    isLoading: isLoadingChange,
+    error: errorChange,
+    success: successChange,
+  } = useChangeUserFromSchedule();
+  const {
+    removeUser,
+    error: errorRemove,
+    success: successRemove,
+  } = useRemoveUserFromSchedule();
+  const [openDeleteSB, setOpenDeleteSB] = useState(false);
+  const [openChangeSB, setOpenChangeSB] = useState(false);
+  const [openRemoveSB, setOpenRemoveSB] = useState(false);
+  const [openPublishSB, setOpenPublishSB] = useState(false);
+  const [openPublishSBError, setOpenPublishSBError] = useState(false);
+  const [changeMSG, setChangeMSG] = useState("");
+  const [errorMSG, setErrorMSG] = useState("");
+  const handleChangeMSG = (msg) => {
+    setChangeMSG(msg);
+  };
+  const handleCloseDeleteSB = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setOpenDeleteSB(false);
+  };
+  const handleCloseChangeSB = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setOpenChangeSB(false);
+  };
+  const handleClosePublishSB = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setOpenPublishSB(false);
+  };
+  const handleClosePublishSBError = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setOpenPublishSBError(false);
+  };
+  const handleCloseRemoveSB = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setOpenRemoveSB(false);
+  };
+
+  const actionDelete = (
+    <IconButton
+      size="small"
+      aria-label="close"
+      color="inherit"
+      onClick={handleCloseDeleteSB}
+    >
+      <CloseIcon fontSize="small" />
+    </IconButton>
+  );
+  const actionChange = (
+    <IconButton
+      size="small"
+      aria-label="close"
+      color="inherit"
+      onClick={handleCloseChangeSB}
+    >
+      <CloseIcon fontSize="small" />
+    </IconButton>
+  );
+  const actionRemove = (
+    <IconButton
+      size="small"
+      aria-label="close"
+      color="inherit"
+      onClick={handleCloseRemoveSB}
+    >
+      <CloseIcon fontSize="small" />
+    </IconButton>
+  );
+
+  const handleSetPublishSB = (x, y) => {
+    if (x) {
+      setOpenPublishSB(true);
+      setChangeMSG(x);
+    }
+    if (y) {
+      setOpenPublishSBError(true);
+      setErrorMSG(y);
+    }
+  };
 
   const onLoad = async (start) => {
     try {
@@ -79,6 +174,7 @@ export default function AdminCalendar() {
           id: "",
           employee: "EMPTY",
           role: "EMPTY"
+
         }));
 
       // Combine filled and empty slots
@@ -138,7 +234,8 @@ export default function AdminCalendar() {
     } else {
 
       for (const column of Object.keys(filters)) {
-        if(column === "employee") {
+        if (column === "employee") {
+>>>>>>> main
           uniqueValuesByColumn[column] = transformedDataArray
             .flatMap((row) => row["array"])
             .reduce((unique, current) => {
@@ -195,6 +292,7 @@ export default function AdminCalendar() {
       setFilteredData([]);
       return;
     } 
+
     const secondFilter = fisrtFilter.map((event) => {
       const filteredArray = event.array.filter((slot) =>
         filters["employee"].includes(slot.employee)
@@ -219,10 +317,6 @@ export default function AdminCalendar() {
         array: filteredArray,
       };
     });
-
-    console.log(thirdFilter);
-    console.log(filters);
-
     setFilteredData(thirdFilter);
   }, [filters]);
 
@@ -268,19 +362,16 @@ export default function AdminCalendar() {
   ];
 
   const handleDelete = async () => {
-    try {
-      const deletionPromises = selectedSlotsRef.current.map((x) =>
-        deleteSchedule(x.schedule_id)
-      );
-      await Promise.all(deletionPromises);
-      selectedSlotsRef.current = [];
-      if (isDeleteButtonVisible) {
-        setDeleteButtonVisible(false);
-      }
-      onLoad(getMonthRange(currentDate));
-    } catch (error) {
-      console.error("Error deleting schedules", error);
+    const deletionPromises = selectedSlotsRef.current.map((x) =>
+      deleteSchedule(x.schedule_id)
+    );
+    await Promise.all(deletionPromises);
+    selectedSlotsRef.current = [];
+    if (isDeleteButtonVisible) {
+      setDeleteButtonVisible(false);
     }
+    setOpenDeleteSB(true);
+    onLoad(getMonthRange(currentDate));
   };
 
   const [openAllocateSchedule, setOpenAllocateSchedule] = useState(false);
@@ -289,12 +380,13 @@ export default function AdminCalendar() {
     await removeUser(scheduleInfo.schedule_id, user_id);
     onLoad(getMonthRange(currentDate));
     setOpenAllocateSchedule(false);
+    setOpenRemoveSB(true);
   };
 
   const handleChangeUser = async (user_id, new_id) => {
     await changeUser(scheduleInfo.schedule_id, user_id, new_id);
     onLoad(getMonthRange(currentDate));
-    setOpenAllocateSchedule(false);
+    setOpenChangeSB(true);
   };
   const handleCardClick = useCallback((event, x) => {
     setScheduleInfo(event);
@@ -307,16 +399,11 @@ export default function AdminCalendar() {
     setScheduleAndUsers([]);
     setSelectedSlot([]);
     selectedSlotsRef.current = [];
-    setCurrentDate(newDate); // Update the visible date
+    setCurrentDate(newDate);
     if (isDeleteButtonVisible) {
       setDeleteButtonVisible(false);
     }
   }, []);
-
-  const handleShowMore = (events, date) => {
-    setSelectedDateEvents(events);
-    setModalOpen(true);
-  };
 
   const handleRefresh = () => {
     onLoad(getMonthRange(currentDate));
@@ -409,6 +496,8 @@ export default function AdminCalendar() {
           {uniqueValues[currentFilterColumn]?.map((value) => {
             // Check if value is an object (not an array)
             if (typeof value === "object" && currentFilterColumn === "employee" && value !== null) {
+
+
               return (
                 <FormControlLabel
                   key={`${currentFilterColumn}-${value.employee}`} // Assuming value has an 'id' field for uniqueness
@@ -455,7 +544,30 @@ export default function AdminCalendar() {
             }
 
 
-            // Default behavior when value is not an object
+            if (
+              typeof value === "object" &&
+              currentFilterColumn === "role" &&
+              value !== null
+            ) {
+              return (
+                <FormControlLabel
+                  key={`${currentFilterColumn}-${value.role}`} // Assuming value has an 'id' field for uniqueness
+                  control={
+                    <Checkbox
+                      checked={filters[currentFilterColumn]?.includes(
+                        value.role
+                      )} // Use value.id or another unique identifier
+                      onChange={() =>
+                        handleCheckboxChange(currentFilterColumn, value.role)
+                      }
+                      name={value.role} // Or another unique property of the object
+                    />
+                  }
+                  label={`${value.role}`} // Assuming the object has a 'name' field
+                />
+              );
+            }
+
             return (
               <FormControlLabel
                 key={`${currentFilterColumn}-${value}`}
@@ -483,6 +595,7 @@ export default function AdminCalendar() {
           refresh={handleRefresh}
           handleChangeUser={handleChangeUser}
           handleRemoveUser={handleRemoveUser}
+          handleChangeMSG={handleChangeMSG}
         />
       )}
       <Calendar
@@ -498,8 +611,8 @@ export default function AdminCalendar() {
               new Date(event.start) >= new Date(start) &&
               new Date(event.end) <= new Date(end)
           );
-          setSelectedSlot(slots); // Update selected slot
-          selectedSlotsRef.current = selectedEvents; // Keep a reference to selected events
+          setSelectedSlot(slots);
+          selectedSlotsRef.current = selectedEvents;
           if (selectedEvents.length > 0) {
             setDeleteButtonVisible(true);
           } else {
@@ -531,6 +644,42 @@ export default function AdminCalendar() {
         handleClose={handleClosePublish}
         names={names}
         refresh={handleRefresh}
+        handleSetPublishSB={handleSetPublishSB}
+      />
+      <Snackbar
+        open={openDeleteSB}
+        autoHideDuration={6000}
+        onClose={handleCloseDeleteSB}
+        message={successDelete ? "Schedule Deleted" : errorDelete}
+        action={actionDelete}
+      />
+      <Snackbar
+        open={openChangeSB}
+        autoHideDuration={6000}
+        onClose={handleCloseChangeSB}
+        message={successChange ? successChange : errorChange}
+        action={actionChange}
+      />
+      <Snackbar
+        open={openRemoveSB}
+        autoHideDuration={6000}
+        onClose={handleCloseRemoveSB}
+        message={successRemove ? successRemove : errorRemove}
+        action={actionRemove}
+      />
+      <Snackbar
+        open={openPublishSB}
+        autoHideDuration={6000}
+        onClose={handleClosePublishSB}
+        message={changeMSG}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      />
+      <Snackbar
+        open={openPublishSBError}
+        autoHideDuration={6000}
+        onClose={handleClosePublishSBError}
+        message={errorMSG}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
       />
     </Box>
   );

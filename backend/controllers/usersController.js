@@ -129,7 +129,7 @@ const deleteUser = async (req, res) => {
   }
   // Delete the user
   try {
-    const result = await db.deleteUser(email);
+    await db.deleteUser(email);
     return res.status(200).json({ message: `User ${email} deleted!` });
   } catch (err) {
     console.error(err);

@@ -1,9 +1,6 @@
 const db_schedule = require("../model/db_schedule");
 const db_shiftApplication = require("../model/db_shiftApplication");
 const db = require("../model/db");
-// @desc Get all schedule
-// @route GET /schedule
-// @access Private
 
 const getAllPendingApplication = async (req, res) => {
   try {
@@ -51,7 +48,9 @@ const applyShift = async (req, res) => {
       schedule[0].end_time
     );
     if (conflict) {
-      return res.status(400).json({ message: "User is occupied" });
+      return res
+        .status(400)
+        .json({ message: "You have another shift at the same time slot" });
     }
     if (schedule[0].vacancy > 0) {
       await db_shiftApplication.addShiftApplication(user_id, schedule_id);
@@ -77,9 +76,10 @@ const approve_reject = async (req, res) => {
         message: 'Invalid action. Action should be "accepted" or "rejected".',
       });
     }
+    const schedule = await db_schedule.getScheduleById(schedule_id);
     await db_shiftApplication.updateShiftStatus(schedule_id, user_id, action);
     if (action === "accepted") {
-      await db_schedule.addUserToSchedule(schedule_id, user_id);
+      await db_schedule.addUserToSchedule(schedule_id, user_id, schedule);
       return res.status(200).send({ message: "Shift application approved." });
     } else if (action === "rejected") {
       return res.status(200).send({

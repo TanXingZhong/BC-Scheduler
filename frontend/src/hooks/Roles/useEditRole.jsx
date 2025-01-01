@@ -4,11 +4,13 @@ import { useAuthContext } from "../useAuthContext";
 export const useEditRole = () => {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(null);
+  const [success, setSuccess] = useState(null);
   const { user } = useAuthContext();
 
   const editRole = async (data) => {
     setIsLoading(true);
     setError(null);
+    setSuccess(null);
 
     const response = await fetch("http://localhost:8080/roles", {
       method: "PATCH",
@@ -25,8 +27,9 @@ export const useEditRole = () => {
     }
     if (response.ok) {
       setIsLoading(false);
+      setSuccess(json.message);
     }
   };
 
-  return { editRole, isLoading, error };
+  return { editRole, isLoading, error, success };
 };

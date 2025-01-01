@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { act, useEffect, useState } from "react";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import {
   CircularProgress,
@@ -8,7 +8,7 @@ import {
   IconButton,
   FormControl,
 } from "@mui/material";
-import Search from "../components/Search";
+import Snackbar from "@mui/material/Snackbar";
 import { useGetRoles } from "../hooks/Roles/useGetRoles";
 import CorfirmationToDeleteRole from "../components/CorfirmationToDeleteRole";
 import { useDeleteRole } from "../hooks/Roles/useDeleteRole";
@@ -19,6 +19,7 @@ import { useEditRole } from "../hooks/Roles/useEditRole";
 import CreateRole from "../components/CreateRole";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
+import CloseIcon from "@mui/icons-material/Close";
 
 const Roles = () => {
   const { fetchRoles, isLoading, error } = useGetRoles(); // Use the custom hook
@@ -26,11 +27,13 @@ const Roles = () => {
     editRole,
     isLoading: isLoadingEditRole,
     error: errorEditRole,
+    success: successEditRole,
   } = useEditRole();
   const {
     deleteRole,
     isLoading: isLoadingDeleteRole,
     error: errorDeleteRole,
+    success: successDeleteRole,
   } = useDeleteRole();
   const columns = [
     { field: "role_name", headerName: "ROLES", editable: false, width: 250 },
@@ -113,6 +116,53 @@ const Roles = () => {
   const [openEditRole, setOpenEditRole] = useState(false);
   const [roleInfo, setRoleInfo] = useState([]);
   const [openCreateRole, setOpenCreateRole] = useState(false);
+  const [openSB, setOpenSB] = useState(false);
+  const [updateSB, setUpdateSB] = useState(false);
+
+  const handleCloseSB = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setOpenSB(false);
+  };
+
+  const action = (
+    <IconButton
+      size="small"
+      aria-label="close"
+      color="inherit"
+      sx={{
+        border: "none",
+        borderRadius: "50%",
+      }}
+      onClick={handleCloseSB}
+    >
+      <CloseIcon fontSize="small" />
+    </IconButton>
+  );
+
+  const handleCloseUpdateSnackbar = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setUpdateSB(false);
+  };
+
+  const actionUpdate = (
+    <IconButton
+      size="small"
+      aria-label="close"
+      color="inherit"
+      sx={{
+        border: "none",
+        borderRadius: "50%",
+      }}
+      onClick={handleCloseUpdateSnackbar}
+    >
+      <CloseIcon fontSize="small" />
+    </IconButton>
+  );
 
   const onLoad = async () => {
     const val = await fetchRoles();
@@ -151,7 +201,8 @@ const Roles = () => {
   const handleContinueRoleDelete = async (x) => {
     await deleteRole(x);
     setOpenRoleDelete(false);
-    onLoad();
+    setUpdateSB(true);
+    await onLoad();
   };
 
   const [loading, setLoading] = useState(false);
@@ -174,6 +225,7 @@ const Roles = () => {
 
   const handleContinueEditRole = async (x) => {
     await editRole(x);
+    setUpdateSB(true);
     await onLoad();
   };
   useEffect(() => {
@@ -245,9 +297,7 @@ const Roles = () => {
           alignItems: "center",
         }}
       >
-        <FormControl sx={{ flex: 1 }}>
-          <Search />
-        </FormControl>
+        <FormControl sx={{ flex: 1 }}></FormControl>
         <Button
           type="submit"
           variant="contained"
@@ -260,7 +310,21 @@ const Roles = () => {
         </Button>
       </Box>
 
-      {/* Data Grid */}
+      <Snackbar
+        open={openSB}
+        autoHideDuration={6000}
+        onClose={handleCloseSB}
+        message={successDeleteRole ? successDeleteRole : errorDeleteRole}
+        action={action}
+      />
+
+      <Snackbar
+        open={updateSB}
+        autoHideDuration={6000}
+        onClose={handleCloseUpdateSnackbar}
+        message={successEditRole ? successEditRole : errorEditRole}
+        action={actionUpdate}
+      />
       <DataGrid
         rows={data}
         columns={columns}
