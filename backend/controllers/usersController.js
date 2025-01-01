@@ -137,6 +137,18 @@ const deleteUser = async (req, res) => {
   }
 };
 
+const getWorkinghours = async (req, res) => {
+  const { startDate, endDate } = req.body;
+  try {
+    const allWorkingHours = await db.getWorkinghours(startDate, endDate);
+    return res.status(200).json({ rows: allWorkingHours });
+  } catch (err) {
+    console.error(err);
+    return res
+      .status(500)
+      .json({ message: "Error fetching working hours of users." });
+  }
+};
 const resetPassword = async (req, res) => {
   const { id, newPassword, confirmPassword } = req.body;
   
@@ -165,5 +177,6 @@ module.exports = {
   createNewUser,
   updateUser,
   deleteUser,
+  getWorkinghours
   resetPassword,
 };

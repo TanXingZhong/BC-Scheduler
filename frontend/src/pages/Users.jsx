@@ -21,9 +21,8 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Snackbar from "@mui/material/Snackbar";
 import CloseIcon from "@mui/icons-material/Close";
-import LockResetIcon from '@mui/icons-material/LockReset';
+import LockResetIcon from "@mui/icons-material/LockReset";
 import ResetPasswordForm from "../components/ResetPassword";
-
 
 const Users = () => {
   const { user } = useUserContext();
@@ -162,7 +161,7 @@ const Users = () => {
             aria-label="edit"
             onClick={() => handleClickOpenResetPassword(params.row)}
           >
-            <LockResetIcon fontSize="small" sx={{ color: "blue" }} />
+            <LockResetIcon fontSize="small" sx={{ color: "green" }} />
           </IconButton>
 
           <IconButton
@@ -189,8 +188,8 @@ const Users = () => {
   const [allRoles, setAllRoles] = useState([]);
   const [openDeleteSnackbar, setOpenDeleteSnackbar] = useState(false);
   const [openUpdateSnackbar, setOpenUpdateSnackbar] = useState(false);
-  const [openResetPasswordSnackbar, setOpenResetPasswordSnackbar] = useState(false);
-
+  const [openResetPasswordSnackbar, setOpenResetPasswordSnackbar] =
+    useState(false);
 
   const rowsMemoized = useMemo(
     () => (user ? user.allDatas || [] : []),
@@ -199,18 +198,15 @@ const Users = () => {
   const [selectedEmail, setSelectedEmail] = useState("");
 
   const onLoad = async () => {
-    try {
-      await getUsersInfo();
-    } catch (err) {
-      console.error("Error loading users:", err);
-    }
+    await getUsersInfo();
   };
 
   const handleClickOpenDelete = (x) => {
     setSelectedEmail(x);
     setOpenDelete(true);
   };
-  const [loading, setLoading] = useState(false); // To track if data is loading
+  const [loading, setLoading] = useState(false);
+  const [isLoadingResetPW, setIsLoadingResetPW] = useState(false);
 
   const handleClickOpenUpdate = useCallback((x) => {
     setLoading(true); // Set loading to true when the dialog is opened
@@ -226,19 +222,22 @@ const Users = () => {
   });
 
   const handleClickOpenResetPassword = useCallback((x) => {
-    setLoading(true); // Set loading to true when the dialog is opened
+    setIsLoadingResetPW(true);
     setResetPassword({});
 
     const data = {
       user_id: x.id,
-    }
+    };
 
-    // Simulate data fetching or just set the data
     setTimeout(() => {
       setResetPassword(data);
-      setLoading(false); // Once the data is set, set loading to false
+      setIsLoadingResetPW(false);
     }, 0);
   });
+
+  const handleClickReset = () => {
+    setOpenResetPasswordSnackbar(true);
+  };
 
   useEffect(() => {
     if (userInfo && Object.keys(userInfo).length > 0 && allRoles.length > 0) {
@@ -259,38 +258,26 @@ const Users = () => {
   const handleCloseResetPassword = () => {
     setOpenResetPassword(false);
   };
-  
 
   const handleUpdateUserInfo = async (data) => {
-    try {
-      data.dob = dateTimeToDBDate(data.dob);
-      data.joinDate = dateTimeToDBDate(data.joinDate);
-      await updateUser(data);
-      handleClickUpdate();
-      await onLoad();
-    } catch (err) {
-      console.error(err);
-    }
+    data.dob = dateTimeToDBDate(data.dob);
+    data.joinDate = dateTimeToDBDate(data.joinDate);
+    await updateUser(data);
+    handleClickUpdate();
+    await onLoad();
   };
 
   const handleResetPassword = async (data) => {
-    try {
-      await resetPasswordHook(data);
-      handleClickUpdate();
-      await onLoad();
-    } catch (err) {
-      console.error(err);
-    }
-  }
+    await resetPasswordHook(data);
+    handleClickReset();
+    await onLoad();
+    setOpenResetPassword(true);
+  };
 
   const handleContinue = async (email) => {
-    try {
-      await deleteUser(email);
-      handleClickDelete();
-      await onLoad();
-    } catch (err) {
-      console.error("Error deleting user:", err);
-    }
+    await deleteUser(email);
+    handleClickDelete();
+    await onLoad();
     setOpenDelete(false);
   };
 
@@ -314,8 +301,6 @@ const Users = () => {
     setOpenResetPasswordSnackbar(false);
   };
 
-
-
   const actionUpdate = (
     <Fragment>
       <IconButton
@@ -330,20 +315,15 @@ const Users = () => {
   );
 
   const actionResetPassword = (
-    <Fragment>
-      <IconButton
-        size="small"
-        aria-label="close"
-        color="inherit"
-        onClick={handleCloseResetPasswordSnackbar}
-      >
-        <CloseIcon fontSize="small" />
-      </IconButton>
-    </Fragment>
+    <IconButton
+      size="small"
+      aria-label="close"
+      color="inherit"
+      onClick={handleCloseResetPasswordSnackbar}
+    >
+      <CloseIcon fontSize="small" />
+    </IconButton>
   );
-
-
-
 
   const handleClickDelete = () => {
     setOpenDeleteSnackbar(true);
@@ -353,7 +333,6 @@ const Users = () => {
     if (reason === "clickaway") {
       return;
     }
-
     setOpenDeleteSnackbar(false);
   };
 
@@ -374,9 +353,7 @@ const Users = () => {
     onLoad();
   }, []);
 
-  useEffect(() => {
-    console.log(resetPassword);
-  }, [resetPassword]);
+  useEffect(() => {}, [resetPassword]);
 
   return (
     <Box sx={{ width: "100%", maxWidth: { sm: "100%", md: "1700px" } }}>
@@ -389,7 +366,7 @@ const Users = () => {
         handleContinue={handleContinue}
         email={selectedEmail}
       />
-      {/* Conditionally render UpdateUser only when userInfo and allRoles are set */}
+
       {loading ? (
         <Box
           sx={{
@@ -422,37 +399,13 @@ const Users = () => {
         </>
       )}
 
-      {/* Conditionally render ResetPasswordForm only when resetPassword is set */}
-      {loading ? (
-        <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100%",
-        }}
-        >
-          <Typography variant="h6" color="textSecondary">
-            Loading user informations...
-          </Typography>
-          <CircularProgress sx={{ ml: 2 }} />
-        </Box>
-      ) : resetPassword ? (
+      {!isLoadingResetPW && resetPassword && (
         <ResetPasswordForm
           open={openResetPassword}
           handleClose={handleCloseResetPassword}
           handleResetPassword={handleResetPassword}
           userId={resetPassword.user_id}
-          openSB={() => setOpenResetPasswordSnackbar(true)}
         />
-      ) : (
-        <>
-          {openUpdate && (
-            <Typography color="error" variant="body2" sx={{ mt: 2 }}>
-              Failed to load user data or roles. Please try again later.
-            </Typography>
-          )}
-        </>
       )}
 
       <DataGrid
@@ -484,11 +437,12 @@ const Users = () => {
         open={openResetPasswordSnackbar}
         autoHideDuration={6000}
         onClose={handleCloseResetPasswordSnackbar}
-        message={successResetPassword ? successResetPassword : errorResetPassword}
+        message={
+          successResetPassword ? successResetPassword : errorResetPassword
+        }
         action={actionResetPassword}
       />
       <Snackbar
-
         open={openDeleteSnackbar}
         autoHideDuration={6000}
         onClose={handleCloseDeleteSnackbar}

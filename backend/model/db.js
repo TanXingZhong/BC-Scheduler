@@ -268,15 +268,33 @@ async function updatePassword(id, password) {
   }
 }
 
-async function deleteUser(id) {
-  const query = "DELETE FROM users WHERE id = ?";
-  const values = [id];
+async function deleteUser(email) {
+  const query = "DELETE FROM users WHERE email = ?";
+  const values = [email];
 
   try {
     const [result] = await pool.execute(query, values);
     return result;
   } catch (err) {
     throw new Error(err);
+  }
+}
+
+async function getWorkinghours(start_date, end_date) {
+  try {
+    const query = `SELECT u.id AS user_id, u.name, u.email, r.role_name AS role, u.phonenumber, u.bankName, u.bankAccountNo, 
+    COUNT(CASE WHEN s.start_time >= ? AND s.end_time <= ? THEN cs.schedule_id END) AS total_shifts,
+    COALESCE(SUM(CASE WHEN s.start_time >= ? AND s.end_time <= ? THEN TIMESTAMPDIFF(MINUTE, s.start_time, s.end_time) END), 0) AS total_minutes,
+    COALESCE(SUM(CASE WHEN s.start_time >= ? AND s.end_time <= ? THEN TIMESTAMPDIFF(MINUTE, s.start_time, s.end_time) END) DIV 60, 0) AS total_hours,
+    COALESCE(SUM(CASE WHEN s.start_time >= ? AND s.end_time <= ? THEN TIMESTAMPDIFF(MINUTE, s.start_time, s.end_time) END) % 60, 0) AS total_minutes
+    FROM users u LEFT JOIN roles r ON u.role_id = r.id LEFT JOIN confirmed_slots cs ON u.id = cs.user_id LEFT JOIN schedule s ON cs.schedule_id = s.schedule_id
+    GROUP BY u.id, u.name, u.email, r.role_name, u.phonenumber, u.bankName, u.bankAccountNo ;`;
+    const [rows, field] = await pool.execute(query, [start_date, end_date, start_date, end_date, start_date, end_date, start_date, end_date]);
+    console.log("Database query result:", rows);
+    return rows;
+  } catch (err) {
+    console.log(err);
+    throw new Error("Error getting all working hours from users");
   }
 }
 
@@ -293,5 +311,6 @@ module.exports = {
   deleteUser,
   checkConflicts,
   getUserByidWithoutPassword,
+  getWorkinghours,
   updatePassword,
 };
