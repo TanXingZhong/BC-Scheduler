@@ -6,10 +6,8 @@ import Drawer, { drawerClasses } from "@mui/material/Drawer";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
-import NotificationsRoundedIcon from "@mui/icons-material/NotificationsRounded";
 import { useLogout } from "../hooks/useLogout";
 import { useUserInfo } from "../hooks/useUserInfo";
-import MenuButton from "./MenuButton";
 import MenuContent from "./MenuContent";
 
 function SideMenuMobile({ open, toggleDrawer }) {
@@ -46,7 +44,7 @@ function SideMenuMobile({ open, toggleDrawer }) {
           >
             <Avatar
               sizes="small"
-              alt="Riley Carter"
+              alt={name}
               src="/static/images/avatar/7.jpg"
               sx={{ width: 24, height: 24 }}
             />
@@ -54,9 +52,6 @@ function SideMenuMobile({ open, toggleDrawer }) {
               {name}
             </Typography>
           </Stack>
-          <MenuButton showBadge>
-            <NotificationsRoundedIcon />
-          </MenuButton>
         </Stack>
         <Divider />
         <Stack sx={{ flexGrow: 1 }}>

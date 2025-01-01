@@ -8,7 +8,7 @@ import Typography from "@mui/material/Typography";
 import MenuContent from "./MenuContent";
 import LogoutButton from "./LogoutButton";
 import { useUserInfo } from "../hooks/useUserInfo";
-import logo from "../img/logo.jpg";
+import logo2 from "../img/logo2.png";
 const drawerWidth = 240;
 
 const Drawer = styled(MuiDrawer)({
@@ -37,14 +37,16 @@ export default function SideMenu() {
       <Box
         sx={{
           display: "flex",
-          mt: "calc(var(--template-frame-height, 0px) + 4px)",
-          p: 1.5,
+          alignItems: "center", // Vertically centers the items
+          justifyContent: "center", // Horizontally centers the items
           fontWeight: "bold",
-          fontSize: "24px",
+          fontSize: "1",
         }}
       >
-        BurntCone
+        <h1 style={{ marginRight: "8px" }}>BurntCone</h1>
+        <img src={logo2} alt="logo" style={{ width: "60px" }} />
       </Box>
+
       <Divider />
       <MenuContent />
       {/* <CardAlert /> */}
@@ -60,7 +62,7 @@ export default function SideMenu() {
       >
         <Avatar
           sizes="small"
-          alt="Riley Carter"
+          alt={name}
           src="/static/images/avatar/7.jpg"
           sx={{ width: 36, height: 36 }}
         />

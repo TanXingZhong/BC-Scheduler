@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuthContext } from "./hooks/useAuthContext";
 import { Box, CircularProgress, styled } from "@mui/material";
+import ProtectedRoute from "./routes/protectedRoutes";
 // import { lazy, Suspense } from "react";
 
 // Lazy-loaded components
@@ -13,8 +14,8 @@ import LeavesAndOffs from "./pages/LeavesAndOffs";
 import Users from "./pages/Users";
 import HomeGrid from "./components/Home/HomeGrid";
 import Roles from "./pages/Roles";
-import ResetPasswordForm from "./components/ResetPassword";
 import ChangePassword from "./pages/ChangePassword";
+import { useUserInfo } from "./hooks/useUserInfo";
 // export const Dashboard = lazy(() => import("./Dashboard"));
 // export const SignIn = lazy(() => import("./pages/SignIn"));
 // export const SignUp = lazy(() => import("./pages/SignUp"));
@@ -39,17 +40,46 @@ const renderFallback = (
 
 function App() {
   const { user } = useAuthContext();
+  const { admin } = useUserInfo();
   return (
     <Routes>
       <Route path="/" element={user ? <Dashboard /> : <Navigate to="/login" />}>
         <Route index element={<HomeGrid />} />
         <Route path="calendar" element={<MyCalendar />} />
-        <Route path="edit-schedule" element={<AdminCalendar />} />
         <Route path="leaves" element={<LeavesAndOffs />} />
-        <Route path="users" element={<Users />} />
-        <Route path="signup" element={<SignUp />} />
-        <Route path="roles" element={<Roles />} />
-        <Route path="change-password" element={<ChangePassword />}/>
+        <Route path="change-password" element={<ChangePassword />} />
+        <Route
+          path="edit-schedule"
+          element={
+            <ProtectedRoute user={user} isAdmin={admin}>
+              <AdminCalendar />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="users"
+          element={
+            <ProtectedRoute user={user} isAdmin={admin}>
+              <Users />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="signup"
+          element={
+            <ProtectedRoute user={user} isAdmin={admin}>
+              <SignUp />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="roles"
+          element={
+            <ProtectedRoute user={user} isAdmin={admin}>
+              <Roles />
+            </ProtectedRoute>
+          }
+        />
       </Route>
       <Route path="/login" element={!user ? <SignIn /> : <Navigate to="/" />} />
       <Route

@@ -12,7 +12,7 @@ import {
   Grid2,
 } from "@mui/material";
 
-function ResetPasswordForm({ userId, open, handleClose, handleResetPassword, openSB }) {
+function ResetPasswordForm({ userId, open, handleClose, handleResetPassword }) {
   const [formData, setFormData] = useState({
     id: userId,
     newPassword: "",
@@ -63,9 +63,8 @@ function ResetPasswordForm({ userId, open, handleClose, handleResetPassword, ope
   const handleSubmit = (event) => {
     event.preventDefault();
     if (validateInputs()) {
-    console.log("formData", formData);
+      console.log("formData", formData);
       handleResetPassword(formData);
-      openSB();
     }
   };
 
@@ -88,13 +87,12 @@ function ResetPasswordForm({ userId, open, handleClose, handleResetPassword, ope
       <DialogTitle id="reset-password-dialog-title">Reset Password</DialogTitle>
       <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
         <Grid2 container spacing={2}>
-          <Grid2 item xs={12}>
+          <Grid2 xs={12}>
             <FormControl fullWidth>
               <FormLabel htmlFor="newPassword">New Password</FormLabel>
               <TextField
                 id="newPassword"
                 name="newPassword"
-                type="password"
                 placeholder="Enter new password"
                 value={formData.newPassword}
                 onChange={(e) =>
@@ -105,13 +103,14 @@ function ResetPasswordForm({ userId, open, handleClose, handleResetPassword, ope
               />
             </FormControl>
           </Grid2>
-          <Grid2 item xs={12}>
+          <Grid2 xs={12}>
             <FormControl fullWidth>
-              <FormLabel htmlFor="confirmPassword">Confirm New Password</FormLabel>
+              <FormLabel htmlFor="confirmPassword">
+                Confirm New Password
+              </FormLabel>
               <TextField
                 id="confirmPassword"
                 name="confirmPassword"
-                type="password"
                 placeholder="Confirm new password"
                 value={formData.confirmPassword}
                 onChange={(e) =>

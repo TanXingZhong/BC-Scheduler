@@ -16,6 +16,9 @@ import {
   toSGDate,
   timePrettier,
 } from "../../../config/convertTimeToSGT";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import AccessAlarmIcon from "@mui/icons-material/AccessAlarm";
 
 export default function Schedule() {
   const { getUserById, isLoading, error } = useGetSingleUserInfo();
@@ -59,24 +62,50 @@ export default function Schedule() {
               }}
             >
               <CardContent>
-                <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                  {item.date}
-                </Typography>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  component="span"
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center", // Align items vertically in the center
+                    gap: 1, // Add some space between the icon and text
+                  }}
                 >
-                  Location: {item.location}
-                </Typography>
-                <br />
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  component="span"
+                  <CalendarMonthIcon />
+                  <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                    {item.date}
+                  </Typography>
+                </Box>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center", // Align items vertically in the center
+                    gap: 1, // Add some space between the icon and text
+                  }}
                 >
-                  Time: {timePrettier(item.start, item.end)}
-                </Typography>
+                  <LocationOnIcon />
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    component="span"
+                  >
+                    {item.location}
+                  </Typography>
+                </Box>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center", // Align items vertically in the center
+                    gap: 1, // Add some space between the icon and text
+                  }}
+                >
+                  <AccessAlarmIcon />
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    component="span"
+                  >
+                    {timePrettier(item.start, item.end)}
+                  </Typography>
+                </Box>
               </CardContent>
             </Card>
             {index < items.length - 1 && <Divider variant="inset" />}

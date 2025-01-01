@@ -7,7 +7,6 @@ import FormControl from "@mui/material/FormControl";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import MenuItem from "@mui/material/MenuItem";
-import { Switch, FormControlLabel } from "@mui/material";
 import MuiCard from "@mui/material/Card";
 import AppTheme from "../../shared-theme/AppTheme";
 import { styled } from "@mui/material/styles";
@@ -25,24 +24,24 @@ const Card = styled(MuiCard)(({ theme }) => ({
   margin: "auto",
   boxShadow:
     "hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px",
-    [theme.breakpoints.up("sm")]: {
-        width: "800px",
-    },
-    ...theme.applyStyles("dark", {
-        boxShadow:
-        "hsla(220, 30%, 5%, 0.5) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.08) 0px 15px 35px -5px",
-    }),
+  [theme.breakpoints.up("sm")]: {
+    width: "400px",
+  },
+  ...theme.applyStyles("dark", {
+    boxShadow:
+      "hsla(220, 30%, 5%, 0.5) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.08) 0px 15px 35px -5px",
+  }),
 }));
 
 const SignUpContainer = styled(Box)(({ theme }) => ({
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    height: "100vh",
-    padding: theme.spacing(2),
-    [theme.breakpoints.up("sm")]: {
-        padding: theme.spacing(4),
-    },
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "center",
+  height: "100vh",
+  padding: theme.spacing(2),
+  [theme.breakpoints.up("sm")]: {
+    padding: theme.spacing(4),
+  },
 }));
 
 export default function ChangePassword(props) {
@@ -51,7 +50,7 @@ export default function ChangePassword(props) {
   const [errorState, setErrorState] = useState({
     oldPassword: { error: false, message: "" },
     newPassword: { error: false, message: "" },
-});
+  });
 
   const setError = (field, error, message) => {
     setErrorState((prevState) => ({
@@ -67,17 +66,21 @@ export default function ChangePassword(props) {
     let isValid = true;
 
     // Validate Password
-    if(!oldPassword.value) {
-        setError("oldPassword", true, "Old password is required.");
-        isValid = false;
+    if (!oldPassword.value) {
+      setError("oldPassword", true, "Old password is required.");
+      isValid = false;
     } else {
-        setError("oldPassword", false, "");
+      setError("oldPassword", false, "");
     }
-    if(!newPassword.value || newPassword.value.length < 6) {
-        setError("newPassword", true, "New password must be at least 6 characters long.");
-        isValid = false;
+    if (!newPassword.value || newPassword.value.length < 6) {
+      setError(
+        "newPassword",
+        true,
+        "New password must be at least 6 characters long."
+      );
+      isValid = false;
     } else {
-        setError("newPassword", false, "");
+      setError("newPassword", false, "");
     }
 
     return isValid;
@@ -97,11 +100,7 @@ export default function ChangePassword(props) {
     const newPassword = document.getElementById("newPassword").value;
 
     // You can replace this with your actual signup function
-    await changePassword(
-      userInfo.user_id,
-      oldPassword,
-      newPassword,
-    );
+    await changePassword(userInfo.user_id, oldPassword, newPassword);
   };
 
   const formFieldsLeft = [
@@ -138,49 +137,44 @@ export default function ChangePassword(props) {
             }}
           >
             <Grid container spacing={5}>
-              <Grid size={{ xs: 12, md: 6 }}>
-                {formFieldsLeft.map((field) => (
-                  <FormControl
-                    key={field.id}
-                    fullWidth
-                    sx={{ marginBottom: 2 }}
-                  >
-                    <FormLabel htmlFor={field.id}>{field.label}</FormLabel>
-                    {field.type == "select" ? (
-                      <TextField
-                        required
-                        id={field.id}
-                        name={field.id}
-                        select
-                        value={field.value}
-                        onChange={(e) => setSex(e.target.value)}
-                        fullWidth
-                      >
-                        {field.options.map((option) => (
-                          <MenuItem key={option.value} value={option.value}>
-                            {option.label}
-                          </MenuItem>
-                        ))}
-                      </TextField>
-                    ) : (
-                      <TextField
-                        autoComplete={field.id}
-                        name={field.id}
-                        id={field.id}
-                        fullWidth
-                        variant="outlined"
-                        defaultValue={field.defaultValue}
-                        type={field.type}
-                        placeholder={field.placeholder}
-                        error={field.error}
-                        helperText={field.helperText}
-                        color={field.error ? "error" : "primary"}
-                      />
-                    )}
-                  </FormControl>
-                ))}
-              </Grid>
+              {formFieldsLeft.map((field) => (
+                <FormControl key={field.id} fullWidth sx={{ marginBottom: 2 }}>
+                  <FormLabel htmlFor={field.id}>{field.label}</FormLabel>
+                  {field.type == "select" ? (
+                    <TextField
+                      required
+                      id={field.id}
+                      name={field.id}
+                      select
+                      value={field.value}
+                      onChange={(e) => setSex(e.target.value)}
+                      fullWidth
+                    >
+                      {field.options.map((option) => (
+                        <MenuItem key={option.value} value={option.value}>
+                          {option.label}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  ) : (
+                    <TextField
+                      autoComplete={field.id}
+                      name={field.id}
+                      id={field.id}
+                      fullWidth
+                      variant="outlined"
+                      defaultValue={field.defaultValue}
+                      type={field.type}
+                      placeholder={field.placeholder}
+                      error={field.error}
+                      helperText={field.helperText}
+                      color={field.error ? "error" : "primary"}
+                    />
+                  )}
+                </FormControl>
+              ))}
             </Grid>
+
             {error && validateInputs && <div className="error">{error}</div>}
             {success && validateInputs && (
               <div className="success">{success}</div>
@@ -192,7 +186,7 @@ export default function ChangePassword(props) {
               onClick={validateInputs}
               disabled={isLoading}
             >
-                Change Password
+              Change Password
             </Button>
           </Box>
         </Card>
