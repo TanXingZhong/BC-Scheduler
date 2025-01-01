@@ -173,8 +173,7 @@ export default function AdminCalendar() {
         .map(() => ({
           id: "",
           employee: "EMPTY",
-          role: "EMPTY"
-
+          role: "EMPTY",
         }));
 
       // Combine filled and empty slots
@@ -232,10 +231,8 @@ export default function AdminCalendar() {
       setFilteredData(transformedDataArray);
       return;
     } else {
-
       for (const column of Object.keys(filters)) {
         if (column === "employee") {
->>>>>>> main
           uniqueValuesByColumn[column] = transformedDataArray
             .flatMap((row) => row["array"])
             .reduce((unique, current) => {
@@ -271,7 +268,9 @@ export default function AdminCalendar() {
         if (column === "employee") {
           return (
             !filters[column].length ||
-            event.array.some((slot) => filters["employee"].includes(slot.employee))
+            event.array.some((slot) =>
+              filters["employee"].includes(slot.employee)
+            )
           );
         }
         if (column === "role") {
@@ -291,7 +290,7 @@ export default function AdminCalendar() {
     if (filters["employee"] === undefined) {
       setFilteredData([]);
       return;
-    } 
+    }
 
     const secondFilter = fisrtFilter.map((event) => {
       const filteredArray = event.array.filter((slot) =>
@@ -495,9 +494,11 @@ export default function AdminCalendar() {
         <>
           {uniqueValues[currentFilterColumn]?.map((value) => {
             // Check if value is an object (not an array)
-            if (typeof value === "object" && currentFilterColumn === "employee" && value !== null) {
-
-
+            if (
+              typeof value === "object" &&
+              currentFilterColumn === "employee" &&
+              value !== null
+            ) {
               return (
                 <FormControlLabel
                   key={`${currentFilterColumn}-${value.employee}`} // Assuming value has an 'id' field for uniqueness
@@ -519,8 +520,12 @@ export default function AdminCalendar() {
                 />
               );
             }
-            
-            if (typeof value === "object" && currentFilterColumn === "role" && value !== null) {
+
+            if (
+              typeof value === "object" &&
+              currentFilterColumn === "role" &&
+              value !== null
+            ) {
               return (
                 <FormControlLabel
                   key={`${currentFilterColumn}-${value.role}`} // Assuming value has an 'id' field for uniqueness
@@ -530,10 +535,7 @@ export default function AdminCalendar() {
                         value.role
                       )} // Use value.id or another unique identifier
                       onChange={() =>
-                        handleCheckboxChange(
-                          currentFilterColumn,
-                          value.role
-                        )
+                        handleCheckboxChange(currentFilterColumn, value.role)
                       }
                       name={value.role} // Or another unique property of the object
                     />
@@ -542,7 +544,6 @@ export default function AdminCalendar() {
                 />
               );
             }
-
 
             if (
               typeof value === "object" &&
