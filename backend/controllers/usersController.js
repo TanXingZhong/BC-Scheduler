@@ -137,9 +137,33 @@ const deleteUser = async (req, res) => {
   }
 };
 
+const resetPassword = async (req, res) => {
+  const { id, newPassword, confirmPassword } = req.body;
+  
+  // Confirm data
+  console.log("resetPassword");
+  console.log(req.body);
+  
+  if (!id || !newPassword || !confirmPassword) {
+    return res.status(400).json({ message: "All fields are required." });
+  }
+  
+  // Hash the new password
+  const hashedPwd = await bcrypt.hash(newPassword, 10);
+  // Update the user's password
+  try {
+    await db.updatePassword(id, hashedPwd);
+    return res.status(200).json({ message: "Password updated." });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Error updating password." });
+  }
+}
+
 module.exports = {
   getAllUsers,
   createNewUser,
   updateUser,
   deleteUser,
+  resetPassword,
 };

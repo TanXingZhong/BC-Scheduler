@@ -198,7 +198,7 @@ async function addUserToSchedule(schedule_id, id) {
         schedule[0].end_time
       )
     ) {
-      throw new Error("Shifts conflict");
+      throw new Error("Shifts conflict"); 
     }
 
     const query = "UPDATE schedule SET vacancy = ? WHERE schedule_id = ?";
