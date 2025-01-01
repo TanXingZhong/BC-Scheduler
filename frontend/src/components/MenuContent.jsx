@@ -12,7 +12,6 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import EditCalendarIcon from "@mui/icons-material/EditCalendar";
 import AccessibilityIcon from "@mui/icons-material/Accessibility";
 import FreeBreakfastIcon from "@mui/icons-material/FreeBreakfast";
-import PasswordIcon from "@mui/icons-material/Password";
 
 import { Link } from "react-router-dom";
 
@@ -28,7 +27,7 @@ const mainListItems = [
   { text: "Users", icon: <PeopleRoundedIcon />, path: "/users" },
   { text: "Create Account", icon: <PersonAddIcon />, path: "/signup" },
   { text: "Roles", icon: <AccessibilityIcon />, path: "/roles" },
-  { text: "Change Password", icon: <PasswordIcon />, path: "/change-password" },
+  { text: "Change Password", icon: <AccessibilityIcon />, path: "/change-password" },
 
 ];
 
