@@ -6,7 +6,8 @@ import {
   DialogContent,
   DialogTitle,
   TextField,
-  Typography,
+  Snackbar,
+  IconButton,
   MenuItem,
 } from "@mui/material";
 import PropTypes from "prop-types";
@@ -16,9 +17,11 @@ import Grid from "@mui/material/Grid2";
 import { forumToSGTime, forumToSGDate } from "../../config/convertTimeToSGT";
 import { useEditSchedule } from "../hooks/Calendar/useEditSchedule";
 import { dateToDBDate, dateTimeToDBDate } from "../../config/convertDateToDB";
+import CloseIcon from "@mui/icons-material/Close";
 
 function EditSchedule({ open, handleClose, scheduleInfo, refresh }) {
-  const { editSchedule, isLoading, error } = useEditSchedule();
+  const { editSchedule, isLoading, error, success } = useEditSchedule();
+  const [openEditSB, setOpenEditSB] = useState(false);
   const [formData, setFormData] = useState({});
   useEffect(() => {
     if (scheduleInfo) {
@@ -26,8 +29,30 @@ function EditSchedule({ open, handleClose, scheduleInfo, refresh }) {
     }
   }, [scheduleInfo]);
 
+  const handleCloseEditSB = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setOpenEditSB(false);
+  };
+  const actionEdit = (
+    <IconButton
+      size="small"
+      aria-label="close"
+      color="inherit"
+      onClick={handleCloseEditSB}
+    >
+      <CloseIcon fontSize="small" />
+    </IconButton>
+  );
+
   const [errorState, setErrorState] = useState({
-    employee_id: { error: false, message: "" },
+    outlet_name: { error: false, message: "" },
+    start_time: { error: false, message: "" },
+    vacancy: { error: false, message: "" },
+    start: { error: false, message: "" },
+    end_time: { error: false, message: "" },
   });
   const setError = (field, error, message) => {
     setErrorState((prevState) => ({
@@ -38,12 +63,42 @@ function EditSchedule({ open, handleClose, scheduleInfo, refresh }) {
 
   const validateInputs = () => {
     let isValid = true;
-    // if (!formData.employee_id) {
-    //   setError("employee_id", true, "Employee is required.");
-    //   isValid = false;
-    // } else {
-    //   setError("employee_id", false, "");
-    // }
+    console.log(parseInt(formData.vacancy));
+    console.log(!formData.vacancy);
+    console.log(formData);
+    if (!formData.outlet_name) {
+      setError("outlet_name", true, "Outlet is required.");
+      isValid = false;
+    } else {
+      setError("outlet_name", false, "");
+    }
+    if (!formData.start_time) {
+      setError("start_time", true, "Shift start is required.");
+      isValid = false;
+    } else {
+      setError("start_time", false, "");
+    }
+
+    if (!formData.start) {
+      setError("start", true, "Date is required.");
+      isValid = false;
+    } else {
+      setError("start", false, "");
+    }
+    if (!formData.end_time) {
+      setError("end_time", true, "Shift end is required.");
+      isValid = false;
+    } else {
+      setError("end_time", false, "");
+    }
+
+    if (parseInt(formData.vacancy) < 0) {
+      console.log("here3");
+      setError("vacancy", true, "Vacancy should be more then 1.");
+      isValid = false;
+    } else {
+      setError("vacancy", false, "");
+    }
 
     return isValid;
   };
@@ -53,13 +108,6 @@ function EditSchedule({ open, handleClose, scheduleInfo, refresh }) {
     if (!validateInputs()) {
       return;
     }
-    console.log(
-      formData.schedule_id,
-      formData.outlet_name,
-      dateToDBDate(formData.start) + " " + formData.start_time,
-      dateToDBDate(formData.start) + " " + formData.end_time,
-      formData.vacancy
-    );
     await editSchedule(
       formData.schedule_id,
       formData.outlet_name,
@@ -67,8 +115,8 @@ function EditSchedule({ open, handleClose, scheduleInfo, refresh }) {
       dateToDBDate(formData.start) + " " + formData.end_time,
       formData.vacancy
     );
+    setOpenEditSB(true);
     refresh();
-    handleClose();
   };
 
   const formFieldsLeft = [
@@ -76,8 +124,8 @@ function EditSchedule({ open, handleClose, scheduleInfo, refresh }) {
       id: "outlet_name",
       label: "Outlet",
       defaultValue: scheduleInfo.outlet_name,
-      error: errorState.employee_id.error,
-      helperText: errorState.employee_id.message,
+      error: errorState.outlet_name.error,
+      helperText: errorState.outlet_name.message,
     },
     {
       id: "start_time",
@@ -85,15 +133,16 @@ function EditSchedule({ open, handleClose, scheduleInfo, refresh }) {
       type: "time",
       value: forumToSGTime(scheduleInfo.start),
       defaultValue: forumToSGTime(scheduleInfo.start),
-      error: errorState.employee_id.error,
-      helperText: errorState.employee_id.message,
+      error: errorState.start_time.error,
+      helperText: errorState.start_time.message,
     },
     {
       id: "vacancy",
       label: "Vacancy",
+      type: "number",
       defaultValue: scheduleInfo.vacancy,
-      error: errorState.employee_id.error,
-      helperText: errorState.employee_id.message,
+      error: errorState.vacancy.error,
+      helperText: errorState.vacancy.message,
     },
   ];
   const formFieldsRight = [
@@ -103,8 +152,8 @@ function EditSchedule({ open, handleClose, scheduleInfo, refresh }) {
       type: "Date",
       value: forumToSGDate(scheduleInfo.start),
       defaultValue: forumToSGDate(scheduleInfo.start),
-      error: errorState.employee_id.error,
-      helperText: errorState.employee_id.message,
+      error: errorState.start.error,
+      helperText: errorState.start.message,
     },
 
     {
@@ -113,8 +162,8 @@ function EditSchedule({ open, handleClose, scheduleInfo, refresh }) {
       type: "time",
       value: forumToSGTime(scheduleInfo.end),
       defaultValue: forumToSGTime(scheduleInfo.end),
-      error: errorState.employee_id.error,
-      helperText: errorState.employee_id.message,
+      error: errorState.end_time.error,
+      helperText: errorState.end_time.message,
     },
   ];
   return (
@@ -218,6 +267,13 @@ function EditSchedule({ open, handleClose, scheduleInfo, refresh }) {
           Edit
         </Button>
       </DialogActions>
+      <Snackbar
+        open={openEditSB}
+        autoHideDuration={6000}
+        onClose={handleCloseEditSB}
+        message={success ? success : error}
+        action={actionEdit}
+      />
     </Dialog>
   );
 }

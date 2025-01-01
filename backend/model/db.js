@@ -247,26 +247,21 @@ async function updateUser(data) {
   ];
 
   try {
-    console.log("updating user");
     const [result] = await pool.execute(query, values);
-    console.log("User updated successfully", result);
     return result;
   } catch (err) {
-    console.error("Error updating user:", err);
     throw new Error(err);
   }
 }
 
-async function deleteUser(id) {
-  const query = "DELETE FROM users WHERE id = ?";
-  const values = [id];
+async function deleteUser(email) {
+  const query = "DELETE FROM users WHERE email = ?";
+  const values = [email];
 
   try {
     const [result] = await pool.execute(query, values);
-    console.log("User deleted successfully", result);
     return result;
   } catch (err) {
-    console.error("Error deleting user:", err);
     throw new Error(err);
   }
 }

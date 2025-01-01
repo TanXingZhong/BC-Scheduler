@@ -8,6 +8,7 @@ import Typography from "@mui/material/Typography";
 import MenuContent from "./MenuContent";
 import LogoutButton from "./LogoutButton";
 import { useUserInfo } from "../hooks/useUserInfo";
+import logo from "../img/logo.jpg";
 const drawerWidth = 240;
 
 const Drawer = styled(MuiDrawer)({

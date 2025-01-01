@@ -1,4 +1,11 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import {
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+  Fragment,
+  Button,
+} from "react";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { CircularProgress, Typography, Box, IconButton } from "@mui/material";
 import { useGetUsersInfo } from "../hooks/useGetUsersInfo";
@@ -11,6 +18,8 @@ import { toSGDate } from "../../config/convertTimeToSGT";
 import { dateTimeToDBDate } from "../../config/convertDateToDB";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import Snackbar from "@mui/material/Snackbar";
+import CloseIcon from "@mui/icons-material/Close";
 
 const Users = () => {
   const { user } = useUserContext();
@@ -22,12 +31,14 @@ const Users = () => {
   const {
     deleteUser,
     isLoading: isLoadingDelete,
-    error: errorDelete,
+    error: errorDeleteUser,
+    success: successDeleteUser,
   } = useDeleteUser();
   const {
     updateUser,
     isLoading: isLoadingUpdateUser,
     error: errorUpdateUser,
+    success: successUpdateUser,
   } = useUpdateUser();
 
   const columns = [
@@ -152,6 +163,9 @@ const Users = () => {
   const [openUpdate, setOpenUpdate] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
   const [allRoles, setAllRoles] = useState([]);
+  const [openDeleteSnackbar, setOpenDeleteSnackbar] = useState(false);
+  const [openUpdateSnackbar, setOpenUpdateSnackbar] = useState(false);
+
   const rowsMemoized = useMemo(
     () => (user ? user.allDatas || [] : []),
     [user?.allDatas]
@@ -203,6 +217,7 @@ const Users = () => {
       data.dob = dateTimeToDBDate(data.dob);
       data.joinDate = dateTimeToDBDate(data.joinDate);
       await updateUser(data);
+      handleClickUpdate();
       await onLoad();
     } catch (err) {
       console.error(err);
@@ -212,12 +227,63 @@ const Users = () => {
   const handleContinue = async (email) => {
     try {
       await deleteUser(email);
+      handleClickDelete();
       await onLoad();
     } catch (err) {
       console.error("Error deleting user:", err);
     }
     setOpenDelete(false);
   };
+
+  const handleClickUpdate = () => {
+    setOpenUpdateSnackbar(true);
+  };
+
+  const handleCloseUpdateSnackbar = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setOpenUpdateSnackbar(false);
+  };
+
+  const actionUpdate = (
+    <Fragment>
+      <IconButton
+        size="small"
+        aria-label="close"
+        color="inherit"
+        onClick={handleCloseUpdateSnackbar}
+      >
+        <CloseIcon fontSize="small" />
+      </IconButton>
+    </Fragment>
+  );
+
+  const handleClickDelete = () => {
+    setOpenDeleteSnackbar(true);
+  };
+
+  const handleCloseDeleteSnackbar = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setOpenDeleteSnackbar(false);
+  };
+
+  const actionDelete = (
+    <Fragment>
+      <IconButton
+        size="small"
+        aria-label="close"
+        color="inherit"
+        onClick={handleCloseDeleteSnackbar}
+      >
+        <CloseIcon fontSize="small" />
+      </IconButton>
+    </Fragment>
+  );
 
   useEffect(() => {
     onLoad();
@@ -283,6 +349,20 @@ const Users = () => {
         slots={{
           toolbar: GridToolbar,
         }}
+      />
+      <Snackbar
+        open={openUpdateSnackbar}
+        autoHideDuration={6000}
+        onClose={handleCloseUpdateSnackbar}
+        message={successUpdateUser ? successUpdateUser : errorUpdateUser}
+        action={actionUpdate}
+      />
+      <Snackbar
+        open={openDeleteSnackbar}
+        autoHideDuration={6000}
+        onClose={handleCloseDeleteSnackbar}
+        message={successDeleteUser ? successDeleteUser : errorDeleteUser}
+        action={actionDelete}
       />
     </Box>
   );

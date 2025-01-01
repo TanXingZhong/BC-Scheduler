@@ -9,7 +9,9 @@ const EmployeeInfo = ({
   scheduleInfo,
   handleDelete,
   handleChange,
+  close,
   allUsersInfo,
+  handleChangeMSG,
 }) => {
   const [open, setOpen] = useState(false);
 
@@ -17,6 +19,7 @@ const EmployeeInfo = ({
   const handleClose = () => {
     setAssignedUser("");
     setOpen(false);
+    close();
   };
   const handleEdit = (x) => {
     setAssignedUser(x);
@@ -72,6 +75,7 @@ const EmployeeInfo = ({
           scheduleInfo={scheduleInfo}
           allUsersInfo={allUsersInfo}
           assignedUser={assignedUser}
+          handleChangeMSG={handleChangeMSG}
         />
       )}
       <Divider />
