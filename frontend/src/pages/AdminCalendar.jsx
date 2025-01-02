@@ -465,6 +465,7 @@ export default function AdminCalendar() {
               sx={{
                 fontSize: "10px",
                 cursor: "pointer",
+                marginBottom: "1px",
                 alignItems: "center",
                 justifyContent: "center",
                 backgroundColor: x.employee == "EMPTY" ? "red" : "green",

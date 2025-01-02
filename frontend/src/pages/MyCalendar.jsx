@@ -307,6 +307,7 @@ export default function MyCalendar() {
               variant="outlined"
               sx={{
                 fontSize: "10px",
+                marginBottom: "1px",
                 cursor: "pointer",
                 alignItems: "center",
                 justifyContent: "center",
