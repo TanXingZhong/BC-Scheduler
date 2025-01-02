@@ -2,6 +2,7 @@ import Typography from "@mui/material/Typography";
 import LeaveApproval from "./LeaveApproval";
 import ScheduleApproval from "./ScheduleApproval";
 import ApplicationList from "./ApplicationList";
+import { Box } from "@mui/material";
 import LeaveApplicationList from "./LeaveApplicationList";
 import { useUserInfo } from "../../hooks/useUserInfo";
 

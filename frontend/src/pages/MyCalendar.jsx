@@ -16,6 +16,8 @@ import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { useGetCalendar } from "../hooks/Calendar/useGetCalendar";
+import { useGetMonthLeaveOffs } from "../hooks/useGetMonthLeaveOffs";
+import ViewLeaves from "../components/ViewLeaves";
 import { toSGTimeShort } from "../../config/convertTimeToSGT";
 import { dateTimeToDBDate } from "../../config/convertDateToDB";
 import ApplySchedule from "../components/ApplySchedule";
@@ -26,18 +28,22 @@ const localizer = momentLocalizer(moment);
 export default function MyCalendar() {
   const userInfo = useUserInfo();
   const { fetchSchedule, isLoading, error } = useGetCalendar();
+  const { monthLeaveOffs, error: LeaveOffsErrror } = useGetMonthLeaveOffs();
   const [schedule, setSchedule] = useState([]);
   const [scheduleAndUsers, setScheduleAndUsers] = useState([]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [modalOpen, setModalOpen] = useState(false);
   const [transformedDataArray, setTransformedDataArray] = useState([]);
   const [filteredDataArray, setFilteredData] = useState([]);
+  const [monthLeaveOffsData, setmonthLeaveOffsData] = useState([]);
 
   const onLoad = async (start) => {
     try {
       const [scheduleData] = await Promise.all([fetchSchedule(start)]);
+      const [LeaveData] = await Promise.all([monthLeaveOffs(start)]);
       setSchedule(scheduleData.rows);
       setScheduleAndUsers(scheduleData.rowsplus);
+      setmonthLeaveOffsData(LeaveData);
     } catch (err) {
       console.error("Error loading schedules: ", err);
     }
@@ -47,7 +53,7 @@ export default function MyCalendar() {
     const data = schedule.map((data) => {
       // Find all users scheduled for this slot
       const filledSlots = scheduleAndUsers
-        .filter((x) => (x.schedule_id === data.schedule_id))
+        .filter((x) => x.schedule_id === data.schedule_id)
         .map((slot) => ({
           id: slot.id,
           employee: slot.name,
@@ -78,11 +84,30 @@ export default function MyCalendar() {
         end_time: toSGTimeShort(data.end_time),
         vacancy: data.vacancy,
         array: combinedSlots,
+        type: "work",
       };
     });
 
-    setTransformedDataArray(data);
-    setFilteredData(data);
+    var temp = [];
+
+    // Update temp structure to match data's format
+    if (monthLeaveOffsData) {
+      temp = monthLeaveOffsData.map((data) => {
+        return {
+          title: "View Leave/Offs",
+          start: data.date,
+          end: data.date,
+          people: data.user_info,
+          type: "holiday",
+        };
+      });
+    }
+
+    // Merge data and temp
+    const mergedData = [...temp, ...data];
+
+    setTransformedDataArray(mergedData);
+    setFilteredData(mergedData);
   }, [schedule, scheduleAndUsers]);
 
   useEffect(() => {
@@ -110,8 +135,7 @@ export default function MyCalendar() {
       return;
     } else {
       for (const column of Object.keys(filters)) {
-        if(column === "employee") {
-
+        if (column === "employee") {
           uniqueValuesByColumn[column] = transformedDataArray
             .flatMap((row) => row["array"])
             .reduce((unique, current) => {
@@ -147,8 +171,9 @@ export default function MyCalendar() {
         if (column === "employee") {
           return (
             !filters[column].length ||
-            event.array.some((slot) => filters["employee"].includes(slot.employee))
-
+            event.array.some((slot) =>
+              filters["employee"].includes(slot.employee)
+            )
           );
         }
         if (column === "role") {
@@ -168,7 +193,7 @@ export default function MyCalendar() {
     if (filters["employee"] === undefined) {
       setFilteredData([]);
       return;
-    } 
+    }
     const secondFilter = fisrtFilter.map((event) => {
       const filteredArray = event.array.filter((slot) =>
         filters["employee"].includes(slot.employee)
@@ -242,6 +267,9 @@ export default function MyCalendar() {
   ];
 
   const [openApplySchedule, setApplySchedule] = useState(false);
+  const [openLeave, setOpenLeave] = useState(false);
+  const [leaveData, setLeaveData] = useState("");
+  const [leaveDataDate, setLeaveDataDate] = useState("");
   const [scheduleInfo, setScheduleInfo] = useState([]);
 
   const handleCardClick = useCallback((event, x) => {
@@ -249,25 +277,69 @@ export default function MyCalendar() {
     setApplySchedule(true);
   }, []);
 
+  const handleLeaveClick = useCallback((event, leaveData, leaveDataDate) => {
+    setLeaveData(leaveData);
+    setLeaveDataDate(leaveDataDate);
+    setOpenLeave(true);
+  }, []);
+
+  const handleCloseLeave = () => {
+    setOpenLeave(false);
+  };
+
   const handleCloseApplySchedule = () => {
     setApplySchedule(false);
   };
 
-  const CustomEventWrapper = ({ event, onCardClick }) => {
+  const CustomEventWrapper = ({ event, onCardClick, onLeaveClick }) => {
     const title = event.title;
     const arr = event.array;
+    const isWorkType = event.type === "work";
+    const userLeaveData = event.people;
+    const leaveDataDate = event.start;
 
     return (
       <div>
-        {arr.map((x, index) => (
-          <Card
-            key={index}
+        {isWorkType ? (
+          arr.map((x, index) => (
+            <Box
+              key={index}
+              variant="outlined"
+              sx={{
+                fontSize: "10px",
+                cursor: "pointer",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: x.employee == "EMPTY" ? "red" : "green",
+                transition: "all 0.3s ease",
+                "&:hover": {
+                  backgroundColor: "#f0f0f0",
+                  transform: "scale(1.05)",
+                  boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)",
+                },
+              }}
+              onClick={() => onCardClick(event, x)} // Pass the event and the item to the callback
+            >
+              <Typography
+                sx={{
+                  fontSize: "10px",
+                  color: "white",
+                  textAlign: "center",
+                }}
+              >
+                {`${x.employee} - ${title}`}{" "}
+                {/* Combine title with each item */}
+              </Typography>
+            </Box>
+          ))
+        ) : (
+          <Box
             variant="outlined"
             sx={{
-              width: "99%",
               fontSize: "10px",
               cursor: "pointer",
               alignItems: "center",
+              border: "1px solid grey",
               justifyContent: "center",
               transition: "all 0.3s ease",
               "&:hover": {
@@ -276,19 +348,21 @@ export default function MyCalendar() {
                 boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)",
               },
             }}
-            onClick={() => onCardClick(event, x)} // Pass the event and the item to the callback
+            onClick={(event) =>
+              onLeaveClick(event, userLeaveData, leaveDataDate)
+            }
           >
             <Typography
               sx={{
                 fontSize: "10px",
-                color: x.employee == "EMPTY" ? "red" : "green",
+                color: "grey",
                 textAlign: "center",
               }}
             >
-              {`${x.employee} - ${title}`} {/* Combine title with each item */}
+              {`${title}`} {/* Combine title with each item */}
             </Typography>
-          </Card>
-        ))}
+          </Box>
+        )}
       </div>
     );
   };
@@ -300,6 +374,7 @@ export default function MyCalendar() {
 
   const handleNavigate = useCallback((newDate) => {
     setSchedule([]);
+    setmonthLeaveOffsData([]);
     setScheduleAndUsers([]);
     setCurrentDate(newDate); // Update the visible date
   }, []);
@@ -335,51 +410,56 @@ export default function MyCalendar() {
         <>
           {uniqueValues[currentFilterColumn]?.map((value) => {
             // Check if value is an object (not an array)
-            if (typeof value === "object" && currentFilterColumn === "employee" && value !== null) {
-                          return (
-                            <FormControlLabel
-                              key={`${currentFilterColumn}-${value.employee}`} // Assuming value has an 'id' field for uniqueness
-                              control={
-                                <Checkbox
-                                  checked={filters[currentFilterColumn]?.includes(
-                                    value.employee
-                                  )} // Use value.id or another unique identifier
-                                  onChange={() =>
-                                    handleCheckboxChange(
-                                      currentFilterColumn,
-                                      value.employee
-                                    )
-                                  }
-                                  name={value.employee} // Or another unique property of the object
-                                />
-                              }
-                              label={`${value.employee}`} // Assuming the object has a 'name' field
-                            />
-                          );
-                        }
-                        
-                        if (typeof value === "object" && currentFilterColumn === "role" && value !== null) {
-                          return (
-                            <FormControlLabel
-                              key={`${currentFilterColumn}-${value.role}`} // Assuming value has an 'id' field for uniqueness
-                              control={
-                                <Checkbox
-                                  checked={filters[currentFilterColumn]?.includes(
-                                    value.role
-                                  )} // Use value.id or another unique identifier
-                                  onChange={() =>
-                                    handleCheckboxChange(
-                                      currentFilterColumn,
-                                      value.role
-                                    )
-                                  }
-                                  name={value.role} // Or another unique property of the object
-                                />
-                              }
-                              label={`${value.role}`} // Assuming the object has a 'name' field
-                            />
-                          );
-                        }
+            if (
+              typeof value === "object" &&
+              currentFilterColumn === "employee" &&
+              value !== null
+            ) {
+              return (
+                <FormControlLabel
+                  key={`${currentFilterColumn}-${value.employee}`} // Assuming value has an 'id' field for uniqueness
+                  control={
+                    <Checkbox
+                      checked={filters[currentFilterColumn]?.includes(
+                        value.employee
+                      )} // Use value.id or another unique identifier
+                      onChange={() =>
+                        handleCheckboxChange(
+                          currentFilterColumn,
+                          value.employee
+                        )
+                      }
+                      name={value.employee} // Or another unique property of the object
+                    />
+                  }
+                  label={`${value.employee}`} // Assuming the object has a 'name' field
+                />
+              );
+            }
+
+            if (
+              typeof value === "object" &&
+              currentFilterColumn === "role" &&
+              value !== null
+            ) {
+              return (
+                <FormControlLabel
+                  key={`${currentFilterColumn}-${value.role}`} // Assuming value has an 'id' field for uniqueness
+                  control={
+                    <Checkbox
+                      checked={filters[currentFilterColumn]?.includes(
+                        value.role
+                      )} // Use value.id or another unique identifier
+                      onChange={() =>
+                        handleCheckboxChange(currentFilterColumn, value.role)
+                      }
+                      name={value.role} // Or another unique property of the object
+                    />
+                  }
+                  label={`${value.role}`} // Assuming the object has a 'name' field
+                />
+              );
+            }
 
             if (
               typeof value === "object" &&
@@ -432,16 +512,28 @@ export default function MyCalendar() {
           userInfo={userInfo}
         />
       )}
+      {openLeave && (
+        <ViewLeaves
+          open={openLeave}
+          handleClose={handleCloseLeave}
+          data={leaveData}
+          date={leaveDataDate}
+        />
+      )}
 
       <Calendar
         localizer={localizer}
-        events={filteredDataArray}
+        events={transformedDataArray}
         defaultView="month"
         style={{ height: "100%" }}
         views={["agenda", "month"]}
         components={{
           eventWrapper: (props) => (
-            <CustomEventWrapper {...props} onCardClick={handleCardClick} />
+            <CustomEventWrapper
+              {...props}
+              onCardClick={handleCardClick}
+              onLeaveClick={handleLeaveClick}
+            />
           ),
         }}
         onNavigate={handleNavigate}

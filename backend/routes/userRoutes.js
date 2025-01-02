@@ -5,6 +5,7 @@ const leaveController = require("../controllers/leaveController");
 const verifyJWT = require("../middleware/verifyJWT");
 
 router.route("/leaveoffapply").post(leaveController.applyLeaveOffs);
+router.route("/getMonthLeaveOffs").post(leaveController.getMonthLeaveOffs);
 router.route("/appliedleaves").post(leaveController.getLeavesByUserId);
 
 router

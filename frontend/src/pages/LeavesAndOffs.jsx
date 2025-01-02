@@ -153,7 +153,7 @@ export default function leaveApplication(props) {
         if (length !== "Full Day") {
           amt_used.current = 0.5;
         }
-        console.log("amt used:", typeof amt_used.current);
+
         if (
           (type == "Leave" && userInfo.leaves < amt_used.current) ||
           (type == "Offs" && userInfo.offs < amt_used.current)

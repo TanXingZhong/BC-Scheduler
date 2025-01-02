@@ -41,7 +41,20 @@ export default function ApplicationList() {
       width: 70,
       valueFormatter: (params) => toSGTimeShort(params),
     },
-    { field: "status", headerName: "Status", width: 100 },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 100,
+      valueFormatter: (params) => {
+        if (params === "pending") {
+          return "Pending";
+        } else if (params == "accepted") {
+          return "Accepted";
+        } else {
+          return "Unknown";
+        }
+      },
+    },
     {
       field: "action",
       headerName: "Action",
@@ -51,9 +64,23 @@ export default function ApplicationList() {
         return (
           <div>
             {status === "accepted" || status === "rejected" ? (
-              <button onClick={() => handleClear(params.row.id)}>Clear</button>
+              <Button
+                variant="contained"
+                color="error"
+                size="small"
+                onClick={() => handleClear(params.row.id)}
+              >
+                Clear
+              </Button>
             ) : (
-              <span>No actions</span>
+              <Button
+                variant="contained"
+                color="error"
+                size="small"
+                onClick={() => handleClear(params.row.id)}
+              >
+                Cancel
+              </Button>
             )}
           </div>
         );

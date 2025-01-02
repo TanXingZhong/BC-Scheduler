@@ -37,9 +37,22 @@ export default function LeaveApplicationList() {
       width: 100,
       valueFormatter: (params) => toSGDate(params),
     },
-    { field: "duration", headerName: "Duration", width: 150 },
+    { field: "duration", headerName: "Duration", width: 100 },
     { field: "amt_used", headerName: "Amount", width: 100 },
-    { field: "status", headerName: "Status", width: 100 },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 100,
+      valueFormatter: (params) => {
+        if (params === "pending") {
+          return "Pending";
+        } else if (params == "accepted") {
+          return "Accepted";
+        } else {
+          return "Unknown";
+        }
+      },
+    },
     {
       field: "action",
       headerName: "Action",

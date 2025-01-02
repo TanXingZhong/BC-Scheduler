@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { DataGrid } from "@mui/x-data-grid";
-import { Button } from "@mui/material";
-import Box from "@mui/material/Box";
+import { IconButton, Box } from "@mui/material";
 import { useGetAllApplications } from "../../hooks/Home/useGetAllApplications";
 import { toSGDate, toSGTimeShort } from "../../../config/convertTimeToSGT";
 import { usePutApplication } from "../../hooks/Calendar/usePutApplication";
@@ -56,31 +55,34 @@ export default function ScheduleApproval() {
     {
       field: "actions",
       headerName: "Actions",
-      width: 200,
-      sortable: false,
+      width: 100,
+      headerAlign: "center",
+      align: "center",
       renderCell: (params) => (
-        <>
-          <Button
-            variant="contained"
-            color="success"
-            size="small"
-            sx={{ marginRight: 1 }}
-            startIcon={<CheckIcon />}
+        <Box>
+          <IconButton
+            sx={{
+              borderRadius: "50%",
+            }}
+            aria-label="accept"
             onClick={() =>
               handleAccept({ rows: params.row, action: "accepted" })
             }
-          ></Button>
-
-          <Button
-            variant="contained"
-            color="error"
-            size="small"
-            startIcon={<CloseIcon />}
+          >
+            <CheckIcon fontSize="small" sx={{ color: "green" }} />
+          </IconButton>
+          <IconButton
+            sx={{
+              borderRadius: "50%",
+            }}
+            aria-label="delete"
             onClick={() =>
               handleReject({ rows: params.row, action: "rejected" })
             }
-          ></Button>
-        </>
+          >
+            <CloseIcon fontSize="small" sx={{ color: "red" }} />
+          </IconButton>
+        </Box>
       ),
     },
   ];

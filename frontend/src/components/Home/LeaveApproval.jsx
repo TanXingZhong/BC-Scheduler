@@ -1,11 +1,13 @@
 import React from "react";
 import { useState, useEffect } from "react";
 import { DataGrid } from "@mui/x-data-grid";
-import { Button } from "@mui/material";
+import { IconButton, Box } from "@mui/material";
 import "../../index.css";
 import { useGetPendingLeavesAndOffs } from "../../hooks/Home/useGetPendingLeavesAndOffs";
 import { toSGDate } from "../../../config/convertTimeToSGT";
 import { useActionLeaveOffs } from "../../hooks/Home/useActionLeaveOffs";
+import CheckIcon from "@mui/icons-material/check";
+import CloseIcon from "@mui/icons-material/Close";
 
 export default function LeaveApproval() {
   const { getPendingLeavesAndOffs, isLoading, error } =
@@ -41,36 +43,38 @@ export default function LeaveApproval() {
     { field: "type", headerName: "Type", width: 100 },
     { field: "start_date", headerName: "Start Date", width: 100 },
     { field: "end_date", headerName: "End Date", width: 100 },
-    { field: "duration", headerName: "Duration", width: 150 },
+    { field: "duration", headerName: "Duration", width: 100 },
     {
       field: "actions",
       headerName: "Actions",
-      width: 200,
-      sortable: false,
+      width: 100,
+      headerAlign: "center",
+      align: "center",
       renderCell: (params) => (
-        <>
-          <Button
-            variant="contained"
-            color="success"
-            size="small"
-            sx={{ marginRight: 1 }}
+        <Box>
+          <IconButton
+            sx={{
+              borderRadius: "50%",
+            }}
+            aria-label="accept"
             onClick={() =>
               handleAccept({ rows: params.row, action: "accepted" })
             }
           >
-            Accept
-          </Button>
-          <Button
-            variant="contained"
-            color="error"
-            size="small"
+            <CheckIcon fontSize="small" sx={{ color: "green" }} />
+          </IconButton>
+          <IconButton
+            sx={{
+              borderRadius: "50%",
+            }}
+            aria-label="delete"
             onClick={() =>
               handleReject({ rows: params.row, action: "rejected" })
             }
           >
-            Reject
-          </Button>
-        </>
+            <CloseIcon fontSize="small" sx={{ color: "red" }} />
+          </IconButton>
+        </Box>
       ),
     },
   ];

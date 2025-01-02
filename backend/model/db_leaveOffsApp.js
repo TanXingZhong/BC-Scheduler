@@ -131,6 +131,35 @@ async function removeLeaveApplication(leave_offs_id) {
   }
 }
 
+async function getMonthLeaveOffs(startDate) {
+  try {
+    const query = `WITH RECURSIVE DateRange AS (
+    SELECT MIN(start_date) AS date FROM leave_offs UNION ALL SELECT DATE_ADD(date, INTERVAL 1 DAY) FROM DateRange WHERE DATE_ADD(date, INTERVAL 1 DAY) <= (SELECT MAX(end_date) FROM leave_offs)
+    )
+    SELECT DATE_FORMAT(dr.date, '%Y-%m-%d') AS date,  -- Format the date to YYYY-MM-DD
+    GROUP_CONCAT(
+      DISTINCT CONCAT(u.name, ' [', UPPER(SUBSTRING(lo.status, 1, 1)), LOWER(SUBSTRING(lo.status, 2)), ': ', lo.type, ', ', lo.duration, ']')
+        ORDER BY u.name SEPARATOR "\n"
+    ) AS user_info
+    FROM DateRange dr LEFT JOIN leave_offs lo ON dr.date BETWEEN lo.start_date AND lo.end_date LEFT JOIN users u ON lo.user_id = u.id
+    WHERE EXISTS (
+      SELECT 1
+      FROM leave_offs lo
+      WHERE dr.date BETWEEN lo.start_date AND lo.end_date 
+      AND YEAR(dr.date) = YEAR(?) 
+      AND MONTH(dr.date) = MONTH(?)
+    )
+    AND lo.status != 'rejected'
+    GROUP BY dr.date ORDER BY dr.date;`;
+    const [rows, field] = await pool.execute(query, [startDate, startDate]);
+    console.log("Database query result:", rows);
+    return rows;
+  } catch (err) {
+    console.log(err);
+    throw new Error("Error getting month's leaves and offs");
+  }
+}
+
 module.exports = {
   addLeaveOffApplication,
   getAllPendingLeavesOffs,
@@ -138,4 +167,5 @@ module.exports = {
   updateUserLeaveOffCount,
   getLeavesByUserId,
   removeLeaveApplication,
+  getMonthLeaveOffs,
 };

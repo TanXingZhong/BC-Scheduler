@@ -16,6 +16,8 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import Publish from "../components/Publish";
 import { useGetCalendar } from "../hooks/Calendar/useGetCalendar";
 import { useGetNames } from "../hooks/Calendar/useGetNames";
+import { useGetMonthLeaveOffs } from "../hooks/useGetMonthLeaveOffs";
+import ViewLeaves from "../components/ViewLeaves";
 import { toSGTimeShort } from "../../config/convertTimeToSGT";
 import { dateTimeToDBDate } from "../../config/convertDateToDB";
 import AllocateSchedule from "../components/AllocateSchedule";
@@ -27,6 +29,8 @@ import CloseIcon from "@mui/icons-material/Close";
 export default function AdminCalendar() {
   const localizer = momentLocalizer(moment);
   const { fetchNames } = useGetNames();
+  const { monthLeaveOffs, error: LeaveOffsErrror } = useGetMonthLeaveOffs();
+  const [monthLeaveOffsData, setmonthLeaveOffsData] = useState([]);
   const { fetchSchedule } = useGetCalendar();
   const [names, setNames] = useState([]);
   const [schedule, setSchedule] = useState([]);
@@ -148,9 +152,11 @@ export default function AdminCalendar() {
         fetchSchedule(start),
         fetchNames(),
       ]);
+      const [LeaveData] = await Promise.all([monthLeaveOffs(start)]);
       setSchedule(scheduleData.rows);
       setScheduleAndUsers(scheduleData.rowsplus);
       setNames(namesData);
+      setmonthLeaveOffsData(LeaveData);
     } catch (err) {
       console.error("Error loading schedules: ", err);
     }
@@ -191,11 +197,31 @@ export default function AdminCalendar() {
         end_time: toSGTimeShort(data.end_time),
         vacancy: data.vacancy,
         array: combinedSlots,
+        type: "work",
       };
     });
 
-    setTransformedDataArray(data);
-    setFilteredData(data);
+    var temp = [];
+
+    // Update temp structure to match data's format
+    monthLeaveOffsData;
+    if (monthLeaveOffsData) {
+      temp = monthLeaveOffsData.map((data) => {
+        return {
+          title: "View Leave/Offs",
+          start: data.date,
+          end: data.date,
+          people: data.user_info,
+          type: "holiday",
+        };
+      });
+    }
+
+    // Merge data and temp
+    const mergedData = [...temp, ...data];
+
+    setTransformedDataArray(mergedData);
+    setFilteredData(mergedData);
   }, [schedule, scheduleAndUsers]);
 
   useEffect(() => {
@@ -373,6 +399,9 @@ export default function AdminCalendar() {
     onLoad(getMonthRange(currentDate));
   };
 
+  const [openLeave, setOpenLeave] = useState(false);
+  const [leaveData, setLeaveData] = useState("");
+  const [leaveDataDate, setLeaveDataDate] = useState("");
   const [openAllocateSchedule, setOpenAllocateSchedule] = useState(false);
   const [scheduleInfo, setScheduleInfo] = useState({});
   const handleRemoveUser = async (user_id) => {
@@ -392,8 +421,19 @@ export default function AdminCalendar() {
     setOpenAllocateSchedule(true);
   }, []);
 
+  const handleLeaveClick = useCallback((event, leaveData, leaveDataDate) => {
+    setLeaveData(leaveData);
+    setLeaveDataDate(leaveDataDate);
+    setOpenLeave(true);
+  }, []);
+
+  const handleCloseLeave = () => {
+    setOpenLeave(false);
+  };
+
   const handleNavigate = useCallback((newDate) => {
     handleClearFilters();
+    setmonthLeaveOffsData([]);
     setSchedule([]);
     setScheduleAndUsers([]);
     setSelectedSlot([]);
@@ -408,21 +448,55 @@ export default function AdminCalendar() {
     onLoad(getMonthRange(currentDate));
   };
 
-  const CustomEventWrapper = ({ event, onCardClick }) => {
+  const CustomEventWrapper = ({ event, onCardClick, onLeaveClick }) => {
     const title = event.title;
     const arr = event.array;
+    const isWorkType = event.type === "work";
+    const userLeaveData = event.people;
+    const leaveDataDate = event.start;
 
     return (
       <div>
-        {arr.map((x, index) => (
-          <Card
-            key={index}
+        {isWorkType ? (
+          arr.map((x, index) => (
+            <Box
+              key={index}
+              variant="outlined"
+              sx={{
+                fontSize: "10px",
+                cursor: "pointer",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: x.employee == "EMPTY" ? "red" : "green",
+                transition: "all 0.3s ease",
+                "&:hover": {
+                  backgroundColor: "#f0f0f0",
+                  transform: "scale(1.05)",
+                  boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)",
+                },
+              }}
+              onClick={() => onCardClick(event, x)} // Pass the event and the item to the callback
+            >
+              <Typography
+                sx={{
+                  fontSize: "10px",
+                  color: "white",
+                  textAlign: "center",
+                }}
+              >
+                {`${x.employee} - ${title}`}{" "}
+                {/* Combine title with each item */}
+              </Typography>
+            </Box>
+          ))
+        ) : (
+          <Box
             variant="outlined"
             sx={{
-              width: "99%",
               fontSize: "10px",
               cursor: "pointer",
               alignItems: "center",
+              border: "1px solid grey",
               justifyContent: "center",
               transition: "all 0.3s ease",
               "&:hover": {
@@ -431,19 +505,21 @@ export default function AdminCalendar() {
                 boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)",
               },
             }}
-            onClick={() => onCardClick(event, x)} // Pass the event and the item to the callback
+            onClick={(event) =>
+              onLeaveClick(event, userLeaveData, leaveDataDate)
+            }
           >
             <Typography
               sx={{
                 fontSize: "10px",
-                color: x.employee == "EMPTY" ? "red" : "green",
+                color: "grey",
                 textAlign: "center",
               }}
             >
-              {`${x.employee} - ${title}`} {/* Combine title with each item */}
+              {`${title}`} {/* Combine title with each item */}
             </Typography>
-          </Card>
-        ))}
+          </Box>
+        )}
       </div>
     );
   };
@@ -599,6 +675,14 @@ export default function AdminCalendar() {
           handleChangeMSG={handleChangeMSG}
         />
       )}
+      {openLeave && (
+        <ViewLeaves
+          open={openLeave}
+          handleClose={handleCloseLeave}
+          data={leaveData}
+          date={leaveDataDate}
+        />
+      )}
       <Calendar
         localizer={localizer}
         events={filteredDataArray}
@@ -613,8 +697,10 @@ export default function AdminCalendar() {
               new Date(event.end) <= new Date(end)
           );
           setSelectedSlot(slots);
-          selectedSlotsRef.current = selectedEvents;
-          if (selectedEvents.length > 0) {
+          selectedSlotsRef.current = selectedEvents.filter(
+            (event) => event.type === "work"
+          );
+          if (selectedSlotsRef.current.length > 0) {
             setDeleteButtonVisible(true);
           } else {
             setDeleteButtonVisible(false);
@@ -632,7 +718,11 @@ export default function AdminCalendar() {
         }}
         components={{
           eventWrapper: (props) => (
-            <CustomEventWrapper {...props} onCardClick={handleCardClick} />
+            <CustomEventWrapper
+              {...props}
+              onCardClick={handleCardClick}
+              onLeaveClick={handleLeaveClick}
+            />
           ),
         }}
         selectable

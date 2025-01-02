@@ -33,7 +33,7 @@ function CorfirmationToDeleteRole({
         sx: { backgroundImage: "none" },
       }}
     >
-      <DialogTitle>Confirm delete account</DialogTitle>
+      <DialogTitle>Confirm delete role</DialogTitle>
       <DialogContent
         sx={{ display: "flex", flexDirection: "column", gap: 2, width: "100%" }}
       ></DialogContent>

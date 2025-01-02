@@ -1,18 +1,14 @@
 import { useState } from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Checkbox from "@mui/material/Checkbox";
 import CssBaseline from "@mui/material/CssBaseline";
-import FormControlLabel from "@mui/material/FormControlLabel";
 import FormLabel from "@mui/material/FormLabel";
 import FormControl from "@mui/material/FormControl";
-import Link from "@mui/material/Link";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import MuiCard from "@mui/material/Card";
 import { styled } from "@mui/material/styles";
-import ForgotPassword from "../components/ForgotPassword";
 import logo from "../img/logo.jpg";
 import AppTheme from "../../shared-theme/AppTheme";
 import ColorModeSelect from "../../shared-theme/ColorModeSelect";
@@ -66,15 +62,6 @@ export default function SignIn(props) {
   const [emailErrorMessage, setEmailErrorMessage] = useState("");
   const [passwordError, setPasswordError] = useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
-  const [open, setOpen] = useState(false);
-
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
 
   const handleSubmit = async (event) => {
     event.preventDefault(); // Prevent default form submission
@@ -176,7 +163,7 @@ export default function SignIn(props) {
                 color={passwordError ? "error" : "primary"}
               />
             </FormControl>
-            <ForgotPassword open={open} handleClose={handleClose} />
+
             {error && validateInputs && <div className="error">{error}</div>}
             <Button
               type="submit"

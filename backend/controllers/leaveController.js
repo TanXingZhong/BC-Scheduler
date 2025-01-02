@@ -105,10 +105,24 @@ const clearLeaveApplication = async (req, res) => {
   }
 };
 
+const getMonthLeaveOffs = async (req, res) => {
+  const { startDate } = req.body;
+  try {
+    const monthLeaveOffs = await db_leaveOffsApp.getMonthLeaveOffs(startDate);
+    return res.status(200).json({ rows: monthLeaveOffs });
+  } catch (err) {
+    console.error(err);
+    return res
+      .status(500)
+      .json({ message: "Error fetching the month's leaves and offs." });
+  }
+};
+
 module.exports = {
   applyLeaveOffs,
   getAllPendingLeavesAndOffs,
   actionLeaveOff,
   getLeavesByUserId,
   clearLeaveApplication,
+  getMonthLeaveOffs,
 };
