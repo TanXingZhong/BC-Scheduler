@@ -130,6 +130,7 @@ const Users = () => {
       headerName: "First Aid",
       editable: false,
       width: 70,
+      valueFormatter: (params) => (params == 1 ? "True" : "False"),
     },
     {
       field: "joinDate",

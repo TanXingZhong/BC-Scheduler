@@ -1,5 +1,6 @@
 require("dotenv").config();
 const bcrypt = require("bcrypt");
+const e = require("express");
 
 //MySQL connection pool
 const pool = require("../config/db_pool").pool;
@@ -208,10 +209,11 @@ async function addUser(
 
 async function updateUser(data) {
   const query =
-    "UPDATE users SET name = ?, nric = ? , phonenumber = ?, sex = ?, dob = ?, bankName = ?, bankAccountNo = ?, address = ?, workplace = ?, occupation = ?, driverLicense = ?, firstAid = ?, joinDate = ?, role_id = ?, active = ?, admin = ?, leaves = ?, offs = ? WHERE id = ?";
+    "UPDATE users SET name = ?, nric = ?, email = ? , phonenumber = ?, sex = ?, dob = ?, bankName = ?, bankAccountNo = ?, address = ?, workplace = ?, occupation = ?, driverLicense = ?, firstAid = ?, joinDate = ?, role_id = ?, active = ?, admin = ?, leaves = ?, offs = ? WHERE id = ?";
   const values = [
     data.name,
     data.nric,
+    data.email,
     data.phonenumber,
     data.sex,
     data.dob,

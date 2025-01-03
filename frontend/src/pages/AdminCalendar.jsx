@@ -640,7 +640,7 @@ export default function AdminCalendar() {
       sx={{
         width: "100%",
         maxWidth: { sm: "100%", md: "1700px" },
-        height: "200vh",
+        height: "150vh",
         overflowX: "auto",
       }}
     >
@@ -802,8 +802,8 @@ export default function AdminCalendar() {
           return 0;
         })}
         defaultView="month"
-        style={{ height: "50%" }}
-        views={["agenda", "month"]}
+        style={{ height: "100%" }}
+        views={["month"]}
         onSelectSlot={(slotInfo) => {
           const { start, end, slots } = slotInfo;
           const selectedEvents = filteredDataArray.filter(

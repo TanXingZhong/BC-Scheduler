@@ -384,11 +384,6 @@ export default function MyCalendar() {
     );
   };
 
-  const handleShowMore = (events, date) => {
-    setSelectedDateEvents(events);
-    setModalOpen(true);
-  };
-
   const handleNavigate = useCallback((newDate) => {
     setSchedule([]);
     setmonthLeaveOffsData([]);
@@ -401,7 +396,7 @@ export default function MyCalendar() {
       sx={{
         width: "100%",
         maxWidth: { sm: "100%", md: "1700px" },
-        height: "100vh",
+        height: "150vh",
         overflowX: "auto",
       }}
     >
@@ -548,7 +543,7 @@ export default function MyCalendar() {
         })}
         defaultView="month"
         style={{ height: "100%" }}
-        views={["agenda", "month"]}
+        views={["month"]}
         components={{
           eventWrapper: (props) => (
             <CustomEventWrapper

@@ -40,7 +40,7 @@ const YearlyCountDown = () => {
       }}
     >
       <div style={styles.container}>
-        <h1 style={styles.title}>Countdown to AWS Change</h1>
+        <h1 style={styles.title}>Countdown to AWS server change 🥵</h1>
         <div style={styles.countdown}>
           <span style={styles.time}>{timeLeft.days}d</span>
           <span style={styles.time}>{timeLeft.hours}h</span>
