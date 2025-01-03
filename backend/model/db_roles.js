@@ -22,7 +22,7 @@ async function findDefaultRoleId() {
 //Get all roles from SQL
 async function getAllRoles() {
   const query = `
-  SELECT r.id AS id, r.role_name, COUNT(u.id) AS user_count, GROUP_CONCAT(u.name) AS user_names
+  SELECT r.id AS id, r.role_name, r.color, COUNT(u.id) AS user_count, GROUP_CONCAT(u.name) AS user_names
   FROM roles r
   LEFT JOIN users u ON u.role_id = r.id
   GROUP BY r.id, r.role_name
@@ -40,9 +40,9 @@ async function getAllRoles() {
   }
 }
 
-async function addRole(role_name) {
-  const query = "INSERT INTO roles (role_name) VALUES (?)";
-  const values = [role_name];
+async function addRole(role_name, color) {
+  const query = "INSERT INTO roles (role_name, color) VALUES (?, ?)";
+  const values = [role_name, color];
 
   try {
     const [result] = await pool.execute(query, values);
@@ -69,6 +69,18 @@ async function getRoleByRoleName(role_name) {
   }
 }
 
+async function checkRoleExistExceptItsOwn(role_name, id) {
+  const query = "SELECT id FROM roles WHERE role_name = ?";
+  const values = [role_name];
+
+  try {
+    const [rows] = await pool.execute(query, values);
+    return rows.length > 0 && rows[0].id !== id;
+  } catch (error) {
+    throw new Error("Error fetching role.");
+  }
+}
+
 async function checkRoleExistById(id) {
   const query = "SELECT * FROM roles WHERE id = ?";
   const values = [id];
@@ -89,8 +101,8 @@ async function checkRoleExist(role_name) {
 }
 
 async function updateRole(data) {
-  const query = "UPDATE roles SET role_name = ? WHERE id = ?";
-  const values = [data.role_name, data.id];
+  const query = "UPDATE roles SET role_name = ?, color = ? WHERE id = ?";
+  const values = [data.role_name, data.color, data.id];
   try {
     const [result] = await pool.execute(query, values);
     console.log("Role updated successfully", result);
@@ -124,4 +136,5 @@ module.exports = {
   checkRoleExist,
   findDefaultRoleId,
   checkRoleExistById,
+  checkRoleExistExceptItsOwn,
 };

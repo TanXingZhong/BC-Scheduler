@@ -15,7 +15,7 @@ export const useGetRoles = () => {
     const json = await response.json();
     if (!response.ok) {
       setIsLoading(false);
-      setError(json.message || "Something went wrong");
+      setError(json.message);
       return;
     }
     if (response.ok) {

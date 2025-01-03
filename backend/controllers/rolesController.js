@@ -18,7 +18,7 @@ const getAllRoles = async (req, res) => {
 // @route POST /roles
 // @access Private
 const createNewRole = async (req, res) => {
-  const { role_name } = req.body;
+  const { role_name, color } = req.body;
 
   // Confirm data
   if (!role_name) {
@@ -38,7 +38,7 @@ const createNewRole = async (req, res) => {
   }
 
   try {
-    await db_roles.addRole(role_name);
+    await db_roles.addRole(role_name, color);
     return res.status(201).json({ message: `New role ${role_name} created!` });
   } catch (err) {
     console.error(err);
@@ -52,7 +52,7 @@ const createNewRole = async (req, res) => {
 const updateRole = async (req, res) => {
   const data = req.body;
   // Confirm data
-  if (!data.id || !data.role_name) {
+  if (!data.id || !data.role_name || !data.color) {
     return res.status(400).json({ message: "Missing Informations" });
   }
 
@@ -62,7 +62,10 @@ const updateRole = async (req, res) => {
     if (!exist) {
       return res.status(404).json({ message: "Role not found." });
     }
-    const duplicate = await db_roles.checkRoleExist(data.role_name);
+    const duplicate = await db_roles.checkRoleExistExceptItsOwn(
+      data.role_name,
+      data.id
+    );
     if (duplicate) {
       return res.status(409).json({ message: "Role name already taken." });
     }

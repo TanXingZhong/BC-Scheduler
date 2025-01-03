@@ -31,6 +31,7 @@ function EditRole({ open, handleClose, handleContinue, roleInfo }) {
 
   const [errorState, setErrorState] = useState({
     role_name: { error: false, message: "" },
+    color: { error: false, message: "" },
   });
 
   const setError = (field, error, message) => {
@@ -63,6 +64,14 @@ function EditRole({ open, handleClose, handleContinue, roleInfo }) {
       error: errorState.role_name.error,
       helperText: errorState.role_name.message,
     },
+    {
+      id: "color",
+      label: "Color",
+      type: "color",
+      defaultValue: formData.color,
+      error: errorState.color.error,
+      helperText: errorState.color.message,
+    },
   ];
 
   return (
@@ -87,43 +96,22 @@ function EditRole({ open, handleClose, handleContinue, roleInfo }) {
         {formFieldList.map((field) => (
           <FormControl key={field.id} fullWidth sx={{ marginBottom: 2 }}>
             <FormLabel htmlFor={field.id}>{field.label}</FormLabel>
-            {field.type == "select" ? (
-              <TextField
-                required
-                id={field.id}
-                name={field.id}
-                select
-                defaultValue={field.defaultValue}
-                value={field.value}
-                onChange={(e) =>
-                  setFormData({ ...formData, [field.id]: e.target.value })
-                }
-                fullWidth
-              >
-                {field.options.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </TextField>
-            ) : (
-              <TextField
-                autoComplete={field.id}
-                name={field.id}
-                id={field.id}
-                fullWidth
-                variant="outlined"
-                defaultValue={field.defaultValue}
-                type={field.type}
-                placeholder={field.placeholder}
-                onChange={(e) =>
-                  setFormData({ ...formData, [field.id]: e.target.value })
-                }
-                error={field.error}
-                helperText={field.helperText}
-                color={field.error ? "error" : "primary"}
-              />
-            )}
+            <TextField
+              autoComplete={field.id}
+              name={field.id}
+              id={field.id}
+              fullWidth
+              type={field.type ? field.type : "text"}
+              variant="outlined"
+              defaultValue={field.defaultValue}
+              placeholder={field.placeholder}
+              onChange={(e) =>
+                setFormData({ ...formData, [field.id]: e.target.value })
+              }
+              error={field.error}
+              helperText={field.helperText}
+              color={field.error ? "error" : "primary"}
+            />
           </FormControl>
         ))}
       </DialogContent>

@@ -147,19 +147,15 @@ export default function AdminCalendar() {
   };
 
   const onLoad = async (start) => {
-    try {
-      const [scheduleData, namesData] = await Promise.all([
-        fetchSchedule(start),
-        fetchNames(),
-      ]);
-      const [LeaveData] = await Promise.all([monthLeaveOffs(start)]);
-      setSchedule(scheduleData.rows);
-      setScheduleAndUsers(scheduleData.rowsplus);
-      setNames(namesData);
-      setmonthLeaveOffsData(LeaveData);
-    } catch (err) {
-      console.error("Error loading schedules: ", err);
-    }
+    const [scheduleData, namesData] = await Promise.all([
+      fetchSchedule(start),
+      fetchNames(),
+    ]);
+    const [LeaveData] = await Promise.all([monthLeaveOffs(start)]);
+    setSchedule(scheduleData.rows);
+    setScheduleAndUsers(scheduleData.rowsplus);
+    setNames(namesData);
+    setmonthLeaveOffsData(LeaveData);
   };
 
   useEffect(() => {
@@ -171,6 +167,7 @@ export default function AdminCalendar() {
           id: slot.id,
           employee: slot.name,
           role: slot.role_name,
+          color: slot.color,
         }));
 
       // Calculate the number of empty slots based on vacancie
@@ -179,7 +176,8 @@ export default function AdminCalendar() {
         .map(() => ({
           id: "",
           employee: "EMPTY",
-          role: "EMPTY",
+          role: "NONE",
+          color: "#FF5733",
         }));
 
       // Combine filled and empty slots
@@ -252,97 +250,73 @@ export default function AdminCalendar() {
 
   useEffect(() => {
     const uniqueValuesByColumn = {};
+
     // if filters is empty, set filteredData to transformedDataArray
     if (Object.keys(filters).length === 0) {
       setFilteredData(transformedDataArray);
       return;
     } else {
+      // Generate unique values for each filter column (employee, role, etc.)
       for (const column of Object.keys(filters)) {
         if (column === "employee") {
           uniqueValuesByColumn[column] = transformedDataArray
+            .filter((event) => event.type === "work")
             .flatMap((row) => row["array"])
             .reduce((unique, current) => {
-              // Check if the current object is already in the unique array based on custom comparison
               if (!unique.some((item) => item.id === current.id)) {
-                unique.push(current); // Add it if not already included
+                unique.push(current);
               }
               return unique;
             }, []);
         } else if (column === "role") {
           uniqueValuesByColumn[column] = transformedDataArray
+            .filter((event) => event.type === "work")
             .flatMap((row) => row["array"])
             .reduce((unique, current) => {
-              // Check if the current object is already in the unique array based on custom comparison
               if (!unique.some((item) => item.role === current.role)) {
-                unique.push(current); // Add it if not already included
+                unique.push(current);
               }
               return unique;
             }, []);
         } else {
           uniqueValuesByColumn[column] = [
-            ...new Set(transformedDataArray.flatMap((row) => row[column])),
+            ...new Set(
+              transformedDataArray
+                .filter((event) => event.type === "work")
+                .flatMap((row) => row[column])
+            ),
           ];
         }
       }
       setUniqueValues(uniqueValuesByColumn);
     }
 
-    // only filters outletname and start_time, if the the chosen employees are in the event, it will be kept
-    const fisrtFilter = transformedDataArray.filter((event) => {
-      return Object.keys(filters).every((column) => {
-        // If the filter applies to an array column (like 'employee'), we need to check the array of objects
-        if (column === "employee") {
+    // Apply filters
+    const filteredData = transformedDataArray
+      .filter((event) => event.type === "work")
+      .filter((event) => {
+        return Object.keys(filters).every((column) => {
+          if (column === "employee") {
+            return (
+              !filters[column].length ||
+              event.array.some((slot) =>
+                filters["employee"].includes(slot.employee)
+              )
+            );
+          }
+          if (column === "role") {
+            return (
+              !filters[column].length ||
+              event.array.some((slot) => filters["role"].includes(slot.role))
+            );
+          }
           return (
-            !filters[column].length ||
-            event.array.some((slot) =>
-              filters["employee"].includes(slot.employee)
-            )
+            !filters[column].length || filters[column].includes(event[column])
           );
-        }
-        if (column === "role") {
-          return (
-            !filters[column].length ||
-            event.array.some((slot) => filters["role"].includes(slot.role))
-          );
-        }
-        // Otherwise, apply the filter on the main column
-        return (
-          !filters[column].length || filters[column].includes(event[column])
-        );
+        });
       });
-    });
 
-    // filter employee
-    if (filters["employee"] === undefined) {
-      setFilteredData([]);
-      return;
-    }
-
-    const secondFilter = fisrtFilter.map((event) => {
-      const filteredArray = event.array.filter((slot) =>
-        filters["employee"].includes(slot.employee)
-      );
-      return {
-        ...event,
-        array: filteredArray,
-      };
-    });
-
-    // filter role
-    if (filters["role"] === undefined) {
-      setFilteredData([]);
-      return;
-    }
-    const thirdFilter = secondFilter.map((event) => {
-      const filteredArray = event.array.filter((slot) =>
-        filters["role"].includes(slot.role)
-      );
-      return {
-        ...event,
-        array: filteredArray,
-      };
-    });
-    setFilteredData(thirdFilter);
+    setFilteredData(filteredData);
   }, [filters]);
 
   // Handle filter column selection (toggle filters)
@@ -375,8 +349,10 @@ export default function AdminCalendar() {
   // Clear all filters
   const handleClearFilters = () => {
     setFilters({});
+    setUniqueValues({});
     setShowFilterOptions(false);
     setCurrentFilterColumn(null);
+    setFilteredData(transformedDataArray);
   };
 
   const categories = [
@@ -468,10 +444,10 @@ export default function AdminCalendar() {
                 marginBottom: "1px",
                 alignItems: "center",
                 justifyContent: "center",
-                backgroundColor: x.employee == "EMPTY" ? "red" : "green",
+                backgroundColor: x.color,
                 transition: "all 0.3s ease",
                 "&:hover": {
-                  backgroundColor: "#f0f0f0",
+                  backgroundColor: "grey",
                   transform: "scale(1.05)",
                   boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)",
                 },
@@ -563,7 +539,7 @@ export default function AdminCalendar() {
             variant="outlined"
             sx={{ marginLeft: "10px" }} // Adds space between buttons
           >
-            Publish
+            Create Shifts
           </Button>
         </Grid2>
       </Grid2>

@@ -356,6 +356,7 @@ const Users = () => {
   // Working Report Functions and Constants
   const reportColumns = [
     { field: "name", headerName: "Name", editable: false, width: 150 },
+    { field: "outlet_name", headerName: "Outlet", editable: false, width: 150 },
     { field: "role", headerName: "Role", editable: false, width: 100 },
     { field: "email", headerName: "Email", editable: false, width: 150 },
     {
@@ -384,15 +385,15 @@ const Users = () => {
     },
     {
       field: "total_hours",
-      headerName: "Hours",
+      headerName: "Total Hours",
       editable: false,
-      width: 100,
+      width: 150,
     },
     {
       field: "total_minutes",
-      headerName: "Minutes",
+      headerName: "Total Minutes",
       editable: false,
-      width: 100,
+      width: 150,
     },
   ];
 
@@ -659,7 +660,7 @@ const Users = () => {
         getRowClassName={(params) =>
           params.indexRelativeToCurrentPage % 2 === 0 ? "even" : "odd"
         }
-        getRowId={(row) => row.user_id}
+        getRowId={(row) => `${row.user_id}-${row.outlet_name}`}
         pageSize={5}
         rowsPerPageOptions={[5]}
         sx={{

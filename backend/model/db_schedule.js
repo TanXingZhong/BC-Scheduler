@@ -75,7 +75,7 @@ async function getAllSchedules(start_date) {
 
 async function getAllSchedulesAndUsers(start_date) {
   const query =
-    "SELECT s.schedule_id, s.vacancy, s.start_time, s.end_time, s.outlet_name, u.id, u.name, r.role_name FROM schedule s, confirmed_slots c, users u, roles r WHERE s.schedule_id = c.schedule_id AND u.id = c.user_id AND u.role_id = r.id AND YEAR(start_time) = YEAR(?) AND MONTH(start_time) = MONTH(?)";
+    "SELECT s.schedule_id, s.vacancy, s.start_time, s.end_time, s.outlet_name, u.id, u.name, r.role_name, r.color FROM schedule s, confirmed_slots c, users u, roles r WHERE s.schedule_id = c.schedule_id AND u.id = c.user_id AND u.role_id = r.id AND YEAR(start_time) = YEAR(?) AND MONTH(start_time) = MONTH(?)";
   try {
     const [rows, fields] = await pool.execute(query, [start_date, start_date]);
     return rows;

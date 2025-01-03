@@ -58,6 +58,7 @@ export default function MyCalendar() {
           id: slot.id,
           employee: slot.name,
           role: slot.role_name,
+          color: slot.color,
         }));
 
       // Calculate the number of empty slots based on vacancie
@@ -66,7 +67,8 @@ export default function MyCalendar() {
         .map(() => ({
           id: "",
           employee: "EMPTY",
-          role: "EMPTY",
+          role: "NONE",
+          color: "#FF5733",
         }));
 
       // Combine filled and empty slots
@@ -137,6 +139,7 @@ export default function MyCalendar() {
       for (const column of Object.keys(filters)) {
         if (column === "employee") {
           uniqueValuesByColumn[column] = transformedDataArray
+            .filter((event) => event.type === "work")
             .flatMap((row) => row["array"])
             .reduce((unique, current) => {
               // Check if the current object is already in the unique array based on custom comparison
@@ -147,6 +150,7 @@ export default function MyCalendar() {
             }, []);
         } else if (column === "role") {
           uniqueValuesByColumn[column] = transformedDataArray
+            .filter((event) => event.type === "work")
             .flatMap((row) => row["array"])
             .reduce((unique, current) => {
               // Check if the current object is already in the unique array based on custom comparison
@@ -157,7 +161,11 @@ export default function MyCalendar() {
             }, []);
         } else {
           uniqueValuesByColumn[column] = [
-            ...new Set(transformedDataArray.flatMap((row) => row[column])),
+            ...new Set(
+              transformedDataArray
+                .filter((event) => event.type === "work")
+                .flatMap((row) => row[column])
+            ),
           ];
         }
       }
@@ -165,29 +173,31 @@ export default function MyCalendar() {
     }
 
     // only filters outletname and start_time, if the the chosen employees are in the event, it will be kept
-    const fisrtFilter = transformedDataArray.filter((event) => {
-      return Object.keys(filters).every((column) => {
-        // If the filter applies to an array column (like 'employee'), we need to check the array of objects
-        if (column === "employee") {
+    const fisrtFilter = transformedDataArray
+      .filter((event) => event.type === "work")
+      .filter((event) => {
+        return Object.keys(filters).every((column) => {
+          // If the filter applies to an array column (like 'employee'), we need to check the array of objects
+          if (column === "employee") {
+            return (
+              !filters[column].length ||
+              event.array.some((slot) =>
+                filters["employee"].includes(slot.employee)
+              )
+            );
+          }
+          if (column === "role") {
+            return (
+              !filters[column].length ||
+              event.array.some((slot) => filters["role"].includes(slot.role))
+            );
+          }
+          // Otherwise, apply the filter on the main column
           return (
-            !filters[column].length ||
-            event.array.some((slot) =>
-              filters["employee"].includes(slot.employee)
-            )
+            !filters[column].length || filters[column].includes(event[column])
           );
-        }
-        if (column === "role") {
-          return (
-            !filters[column].length ||
-            event.array.some((slot) => filters["role"].includes(slot.role))
-          );
-        }
-        // Otherwise, apply the filter on the main column
-        return (
-          !filters[column].length || filters[column].includes(event[column])
-        );
+        });
       });
-    });
 
     // filter employee
     if (filters["employee"] === undefined) {
@@ -220,12 +230,8 @@ export default function MyCalendar() {
       };
     });
 
-    console.log(thirdFilter);
-    console.log(filters);
-
     setFilteredData(thirdFilter);
   }, [filters]);
-
   // Handle filter column selection (toggle filters)
   const handleFilterColumnClick = (column) => {
     setShowFilterOptions(true);
@@ -252,9 +258,9 @@ export default function MyCalendar() {
     });
   };
 
-  // Clear all filters
   const handleClearFilters = () => {
     setFilters({});
+    setFilteredData(transformedDataArray);
     setShowFilterOptions(false);
     setCurrentFilterColumn(null);
   };
@@ -311,10 +317,10 @@ export default function MyCalendar() {
                 cursor: "pointer",
                 alignItems: "center",
                 justifyContent: "center",
-                backgroundColor: x.employee == "EMPTY" ? "red" : "green",
+                backgroundColor: x.color,
                 transition: "all 0.3s ease",
                 "&:hover": {
-                  backgroundColor: "#f0f0f0",
+                  backgroundColor: "grey",
                   transform: "scale(1.05)",
                   boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)",
                 },
@@ -524,7 +530,7 @@ export default function MyCalendar() {
 
       <Calendar
         localizer={localizer}
-        events={transformedDataArray}
+        events={filteredDataArray}
         defaultView="month"
         style={{ height: "100%" }}
         views={["agenda", "month"]}

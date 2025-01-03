@@ -1,4 +1,4 @@
-import { act, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import {
   CircularProgress,
@@ -36,10 +36,36 @@ const Roles = () => {
     success: successDeleteRole,
   } = useDeleteRole();
   const columns = [
-    { field: "role_name", headerName: "ROLES", editable: false, width: 250 },
+    {
+      field: "color",
+      headerName: "Color",
+      width: 70,
+      renderCell: (params) => (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "left",
+            width: "100%",
+            height: "100%",
+          }}
+        >
+          <Box
+            sx={{
+              backgroundColor: params.value,
+              width: "20px",
+              height: "20px",
+              borderRadius: "50%",
+              border: "1px solid #ccc",
+            }}
+          />
+        </Box>
+      ),
+    },
+    { field: "role_name", headerName: "Roles", editable: false, width: 250 },
     {
       field: "user_count",
-      headerName: "MEMBERS",
+      headerName: "Members",
       editable: false,
       width: 150,
       renderCell: (params) => (
@@ -77,7 +103,7 @@ const Roles = () => {
     },
     {
       field: "actions",
-      headerName: "ACTIONS",
+      headerName: "Actions",
       width: 100,
       headerAlign: "center",
       align: "center",
@@ -201,7 +227,7 @@ const Roles = () => {
   const handleContinueRoleDelete = async (x) => {
     await deleteRole(x);
     setOpenRoleDelete(false);
-    setUpdateSB(true);
+    setOpenSB(true);
     await onLoad();
   };
 
@@ -312,6 +338,14 @@ const Roles = () => {
       </Box>
 
       <Snackbar
+        open={updateSB}
+        autoHideDuration={6000}
+        onClose={handleCloseUpdateSnackbar}
+        message={successEditRole ? successEditRole : errorEditRole}
+        action={actionUpdate}
+      />
+
+      <Snackbar
         open={openSB}
         autoHideDuration={6000}
         onClose={handleCloseSB}
@@ -319,13 +353,6 @@ const Roles = () => {
         action={action}
       />
 
-      <Snackbar
-        open={updateSB}
-        autoHideDuration={6000}
-        onClose={handleCloseUpdateSnackbar}
-        message={successEditRole ? successEditRole : errorEditRole}
-        action={actionUpdate}
-      />
       <DataGrid
         rows={data}
         columns={columns}

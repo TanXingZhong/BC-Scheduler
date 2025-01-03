@@ -7,7 +7,7 @@ export const useCreateRole = () => {
   const [success, setSuccess] = useState(null);
   const { user } = useAuthContext();
 
-  const createRole = async (role_name) => {
+  const createRole = async (role_name, color) => {
     setIsLoading(true);
     setError(null);
     setSuccess(null);
@@ -18,7 +18,7 @@ export const useCreateRole = () => {
         "Content-Type": "application/json",
         Authorization: `Bearer ${user.accessToken}`,
       },
-      body: JSON.stringify({ role_name }),
+      body: JSON.stringify({ role_name, color }),
     });
     const json = await response.json();
     if (!response.ok) {

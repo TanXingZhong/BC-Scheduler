@@ -19,6 +19,7 @@ import CloseIcon from "@mui/icons-material/Close";
 function CreateRole({ open, handleClose, handleRefresh }) {
   const [errorState, setErrorState] = useState({
     role_name: { error: false, message: "" },
+    color: { error: false, message: "" },
   });
   const { createRole, isLoading, error, success } = useCreateRole();
   const [openCreateSB, setOpenCreateSB] = useState(false);
@@ -58,6 +59,13 @@ function CreateRole({ open, handleClose, handleRefresh }) {
     } else {
       setError("role_name", false, "");
     }
+
+    if (!color.value || color.value.trim().length < 1) {
+      setError("color", true, "Color is required.");
+      isValid = false;
+    } else {
+      setError("color", false, "");
+    }
     return isValid;
   };
 
@@ -68,7 +76,8 @@ function CreateRole({ open, handleClose, handleRefresh }) {
       return;
     }
     const role_name = document.getElementById("role_name").value.trim();
-    await createRole(role_name);
+    const color = document.getElementById("color").value.trim();
+    await createRole(role_name, color);
     setOpenCreateSB(true);
     handleRefresh();
   };
@@ -80,6 +89,13 @@ function CreateRole({ open, handleClose, handleRefresh }) {
       placeholder: "Jon Snow",
       error: errorState.role_name.error,
       helperText: errorState.role_name.message,
+    },
+    {
+      id: "color",
+      label: "Color",
+      type: "color",
+      error: errorState.color.error,
+      helperText: errorState.color.message,
     },
   ];
 
@@ -108,6 +124,7 @@ function CreateRole({ open, handleClose, handleRefresh }) {
               name={field.id}
               id={field.id}
               fullWidth
+              type={field.type ? field.type : "text"}
               variant="outlined"
               placeholder={field.placeholder}
               error={field.error}

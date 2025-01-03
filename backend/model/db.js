@@ -282,14 +282,16 @@ async function deleteUser(email) {
 
 async function getWorkinghours(start_date, end_date) {
   try {
-    const query = `SELECT u.id AS user_id, u.name, u.email, r.role_name AS role, u.phonenumber, u.bankName, u.bankAccountNo, 
-    COUNT(CASE WHEN s.start_time >= ? AND s.end_time <= ? THEN cs.schedule_id END) AS total_shifts,
-    COALESCE(SUM(CASE WHEN s.start_time >= ? AND s.end_time <= ? THEN ABS(TIMESTAMPDIFF(MINUTE, s.start_time, s.end_time)) END), 0) AS total_minutes,
-    COALESCE(SUM(CASE WHEN s.start_time >= ? AND s.end_time <= ? THEN ABS(TIMESTAMPDIFF(MINUTE, s.start_time, s.end_time)) END) DIV 60, 0) AS total_hours,
-    COALESCE(SUM(CASE WHEN s.start_time >= ? AND s.end_time <= ? THEN ABS(TIMESTAMPDIFF(MINUTE, s.start_time, s.end_time)) END) % 60, 0) AS total_minutes
-    FROM users u LEFT JOIN roles r ON u.role_id = r.id LEFT JOIN confirmed_slots cs ON u.id = cs.user_id LEFT JOIN schedule s ON cs.schedule_id = s.schedule_id
-    GROUP BY u.id, u.name, u.email, r.role_name, u.phonenumber, u.bankName, u.bankAccountNo ;`;
+    const query = `SELECT u.id AS user_id, u.name, s.outlet_name, u.email, r.role_name AS role, u.phonenumber, u.bankName, u.bankAccountNo, COUNT(CASE WHEN s.start_time >= ? AND s.end_time <= ? THEN cs.schedule_id END) AS total_shifts,
+    COALESCE(SUM(CASE WHEN s.start_time >= ? AND s.end_time <= ? THEN ABS(TIMESTAMPDIFF(MINUTE, s.start_time, IF(s.end_time < s.start_time, DATE_ADD(s.end_time, INTERVAL 1 DAY), s.end_time))) END), 0) AS total_minutes,
+    COALESCE(SUM(CASE WHEN s.start_time >= ? AND s.end_time <= ? THEN ABS(TIMESTAMPDIFF(MINUTE, s.start_time, IF(s.end_time < s.start_time, DATE_ADD(s.end_time, INTERVAL 1 DAY), s.end_time))) END) DIV 60, 0) AS total_hours,
+    COALESCE(SUM(CASE WHEN s.start_time >= ? AND s.end_time <= ? THEN ABS(TIMESTAMPDIFF(MINUTE, s.start_time, IF(s.end_time < s.start_time, DATE_ADD(s.end_time, INTERVAL 1 DAY), s.end_time))) END) % 60, 0) AS total_minutes 
+    FROM users u LEFT JOIN roles r ON u.role_id = r.id LEFT JOIN confirmed_slots cs ON u.id = cs.user_id LEFT JOIN schedule s ON cs.schedule_id = s.schedule_id WHERE s.start_time >= ? AND s.end_time <= ? 
+    GROUP BY u.id, u.name, u.email, r.role_name, u.phonenumber, u.bankName, u.bankAccountNo, s.outlet_name HAVING total_minutes > 0 ORDER BY u.name, s.outlet_name;
+`;
     const [rows, field] = await pool.execute(query, [
+      start_date,
+      end_date,
       start_date,
       end_date,
       start_date,
