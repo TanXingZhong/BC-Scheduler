@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { useAuthContext } from "../useAuthContext";
 
 export const useClearUserApplication = () => {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(null);
   const [success, setSuccess] = useState(null);
+  const { user } = useAuthContext();
 
   const clearApplications = async (application_id, action) => {
     setIsLoading(true);
@@ -14,6 +16,7 @@ export const useClearUserApplication = () => {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${user.accessToken}`,
       },
       body: JSON.stringify({
         application_id,

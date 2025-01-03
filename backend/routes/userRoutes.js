@@ -4,9 +4,11 @@ const usersController = require("../controllers/usersController");
 const leaveController = require("../controllers/leaveController");
 const verifyJWT = require("../middleware/verifyJWT");
 
+router.use(verifyJWT.verifyJWT);
 router.route("/leaveoffapply").post(leaveController.applyLeaveOffs);
 router.route("/getMonthLeaveOffs").post(leaveController.getMonthLeaveOffs);
 router.route("/appliedleaves").post(leaveController.getLeavesByUserId);
+router.route("/getleavesbydate").post(leaveController.getLeavesByDate);
 
 router
   .route("/clearleaveapplication")

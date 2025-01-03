@@ -47,5 +47,5 @@ export const useCreateAdd = () => {
     }
   };
 
-  return { createAdd, isLoading, error, success };
+  return { createAdd, isLoading, error, success, setError, setSuccess };
 };

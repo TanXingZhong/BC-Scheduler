@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { useAuthContext } from "../useAuthContext";
 
 export const useGetUserApplications = () => {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(null);
+  const { user } = useAuthContext();
 
   const userApplications = async (user_id) => {
     setIsLoading(true);
@@ -12,6 +14,7 @@ export const useGetUserApplications = () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${user.accessToken}`,
       },
       body: JSON.stringify({
         user_id,

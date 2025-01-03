@@ -39,5 +39,5 @@ export const useCreateSchedule = () => {
     }
   };
 
-  return { createSchedule, isLoading, error, success };
+  return { createSchedule, isLoading, error, success, setError, setSuccess };
 };

@@ -5,10 +5,8 @@ const db = require("../model/db");
 const getAllPendingApplication = async (req, res) => {
   try {
     const rows = await db_shiftApplication.getAllApplications();
-    console.log(rows);
     return res.status(200).json({ rows: rows });
   } catch (err) {
-    console.error(err);
     return res
       .status(500)
       .json({ message: "Error retriving pending applications" });
@@ -21,7 +19,6 @@ const getUserPendingApplication = async (req, res) => {
     const rows = await db_shiftApplication.getAllApplicationByUserId(user_id);
     return res.status(200).json({ rows: rows });
   } catch (err) {
-    console.error(err);
     return res
       .status(500)
       .json({ message: "Error retriving user pending applications" });
@@ -63,7 +60,6 @@ const applyShift = async (req, res) => {
         .json({ message: "No available slots for this shift." });
     }
   } catch (err) {
-    console.error(err);
     return res.status(500).json({ message: "Error applying for the shift." });
   }
 };
@@ -88,7 +84,6 @@ const approve_reject = async (req, res) => {
       });
     }
   } catch (err) {
-    console.error(err);
     return res
       .status(500)
       .json({ message: "Error approving or rejecting shift application" });
@@ -114,7 +109,6 @@ const deleteApplication = async (req, res) => {
     await db_shiftApplication.deleteApplication(application_id);
     return res.status(200).json({ message: "Application sucessfully cleared" });
   } catch (err) {
-    console.error(err);
     return res.status(500).json({ message: "Error deleting application" });
   }
 };

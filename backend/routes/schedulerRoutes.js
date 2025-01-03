@@ -4,8 +4,20 @@ const schedulerController = require("../controllers/schedulerController");
 const shiftApplicationController = require("../controllers/shiftApplicationController");
 const verifyJWT = require("../middleware/verifyJWT");
 
-// router.use(verifyJWT.verifyAdmin);
+router.use(verifyJWT.verifyJWT);
+router.route("/bydate").post(schedulerController.getAllSchedules);
 
+router
+  .route("/application")
+  .post(shiftApplicationController.applyShift)
+  .delete(shiftApplicationController.deleteApplication);
+
+router
+  .route("/user")
+  .post(shiftApplicationController.getUserPendingApplication)
+  .delete(shiftApplicationController.deleteApplication);
+
+router.use(verifyJWT.verifyAdmin);
 router
   .route("/")
   .post(schedulerController.createSchedules)
@@ -19,18 +31,10 @@ router
   .post(schedulerController.changeUserFromSchedule);
 
 router.route("/createAdd").post(schedulerController.createSchedulesAddUser);
-router.route("/bydate").post(schedulerController.getAllSchedules);
-
-router
-  .route("/user")
-  .post(shiftApplicationController.getUserPendingApplication)
-  .delete(shiftApplicationController.deleteApplication);
 
 router
   .route("/application")
   .get(shiftApplicationController.getAllPendingApplication)
-  .post(shiftApplicationController.applyShift)
-  .put(shiftApplicationController.approve_reject)
-  .delete(shiftApplicationController.deleteApplication);
+  .put(shiftApplicationController.approve_reject);
 
 module.exports = router;

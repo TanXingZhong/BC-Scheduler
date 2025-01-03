@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { useAuthContext } from "./useAuthContext";
 
 export const useGetMonthLeaveOffs = () => {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(null);
+  const { user } = useAuthContext();
 
   const monthLeaveOffs = async (startDate) => {
     setIsLoading(true);
@@ -14,6 +16,7 @@ export const useGetMonthLeaveOffs = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${user.accessToken}`,
         },
         body: JSON.stringify({
           startDate,

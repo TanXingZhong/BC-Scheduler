@@ -36,6 +36,7 @@ function EditSchedule({ open, handleClose, scheduleInfo, refresh }) {
 
     setOpenEditSB(false);
   };
+
   const actionEdit = (
     <IconButton
       size="small"
@@ -63,9 +64,6 @@ function EditSchedule({ open, handleClose, scheduleInfo, refresh }) {
 
   const validateInputs = () => {
     let isValid = true;
-    console.log(parseInt(formData.vacancy));
-    console.log(!formData.vacancy);
-    console.log(formData);
     if (!formData.outlet_name) {
       setError("outlet_name", true, "Outlet is required.");
       isValid = false;
@@ -93,11 +91,15 @@ function EditSchedule({ open, handleClose, scheduleInfo, refresh }) {
     }
 
     if (parseInt(formData.vacancy) < 0) {
-      console.log("here3");
       setError("vacancy", true, "Vacancy should be more then 1.");
       isValid = false;
     } else {
-      setError("vacancy", false, "");
+      if (parseInt(formData.vacancy) >= 6) {
+        setError("vacancy", true, "Vacancy should not be more then 5.");
+        isValid = false;
+      } else {
+        setError("vacancy", false, "");
+      }
     }
 
     return isValid;
@@ -131,8 +133,8 @@ function EditSchedule({ open, handleClose, scheduleInfo, refresh }) {
       id: "start_time",
       label: "Shift Start",
       type: "time",
-      value: forumToSGTime(scheduleInfo.start),
-      defaultValue: forumToSGTime(scheduleInfo.start),
+      value: scheduleInfo.start_time,
+      defaultValue: scheduleInfo.start_time,
       error: errorState.start_time.error,
       helperText: errorState.start_time.message,
     },
@@ -160,8 +162,8 @@ function EditSchedule({ open, handleClose, scheduleInfo, refresh }) {
       id: "end_time",
       label: "Shift Ends",
       type: "time",
-      value: forumToSGTime(scheduleInfo.end),
-      defaultValue: forumToSGTime(scheduleInfo.end),
+      value: scheduleInfo.end_time,
+      defaultValue: scheduleInfo.end_time,
       error: errorState.end_time.error,
       helperText: errorState.end_time.message,
     },

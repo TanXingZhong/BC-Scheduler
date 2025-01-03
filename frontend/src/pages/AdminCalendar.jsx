@@ -25,6 +25,8 @@ import { useDeleteSchedule } from "../hooks/Calendar/useDeleteSchedule";
 import { useChangeUserFromSchedule } from "../hooks/Calendar/useChangeUserFromSchedule";
 import { useRemoveUserFromSchedule } from "../hooks/Calendar/useRemoveUserFromSchedule";
 import CloseIcon from "@mui/icons-material/Close";
+import { useCreateAdd } from "../hooks/Calendar/useCreateAdd";
+import { useCreateSchedule } from "../hooks/Calendar/useCreateSchedule";
 
 export default function AdminCalendar() {
   const localizer = momentLocalizer(moment);
@@ -62,9 +64,23 @@ export default function AdminCalendar() {
   const [openChangeSB, setOpenChangeSB] = useState(false);
   const [openRemoveSB, setOpenRemoveSB] = useState(false);
   const [openPublishSB, setOpenPublishSB] = useState(false);
-  const [openPublishSBError, setOpenPublishSBError] = useState(false);
-  const [changeMSG, setChangeMSG] = useState("");
-  const [errorMSG, setErrorMSG] = useState("");
+  const [openPubSBCreAddError, setOpenPubSBCreAddError] = useState(false);
+  const [openPubSBCreAddSuc, setOpenPubSBCreAddSuc] = useState(false);
+  const {
+    createSchedule,
+    error: errorCreate,
+    success: successCreate,
+    setError,
+    setSuccess,
+  } = useCreateSchedule();
+  const {
+    createAdd,
+    error: createAddError,
+    success: createAddSuccess,
+    setError: setCreateAddError,
+    setSuccess: setCreateAddSuccess,
+  } = useCreateAdd();
+
   const handleChangeMSG = (msg) => {
     setChangeMSG(msg);
   };
@@ -72,35 +88,36 @@ export default function AdminCalendar() {
     if (reason === "clickaway") {
       return;
     }
-
     setOpenDeleteSB(false);
   };
   const handleCloseChangeSB = (event, reason) => {
     if (reason === "clickaway") {
       return;
     }
-
     setOpenChangeSB(false);
   };
   const handleClosePublishSB = (event, reason) => {
     if (reason === "clickaway") {
       return;
     }
-
     setOpenPublishSB(false);
   };
-  const handleClosePublishSBError = (event, reason) => {
+  const handleClosePubSBCreAddError = (event, reason) => {
     if (reason === "clickaway") {
       return;
     }
-
-    setOpenPublishSBError(false);
+    setOpenPubSBCreAddError(false);
+  };
+  const handleClosePubSBCreAddSuc = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setOpenPubSBCreAddSuc(false);
   };
   const handleCloseRemoveSB = (event, reason) => {
     if (reason === "clickaway") {
       return;
     }
-
     setOpenRemoveSB(false);
   };
 
@@ -135,17 +152,6 @@ export default function AdminCalendar() {
     </IconButton>
   );
 
-  const handleSetPublishSB = (x, y) => {
-    if (x) {
-      setOpenPublishSB(true);
-      setChangeMSG(x);
-    }
-    if (y) {
-      setOpenPublishSBError(true);
-      setErrorMSG(y);
-    }
-  };
-
   const onLoad = async (start) => {
     const [scheduleData, namesData] = await Promise.all([
       fetchSchedule(start),
@@ -159,45 +165,48 @@ export default function AdminCalendar() {
   };
 
   useEffect(() => {
-    const data = schedule.map((data) => {
-      // Find all users scheduled for this slot
-      const filledSlots = scheduleAndUsers
-        .filter((x) => x.schedule_id === data.schedule_id)
-        .map((slot) => ({
-          id: slot.id,
-          employee: slot.name,
-          role: slot.role_name,
-          color: slot.color,
-        }));
+    var data = [];
+    if (schedule) {
+      data = schedule.map((data) => {
+        // Find all users scheduled for this slot
+        const filledSlots = scheduleAndUsers
+          .filter((x) => x.schedule_id === data.schedule_id)
+          .map((slot) => ({
+            id: slot.id,
+            employee: slot.name,
+            role: slot.role_name,
+            color: slot.color,
+          }));
 
-      // Calculate the number of empty slots based on vacancie
-      const emptySlots = Array(data.vacancy)
-        .fill()
-        .map(() => ({
-          id: "",
-          employee: "EMPTY",
-          role: "NONE",
-          color: "#FF5733",
-        }));
+        // Calculate the number of empty slots based on vacancie
+        const emptySlots = Array(data.vacancy)
+          .fill()
+          .map(() => ({
+            id: "",
+            employee: "EMPTY",
+            role: "NONE",
+            color: "#FF5733",
+          }));
 
-      // Combine filled and empty slots
-      const combinedSlots = [...filledSlots, ...emptySlots];
+        // Combine filled and empty slots
+        const combinedSlots = [...filledSlots, ...emptySlots];
 
-      return {
-        schedule_id: data.schedule_id,
-        title: `${data.outlet_name}, ${toSGTimeShort(
-          data.start_time
-        )} - ${toSGTimeShort(data.end_time)}`,
-        outlet_name: data.outlet_name,
-        start: new Date(data.start_time),
-        end: new Date(data.end_time),
-        start_time: toSGTimeShort(data.start_time),
-        end_time: toSGTimeShort(data.end_time),
-        vacancy: data.vacancy,
-        array: combinedSlots,
-        type: "work",
-      };
-    });
+        return {
+          schedule_id: data.schedule_id,
+          title: `${data.outlet_name}, ${toSGTimeShort(
+            data.start_time
+          )} - ${toSGTimeShort(data.end_time)}`,
+          outlet_name: data.outlet_name,
+          start: moment(new Date(data.start_time).toDateString()),
+          end: moment(new Date(data.end_time).toDateString()),
+          start_time: toSGTimeShort(data.start_time),
+          end_time: toSGTimeShort(data.end_time),
+          vacancy: data.vacancy,
+          array: combinedSlots,
+          type: "work",
+        };
+      });
+    }
 
     var temp = [];
 
@@ -242,6 +251,98 @@ export default function AdminCalendar() {
   const handleClosePublish = () => {
     setOpenPublish(false);
   };
+
+  const handleContinuePublish = async (
+    outletName,
+    formattedDate,
+    startTime,
+    endTime,
+    vacancy,
+    validDays,
+    startDateObj,
+    endDateObj,
+    diffInDays,
+    interval,
+    employee
+  ) => {
+    const schedulePromisesArr = [];
+    if (employee.length > 0) {
+      schedulePromisesArr.push(
+        createAdd(
+          outletName,
+          `${formattedDate} ${startTime}`,
+          `${formattedDate} ${endTime}`,
+          vacancy,
+          employee
+        )
+      );
+    } else {
+      schedulePromisesArr.push(
+        createSchedule(
+          outletName,
+          `${formattedDate} ${startTime}`,
+          `${formattedDate} ${endTime}`,
+          vacancy
+        )
+      );
+    }
+
+    // Loop through the cycle dates and add additional schedules
+    for (let i = 0; i <= diffInDays; i += interval) {
+      for (let j = i; j < i + 7 && j <= diffInDays; j++) {
+        const currentDay = new Date(startDateObj);
+        currentDay.setDate(currentDay.getDate() + j);
+        if (
+          !validDays.includes(currentDay.getDay()) ||
+          currentDay.toISOString() === new Date(formattedDate).toISOString()
+        ) {
+          continue;
+        }
+        const currentFormattedDate = currentDay.toISOString().split("T")[0];
+        if (employee.length > 0) {
+          schedulePromisesArr.push(
+            createAdd(
+              outletName,
+              `${currentFormattedDate} ${startTime}`,
+              `${currentFormattedDate} ${endTime}`,
+              vacancy,
+              employee
+            )
+          );
+        } else {
+          schedulePromisesArr.push(
+            createSchedule(
+              outletName,
+              `${currentFormattedDate} ${startTime}`,
+              `${currentFormattedDate} ${endTime}`,
+              vacancy
+            )
+          );
+        }
+      }
+    }
+
+    setError(null);
+    setSuccess(null);
+    setCreateAddError(null);
+    setCreateAddSuccess(null);
+    await Promise.all(schedulePromisesArr);
+    onLoad(getMonthRange(currentDate));
+  };
+
+  useEffect(() => {
+    if (successCreate || errorCreate) {
+      setOpenPublishSB(true);
+    }
+
+    if (createAddError) {
+      setOpenPubSBCreAddError(true);
+    }
+
+    if (createAddSuccess) {
+      setOpenPubSBCreAddSuc(true);
+    }
+  }, [successCreate, errorCreate, createAddError, createAddSuccess]);
 
   const [filters, setFilters] = useState({});
   const [uniqueValues, setUniqueValues] = useState({});
@@ -291,29 +392,64 @@ export default function AdminCalendar() {
       setUniqueValues(uniqueValuesByColumn);
     }
 
-    // Apply filters
     const filteredData = transformedDataArray
-      .filter((event) => event.type === "work")
+      .filter((event) => event.type === "work" || event.type === "holiday") // Keep both work and holiday events
       .filter((event) => {
+        if (event.type === "holiday") {
+          return true;
+        }
+
         return Object.keys(filters).every((column) => {
           if (column === "employee") {
             return (
+              !filters[column] ||
               !filters[column].length ||
-              event.array.some((slot) =>
+              event.array.filter((slot) =>
                 filters["employee"].includes(slot.employee)
-              )
+              ).length > 0
             );
           }
           if (column === "role") {
             return (
+              !filters[column] ||
               !filters[column].length ||
               event.array.some((slot) => filters["role"].includes(slot.role))
             );
           }
           return (
-            !filters[column].length || filters[column].includes(event[column])
+            !filters[column] ||
+            !filters[column].length ||
+            filters[column].includes(event[column])
           );
         });
+      })
+      .map((event) => {
+        if (event.type === "holiday") {
+          return event;
+        }
+
+        const filteredArray = event.array.filter((slot) => {
+          const isEmployeeMatch =
+            !filters["employee"] ||
+            !filters["employee"].length ||
+            filters["employee"].includes(slot.employee);
+          const isRoleMatch =
+            !filters["role"] ||
+            !filters["role"].length ||
+            filters["role"].includes(slot.role);
+          return isEmployeeMatch && isRoleMatch;
+        });
+
+        return {
+          ...event,
+          array: filteredArray,
+        };
+      })
+      .filter((event) => {
+        if (event.type === "holiday") {
+          return true;
+        }
+        return event.array.length > 0;
       });
 
     setFilteredData(filteredData);
@@ -452,7 +588,7 @@ export default function AdminCalendar() {
                   boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)",
                 },
               }}
-              onClick={() => onCardClick(event, x)} // Pass the event and the item to the callback
+              onClick={() => onCardClick(event, x)}
             >
               <Typography
                 sx={{
@@ -462,7 +598,6 @@ export default function AdminCalendar() {
                 }}
               >
                 {`${x.employee} - ${title}`}{" "}
-                {/* Combine title with each item */}
               </Typography>
             </Box>
           ))
@@ -506,7 +641,7 @@ export default function AdminCalendar() {
       sx={{
         width: "100%",
         maxWidth: { sm: "100%", md: "1700px" },
-        height: "100vh",
+        height: "200vh",
         overflowX: "auto",
       }}
     >
@@ -539,14 +674,13 @@ export default function AdminCalendar() {
             variant="outlined"
             sx={{ marginLeft: "10px" }} // Adds space between buttons
           >
-            Create Shifts
+            Publish
           </Button>
         </Grid2>
       </Grid2>
       {showFilterOptions && (
         <>
           {uniqueValues[currentFilterColumn]?.map((value) => {
-            // Check if value is an object (not an array)
             if (
               typeof value === "object" &&
               currentFilterColumn === "employee" &&
@@ -662,9 +796,14 @@ export default function AdminCalendar() {
       )}
       <Calendar
         localizer={localizer}
-        events={filteredDataArray}
+        events={filteredDataArray.sort((a, b) => {
+          if (a.type === "work" && b.type === "work") {
+            return a.outlet_name.localeCompare(b.outlet_name);
+          }
+          return 0;
+        })}
         defaultView="month"
-        style={{ height: "100%" }}
+        style={{ height: "50%" }}
         views={["agenda", "month"]}
         onSelectSlot={(slotInfo) => {
           const { start, end, slots } = slotInfo;
@@ -710,9 +849,8 @@ export default function AdminCalendar() {
       <Publish
         open={openPublish}
         handleClose={handleClosePublish}
+        handleContinue={handleContinuePublish}
         names={names}
-        refresh={handleRefresh}
-        handleSetPublishSB={handleSetPublishSB}
       />
       <Snackbar
         open={openDeleteSB}
@@ -739,14 +877,21 @@ export default function AdminCalendar() {
         open={openPublishSB}
         autoHideDuration={6000}
         onClose={handleClosePublishSB}
-        message={changeMSG}
+        message={successCreate ? successCreate : errorCreate}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       />
       <Snackbar
-        open={openPublishSBError}
+        open={openPubSBCreAddSuc}
         autoHideDuration={6000}
-        onClose={handleClosePublishSBError}
-        message={errorMSG}
+        onClose={handleClosePubSBCreAddSuc}
+        message={"Created and assigned"}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      />
+      <Snackbar
+        open={openPubSBCreAddError}
+        autoHideDuration={6000}
+        onClose={handleClosePubSBCreAddError}
+        message={"Conflict happened when creating and assigning for some users"}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       />
     </Box>

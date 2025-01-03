@@ -9,7 +9,6 @@ const getAllRoles = async (req, res) => {
     const allRoles = await db_roles.getAllRoles();
     return res.status(200).json({ rows: allRoles });
   } catch (err) {
-    console.error(err);
     return res.status(500).json({ message: "Error fetching roles." });
   }
 };
@@ -31,7 +30,6 @@ const createNewRole = async (req, res) => {
       return res.status(409).json({ message: "Role name already taken." });
     }
   } catch (err) {
-    console.error(err);
     return res
       .status(500)
       .json({ message: "Error checking for duplicated role." });
@@ -41,7 +39,6 @@ const createNewRole = async (req, res) => {
     await db_roles.addRole(role_name, color);
     return res.status(201).json({ message: `New role ${role_name} created!` });
   } catch (err) {
-    console.error(err);
     return res.status(500).json({ message: "Error creating new role." });
   }
 };
@@ -70,7 +67,6 @@ const updateRole = async (req, res) => {
       return res.status(409).json({ message: "Role name already taken." });
     }
   } catch (err) {
-    console.error(err);
     return res.status(500).json({ message: "Error checking for role." });
   }
 
@@ -79,7 +75,6 @@ const updateRole = async (req, res) => {
     await db_roles.updateRole(data);
     return res.status(200).json({ message: `Role updated!` });
   } catch (err) {
-    console.error(err);
     return res.status(500).json({ message: "Error updating of a role." });
   }
 };
@@ -101,7 +96,6 @@ const deleteRole = async (req, res) => {
       return res.status(404).json({ message: "Role not found." });
     }
   } catch (err) {
-    console.error(err);
     return res.status(500).json({ message: "Error checking for role." });
   }
   // Delete the user
@@ -109,7 +103,6 @@ const deleteRole = async (req, res) => {
     await db_roles.deleteRole(role_name);
     return res.status(200).json({ message: `Role ${role_name} deleted!` });
   } catch (err) {
-    console.error(err);
     return res.status(500).json({ message: "Error deleting role." });
   }
 };

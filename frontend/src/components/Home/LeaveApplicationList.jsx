@@ -48,8 +48,10 @@ export default function LeaveApplicationList() {
           return "Pending";
         } else if (params == "accepted") {
           return "Accepted";
+        } else if (params == "rejected") {
+          return "Rejected";
         } else {
-          return "Unknown";
+          return "UNKNOWN";
         }
       },
     },

@@ -46,7 +46,6 @@ async function checkVacantSchedule(schedule_id) {
 }
 
 async function addSchedule(outlet_name, start_time, end_time, vacancy) {
-  console.log(outlet_name, start_time, end_time, vacancy);
   const query =
     "INSERT INTO schedule (outlet_name, start_time, end_time, vacancy) VALUES (?, ?, ?, ?)";
   try {
@@ -142,7 +141,7 @@ async function updateSchedule(
           schedule_id
         );
         if (conflict) {
-          throw new Error("Shifts conflict");
+          throw new Error("One user has shifts conflict");
         }
       }
     }
@@ -185,7 +184,7 @@ async function addUserToSchedule(schedule_id, id, schedule) {
   try {
     const new_vacancy = schedule[0].vacancy - 1;
     if (new_vacancy < 0) {
-      throw new Error("Vacancy is less than 0");
+      throw new Error("Shift is full");
     }
     const query = "UPDATE schedule SET vacancy = ? WHERE schedule_id = ?";
     const [rows, fields] = await pool.execute(query, [

@@ -54,7 +54,6 @@ async function addLeaveOffApplication(
     const query2 = `UPDATE users SET ${typeNamingConvention} = ${typeNamingConvention} - ? WHERE id = ?;`;
     await pool.execute(query2, [amt_used, user_id]);
   } catch (err) {
-    console.log(err);
     throw new Error("Error inserting a leave/off application");
   }
 }
@@ -63,10 +62,8 @@ async function getLeaveAndOffsByUserId(user_id) {
   try {
     const query = `SELECT * FROM leave_offs WHERE user_id = ?`;
     const [rows, field] = await pool.execute(query, [user_id]);
-    console.log("Database query result:", rows);
     return rows;
   } catch (err) {
-    console.log(err);
     throw new Error("Error getting leaves and offs from user_id");
   }
 }
@@ -75,10 +72,8 @@ async function getAllPendingLeavesOffs() {
   try {
     const query = `SELECT l.leave_offs_id, l.user_id, u.name, l.type, l.start_date, l.end_date, l.duration, l.amt_used, l.status FROM leave_offs l, users u WHERE l.status = 'pending' AND l.user_id = u.id`;
     const [rows, field] = await pool.execute(query);
-    console.log("Database query result:", rows);
     return rows;
   } catch (err) {
-    console.log(err);
     throw new Error("Error getting all pending offs");
   }
 }
@@ -88,7 +83,6 @@ async function updateLeaveOffsStatus(leave_offs_id, action) {
     const query = `UPDATE leave_offs SET status = ? WHERE leave_offs_id = ?`;
     await pool.execute(query, [action, leave_offs_id]);
   } catch (err) {
-    console.log(err);
     throw new Error("Error updating leave/off status");
   }
 }
@@ -104,7 +98,6 @@ async function updateUserLeaveOffCount(user_id, type, amt_used) {
     const query = `UPDATE users SET ${typeNamingConvention} = ${typeNamingConvention} + ? WHERE id= ?`;
     await pool.execute(query, [amt_used, user_id]);
   } catch (err) {
-    console.log(err);
     throw new Error("Error updating user leave/off balance");
   }
 }
@@ -113,10 +106,8 @@ async function getLeavesByUserId(user_id) {
   try {
     const query = `SELECT * FROM leave_offs WHERE end_date >= CURDATE() AND user_id = ? ORDER BY start_date ASC;`;
     const [rows, field] = await pool.execute(query, [user_id]);
-    console.log("Database query result:", rows);
     return rows;
   } catch (err) {
-    console.log(err);
     throw new Error("Error getting all applied leaves and offs from user");
   }
 }
@@ -126,7 +117,6 @@ async function removeLeaveApplication(leave_offs_id) {
     const query = `DELETE FROM leave_offs WHERE leave_offs_id = ?;`;
     await pool.execute(query, [leave_offs_id]);
   } catch (err) {
-    console.log(err);
     throw new Error("Error deleting leave application");
   }
 }
@@ -152,11 +142,23 @@ async function getMonthLeaveOffs(startDate) {
     AND lo.status != 'rejected'
     GROUP BY dr.date ORDER BY dr.date;`;
     const [rows, field] = await pool.execute(query, [startDate, startDate]);
-    console.log("Database query result:", rows);
     return rows;
   } catch (err) {
-    console.log(err);
     throw new Error("Error getting month's leaves and offs");
+  }
+}
+
+async function getLeavesByDate(startDate) {
+  try {
+    const query = `SELECT u.name AS user_name, r.role_name AS role, lo.type AS leave_type, lo.start_date, lo.end_date, lo.duration, lo.amt_used,
+    CONCAT(UPPER(SUBSTRING(lo.status, 1, 1)), LOWER(SUBSTRING(lo.status, 2))) AS status
+    FROM leave_offs lo JOIN users u ON lo.user_id = u.id JOIN roles r ON u.role_id = r.id
+    WHERE ? BETWEEN DATE(lo.start_date) AND DATE(lo.end_date)
+    AND lo.status != 'rejected';`;
+    const [rows, field] = await pool.execute(query, [startDate]);
+    return rows;
+  } catch (err) {
+    throw new Error("Error getting all leaves and offs from date");
   }
 }
 
@@ -168,4 +170,5 @@ module.exports = {
   getLeavesByUserId,
   removeLeaveApplication,
   getMonthLeaveOffs,
+  getLeavesByDate,
 };

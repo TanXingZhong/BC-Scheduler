@@ -32,9 +32,7 @@ async function getAllRoles() {
     const [rows, fields] = await pool.execute(query);
 
     // log the result to inspect
-    console.log("Database query result for all roles:", rows);
-
-    return rows; // Returns the rows (user data)
+    return rows;
   } catch (err) {
     throw new Error(err);
   }
@@ -46,10 +44,8 @@ async function addRole(role_name, color) {
 
   try {
     const [result] = await pool.execute(query, values);
-    console.log("New role added successfully", result);
     return result;
   } catch (err) {
-    console.error("Error adding new role:", err);
     throw new Error(err);
   }
 }
@@ -64,7 +60,6 @@ async function getRoleByRoleName(role_name) {
 
     return rows; // Returns the rows (user data)
   } catch (error) {
-    console.error("Error getting role:", error);
     throw new Error("Error fetching role.");
   }
 }
@@ -90,7 +85,6 @@ async function checkRoleExistById(id) {
     const [rows] = await pool.execute(query, values);
     return rows.length > 0;
   } catch (error) {
-    console.error("Error getting role:", error);
     throw new Error("Error fetching role.");
   }
 }
@@ -105,10 +99,8 @@ async function updateRole(data) {
   const values = [data.role_name, data.color, data.id];
   try {
     const [result] = await pool.execute(query, values);
-    console.log("Role updated successfully", result);
     return result;
   } catch (err) {
-    console.error("Error updating role:", err);
     throw new Error(err);
   }
 }
@@ -119,10 +111,8 @@ async function deleteRole(role_name) {
 
   try {
     const [result] = await pool.execute(query, values);
-    console.log("Role deleted successfully", result);
     return result;
   } catch (err) {
-    console.error("Error deleting role:", err);
     throw new Error(err);
   }
 }

@@ -19,7 +19,6 @@ async function getAllApplications() {
     WHERE sa.status = 'pending';`;
   try {
     const [rows, fields] = await pool.execute(query);
-    console.log(rows);
     return rows;
   } catch (err) {
     console.error("Original Error:", err); // Log the original error for debugging
@@ -47,7 +46,6 @@ async function addShiftApplication(user_id, schedule_id) {
     }
     await pool.execute(query, [user_id, schedule_id]);
   } catch (err) {
-    console.log(err);
     throw new Error("Error inserting a pending shift");
   }
 }
@@ -61,7 +59,6 @@ async function updateShiftStatus(schedule_id, user_id, action) {
     const query = `UPDATE shift_applications SET status = ? WHERE schedule_id = ? AND user_id = ? AND status = 'pending'`;
     await pool.execute(query, [action, schedule_id, user_id]);
   } catch (err) {
-    console.log(err);
     throw new Error("Error updating shift status");
   }
 }
@@ -76,7 +73,6 @@ async function checkExistingApplication(user_id, schedule_id) {
     const [rows] = await pool.execute(query, [user_id, schedule_id]);
     return rows[0].count > 0; // Return true if an existing application is found
   } catch (err) {
-    console.log(err);
     throw new Error("Error checking for existing application");
   }
 }

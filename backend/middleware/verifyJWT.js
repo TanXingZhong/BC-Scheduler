@@ -29,13 +29,11 @@ const verifyChangePassword = (req, res, next) => {
   if (!authHeader) return res.sendStatus(401);
   const token = authHeader.split(" ")[1];
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-    console.log(req.body);
-    console.log(decoded);
     if (req.body.user_id !== decoded.UserInfo.user_id) {
       return res.status(401).json({ message: "Unauthorized" });
     }
     next();
   });
-}
+};
 
 module.exports = { verifyJWT, verifyAdmin, verifyChangePassword };

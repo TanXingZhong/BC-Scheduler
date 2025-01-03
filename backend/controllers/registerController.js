@@ -69,7 +69,6 @@ const handleNewUser = async (req, res) => {
     //Respond with a success message
     res.status(201).json({ message: `New user ${email} created!` });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ message: "Error creating new user." });
   }
 };

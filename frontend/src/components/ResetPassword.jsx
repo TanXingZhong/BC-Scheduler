@@ -46,15 +46,26 @@ function ResetPasswordForm({ userId, open, handleClose, handleResetPassword }) {
     if (!formData.confirmPassword) {
       setError("confirmPassword", true, "Please confirm the new password.");
       isValid = false;
-    } else if (formData.newPassword !== formData.confirmPassword) {
+    }
+
+    if (formData.confirmPassword.length < 6) {
       setError(
         "confirmPassword",
         true,
-        "New password and confirm password must match."
+        "Confirmed password must be at least 6 characters long."
       );
       isValid = false;
     } else {
-      setError("confirmPassword", false, "");
+      if (formData.newPassword !== formData.confirmPassword) {
+        setError(
+          "confirmPassword",
+          true,
+          "New password and confirm password must match."
+        );
+        isValid = false;
+      } else {
+        setError("confirmPassword", false, "");
+      }
     }
 
     return isValid;

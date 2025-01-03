@@ -62,9 +62,7 @@ export default function ChangePassword(props) {
   const validateInputs = () => {
     const oldPassword = document.getElementById("oldPassword");
     const newPassword = document.getElementById("newPassword");
-
     let isValid = true;
-
     // Validate Password
     if (!oldPassword.value) {
       setError("oldPassword", true, "Old password is required.");
@@ -82,7 +80,6 @@ export default function ChangePassword(props) {
     } else {
       setError("newPassword", false, "");
     }
-
     return isValid;
   };
 
@@ -107,10 +104,14 @@ export default function ChangePassword(props) {
     {
       id: "oldPassword",
       label: "Old Password",
+      error: errorState.oldPassword.error,
+      helperText: errorState.oldPassword.message,
     },
     {
       id: "newPassword",
       label: "New Password",
+      error: errorState.newPassword.error,
+      helperText: errorState.newPassword.message,
     },
   ];
 

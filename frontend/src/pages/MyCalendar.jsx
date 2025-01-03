@@ -50,49 +50,53 @@ export default function MyCalendar() {
   };
 
   useEffect(() => {
-    const data = schedule.map((data) => {
-      // Find all users scheduled for this slot
-      const filledSlots = scheduleAndUsers
-        .filter((x) => x.schedule_id === data.schedule_id)
-        .map((slot) => ({
-          id: slot.id,
-          employee: slot.name,
-          role: slot.role_name,
-          color: slot.color,
-        }));
+    var data = [];
+    if (schedule) {
+      data = schedule.map((data) => {
+        // Find all users scheduled for this slot
+        const filledSlots = scheduleAndUsers
+          .filter((x) => x.schedule_id === data.schedule_id)
+          .map((slot) => ({
+            id: slot.id,
+            employee: slot.name,
+            role: slot.role_name,
+            color: slot.color,
+          }));
 
-      // Calculate the number of empty slots based on vacancie
-      const emptySlots = Array(data.vacancy)
-        .fill()
-        .map(() => ({
-          id: "",
-          employee: "EMPTY",
-          role: "NONE",
-          color: "#FF5733",
-        }));
+        // Calculate the number of empty slots based on vacancie
+        const emptySlots = Array(data.vacancy)
+          .fill()
+          .map(() => ({
+            id: "",
+            employee: "EMPTY",
+            role: "NONE",
+            color: "#FF5733",
+          }));
 
-      // Combine filled and empty slots
-      const combinedSlots = [...filledSlots, ...emptySlots];
+        // Combine filled and empty slots
+        const combinedSlots = [...filledSlots, ...emptySlots];
 
-      return {
-        schedule_id: data.schedule_id,
-        title: `${data.outlet_name}, ${toSGTimeShort(
-          data.start_time
-        )} - ${toSGTimeShort(data.end_time)}`,
-        outlet_name: data.outlet_name,
-        start: new Date(data.start_time),
-        end: new Date(data.end_time),
-        start_time: toSGTimeShort(data.start_time),
-        end_time: toSGTimeShort(data.end_time),
-        vacancy: data.vacancy,
-        array: combinedSlots,
-        type: "work",
-      };
-    });
+        return {
+          schedule_id: data.schedule_id,
+          title: `${data.outlet_name}, ${toSGTimeShort(
+            data.start_time
+          )} - ${toSGTimeShort(data.end_time)}`,
+          outlet_name: data.outlet_name,
+          start: moment(new Date(data.start_time).toDateString()),
+          end: moment(new Date(data.end_time).toDateString()),
+          start_time: toSGTimeShort(data.start_time),
+          end_time: toSGTimeShort(data.end_time),
+          vacancy: data.vacancy,
+          array: combinedSlots,
+          type: "work",
+        };
+      });
+    }
 
     var temp = [];
 
     // Update temp structure to match data's format
+    monthLeaveOffsData;
     if (monthLeaveOffsData) {
       temp = monthLeaveOffsData.map((data) => {
         return {
@@ -131,20 +135,21 @@ export default function MyCalendar() {
 
   useEffect(() => {
     const uniqueValuesByColumn = {};
+
     // if filters is empty, set filteredData to transformedDataArray
     if (Object.keys(filters).length === 0) {
       setFilteredData(transformedDataArray);
       return;
     } else {
+      // Generate unique values for each filter column (employee, role, etc.)
       for (const column of Object.keys(filters)) {
         if (column === "employee") {
           uniqueValuesByColumn[column] = transformedDataArray
             .filter((event) => event.type === "work")
             .flatMap((row) => row["array"])
             .reduce((unique, current) => {
-              // Check if the current object is already in the unique array based on custom comparison
               if (!unique.some((item) => item.id === current.id)) {
-                unique.push(current); // Add it if not already included
+                unique.push(current);
               }
               return unique;
             }, []);
@@ -153,9 +158,8 @@ export default function MyCalendar() {
             .filter((event) => event.type === "work")
             .flatMap((row) => row["array"])
             .reduce((unique, current) => {
-              // Check if the current object is already in the unique array based on custom comparison
               if (!unique.some((item) => item.role === current.role)) {
-                unique.push(current); // Add it if not already included
+                unique.push(current);
               }
               return unique;
             }, []);
@@ -172,70 +176,74 @@ export default function MyCalendar() {
       setUniqueValues(uniqueValuesByColumn);
     }
 
-    // only filters outletname and start_time, if the the chosen employees are in the event, it will be kept
-    const fisrtFilter = transformedDataArray
-      .filter((event) => event.type === "work")
+    const filteredData = transformedDataArray
+      .filter((event) => event.type === "work" || event.type === "holiday") // Keep both work and holiday events
       .filter((event) => {
+        if (event.type === "holiday") {
+          return true;
+        }
+
         return Object.keys(filters).every((column) => {
-          // If the filter applies to an array column (like 'employee'), we need to check the array of objects
           if (column === "employee") {
             return (
+              !filters[column] ||
               !filters[column].length ||
-              event.array.some((slot) =>
+              event.array.filter((slot) =>
                 filters["employee"].includes(slot.employee)
-              )
+              ).length > 0
             );
           }
           if (column === "role") {
             return (
+              !filters[column] ||
               !filters[column].length ||
               event.array.some((slot) => filters["role"].includes(slot.role))
             );
           }
-          // Otherwise, apply the filter on the main column
           return (
-            !filters[column].length || filters[column].includes(event[column])
+            !filters[column] ||
+            !filters[column].length ||
+            filters[column].includes(event[column])
           );
         });
+      })
+      .map((event) => {
+        if (event.type === "holiday") {
+          return event;
+        }
+
+        const filteredArray = event.array.filter((slot) => {
+          const isEmployeeMatch =
+            !filters["employee"] ||
+            !filters["employee"].length ||
+            filters["employee"].includes(slot.employee);
+          const isRoleMatch =
+            !filters["role"] ||
+            !filters["role"].length ||
+            filters["role"].includes(slot.role);
+          return isEmployeeMatch && isRoleMatch;
+        });
+
+        return {
+          ...event,
+          array: filteredArray,
+        };
+      })
+      .filter((event) => {
+        if (event.type === "holiday") {
+          return true;
+        }
+        return event.array.length > 0;
       });
 
-    // filter employee
-    if (filters["employee"] === undefined) {
-      setFilteredData([]);
-      return;
-    }
-    const secondFilter = fisrtFilter.map((event) => {
-      const filteredArray = event.array.filter((slot) =>
-        filters["employee"].includes(slot.employee)
-      );
-      return {
-        ...event,
-        array: filteredArray,
-      };
-    });
-
-    // filter role
-    if (filters["role"] === undefined) {
-      setFilteredData([]);
-      return;
-    }
-
-    const thirdFilter = secondFilter.map((event) => {
-      const filteredArray = event.array.filter((slot) =>
-        filters["role"].includes(slot.role)
-      );
-      return {
-        ...event,
-        array: filteredArray,
-      };
-    });
-
-    setFilteredData(thirdFilter);
+    setFilteredData(filteredData);
   }, [filters]);
+
   // Handle filter column selection (toggle filters)
   const handleFilterColumnClick = (column) => {
     setShowFilterOptions(true);
     setCurrentFilterColumn(column);
+
     setFilters((prevFilters) => {
       if (prevFilters[column]) {
         return prevFilters; // Don't update if already exists
@@ -258,11 +266,13 @@ export default function MyCalendar() {
     });
   };
 
+  // Clear all filters
   const handleClearFilters = () => {
     setFilters({});
-    setFilteredData(transformedDataArray);
+    setUniqueValues({});
     setShowFilterOptions(false);
     setCurrentFilterColumn(null);
+    setFilteredData(transformedDataArray);
   };
 
   const categories = [
@@ -530,7 +540,12 @@ export default function MyCalendar() {
 
       <Calendar
         localizer={localizer}
-        events={filteredDataArray}
+        events={filteredDataArray.sort((a, b) => {
+          if (a.type === "work" && b.type === "work") {
+            return a.outlet_name.localeCompare(b.outlet_name);
+          }
+          return 0;
+        })}
         defaultView="month"
         style={{ height: "100%" }}
         views={["agenda", "month"]}

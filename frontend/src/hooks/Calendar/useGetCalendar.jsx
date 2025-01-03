@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { useAuthContext } from "../useAuthContext";
 
 export const useGetCalendar = () => {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [success, setSuccess] = useState(null);
+  const { user } = useAuthContext();
 
   const fetchSchedule = async (start_date) => {
     setIsLoading(true);
@@ -14,6 +16,7 @@ export const useGetCalendar = () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${user.accessToken}`,
       },
       body: JSON.stringify({ start_date }),
     });

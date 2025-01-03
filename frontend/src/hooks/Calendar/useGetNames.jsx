@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { useAuthContext } from "../useAuthContext";
 
 export const useGetNames = () => {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [success, setSuccess] = useState(null);
+  const { user } = useAuthContext();
 
   const fetchNames = async () => {
     setIsLoading(true);
@@ -14,6 +16,7 @@ export const useGetNames = () => {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${user.accessToken}`,
       },
     });
 

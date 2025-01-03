@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { useAuthContext } from "./useAuthContext";
 
 export const useLeaveOffApps = () => {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(null);
   const [success, setSuccess] = useState(null);
+  const { user } = useAuthContext();
 
   const leaveOffApply = async (
     user_id,
@@ -21,6 +23,7 @@ export const useLeaveOffApps = () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${user.accessToken}`,
       },
       body: JSON.stringify({
         user_id,

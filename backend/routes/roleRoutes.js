@@ -3,7 +3,7 @@ const router = express.Router();
 const rolesController = require("../controllers/rolesController");
 const verifyJWT = require("../middleware/verifyJWT");
 
-// router.use(verifyJWT.verifyAdmin);
+router.use(verifyJWT.verifyAdmin);
 router
   .route("/")
   .get(rolesController.getAllRoles)

@@ -1,25 +1,16 @@
 import { useState } from "react";
-import { useAuthContext } from "../useAuthContext";
+import { useAuthContext } from "./useAuthContext";
 
-export const useClearUserLeaveApplication = () => {
+export const useGetLeavesFromDate = () => {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(null);
-  const [success, setSuccess] = useState(null);
   const { user } = useAuthContext();
-
-  const clearLeaveApplications = async (
-    leave_offs_id,
-    user_id,
-    type,
-    status,
-    amt_used
-  ) => {
+  const getLeavesFromDate = async (startDate) => {
     setIsLoading(true);
     setError(null);
-    setSuccess(null);
 
     const response = await fetch(
-      "http://localhost:8080/users/clearleaveapplication",
+      "http://localhost:8080/users/getleavesbydate",
       {
         method: "POST",
         headers: {
@@ -27,11 +18,7 @@ export const useClearUserLeaveApplication = () => {
           Authorization: `Bearer ${user.accessToken}`,
         },
         body: JSON.stringify({
-          leave_offs_id,
-          user_id,
-          type,
-          status,
-          amt_used,
+          startDate,
         }),
       }
     );
@@ -41,12 +28,13 @@ export const useClearUserLeaveApplication = () => {
     if (!response.ok) {
       setIsLoading(false);
       setError(json.message);
+      return;
     }
     if (response.ok) {
       setIsLoading(false);
-      setSuccess(json.message);
+      return json.rows;
     }
   };
 
-  return { clearLeaveApplications, isLoading, error, success };
+  return { getLeavesFromDate, isLoading, error };
 };

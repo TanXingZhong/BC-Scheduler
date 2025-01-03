@@ -1,8 +1,6 @@
 const db_leaveOffsApp = require("../model/db_leaveOffsApp");
 
 const applyLeaveOffs = async (req, res) => {
-  console.log("receved");
-
   const { user_id, type, startDate, endDate, duration, amt_used } = req.body;
 
   // Confirm data
@@ -22,13 +20,14 @@ const applyLeaveOffs = async (req, res) => {
       amt_used
     );
     return res.status(201).json({
-      message: `${type} applied from ${startDate} to ${endDate} (${duration}) for ${user_id}!`,
+      message: `(${duration}) ${type} applied from ${new Date(
+        startDate
+      ).toDateString()} to ${new Date(endDate).toDateString()}!`,
     });
   } catch (err) {
-    console.error(err);
     return res
       .status(500)
-      .json({ message: "Error creating applying leave/off." });
+      .json({ message: "You have already applied in this window." });
   }
 };
 
@@ -37,7 +36,6 @@ const getAllPendingLeavesAndOffs = async (req, res) => {
     const allLeavesAndOffs = await db_leaveOffsApp.getAllPendingLeavesOffs();
     return res.status(200).json({ rows: allLeavesAndOffs });
   } catch (err) {
-    console.error(err);
     return res.status(500).json({ message: "Error fetching users." });
   }
 };
@@ -60,7 +58,6 @@ const actionLeaveOff = async (req, res) => {
       });
     }
   } catch (err) {
-    console.error(err);
     return res
       .status(500)
       .json({ message: "Error approving or rejecting leave/off application" });
@@ -73,7 +70,6 @@ const getLeavesByUserId = async (req, res) => {
     const allLeavesAndOffs = await db_leaveOffsApp.getLeavesByUserId(user_id);
     return res.status(200).json({ rows: allLeavesAndOffs });
   } catch (err) {
-    console.error(err);
     return res
       .status(500)
       .json({ message: "Error fetching applied leaves of user." });
@@ -98,7 +94,6 @@ const clearLeaveApplication = async (req, res) => {
       });
     }
   } catch (err) {
-    console.error(err);
     return res
       .status(500)
       .json({ message: "Error cancelling leave/off application" });
@@ -111,10 +106,21 @@ const getMonthLeaveOffs = async (req, res) => {
     const monthLeaveOffs = await db_leaveOffsApp.getMonthLeaveOffs(startDate);
     return res.status(200).json({ rows: monthLeaveOffs });
   } catch (err) {
-    console.error(err);
     return res
       .status(500)
       .json({ message: "Error fetching the month's leaves and offs." });
+  }
+};
+
+const getLeavesByDate = async (req, res) => {
+  const { startDate } = req.body;
+  try {
+    const leavesOffs = await db_leaveOffsApp.getLeavesByDate(startDate);
+    return res.status(200).json({ rows: leavesOffs });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: "Error fetching leaves and offs of date." });
   }
 };
 
@@ -125,4 +131,5 @@ module.exports = {
   getLeavesByUserId,
   clearLeaveApplication,
   getMonthLeaveOffs,
+  getLeavesByDate,
 };

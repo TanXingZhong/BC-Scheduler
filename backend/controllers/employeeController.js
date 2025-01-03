@@ -11,7 +11,6 @@ const getAllUsers = async (req, res) => {
     const allNames = await db.getAllUsersNames();
     return res.status(200).json({ rows: allNames });
   } catch (err) {
-    console.error(err);
     return res.status(500).json({ message: "Error fetching users." });
   }
 };
@@ -28,7 +27,6 @@ const getUserByUserId = async (req, res) => {
     const userShfits = await db_schedule.getAllShiftsByUser(user_id);
     return res.status(200).json({ employee: user, userShifts: userShfits });
   } catch (err) {
-    console.error(err);
     return res.status(500).json({ message: "Error fetching user info." });
   }
 };
@@ -50,7 +48,7 @@ const changePassword = async (req, res) => {
       });
     }
     const match = await bcrypt.compare(oldPassword, user[0].password);
-    
+
     if (!match) {
       return res.status(401).json({
         message: "Old password incorrect",
@@ -64,12 +62,11 @@ const changePassword = async (req, res) => {
       message: "Password updated",
     });
   } catch (err) {
-    console.error(err);
     return res.status(500).json({
       message: "Error updating password",
     });
   }
-}
+};
 
 module.exports = {
   getAllUsers,

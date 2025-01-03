@@ -28,8 +28,6 @@ async function getAllRoles() {
     const [rows, fields] = await pool.execute(query);
 
     // log the result to inspect
-    console.log("Database query result for all roles:", rows);
-
     return rows; // Returns the rows (user data)
   } catch (err) {
     throw new Error(err);
@@ -58,10 +56,8 @@ async function getAllUsersNames() {
   JOIN roles ON users.role_id = roles.id`;
   try {
     const [rows, fields] = await pool.execute(query);
-    console.log("Database query result:", rows);
     return rows;
   } catch (err) {
-    console.error("Error occurred while fetching users:", err);
     throw new Error("Error fetching users: " + err.message);
   }
 }
@@ -98,11 +94,9 @@ async function getAllUsers() {
     const [rows, fields] = await pool.execute(query);
 
     // Log the result to inspect
-    console.log("Database query result:", rows);
 
     return rows; // Returns the rows (user data)
   } catch (err) {
-    console.error("Error occurred while fetching users:", err);
     throw new Error("Error fetching users: " + err.message); // Throw a detailed error message
   }
 }
@@ -117,11 +111,9 @@ async function getUserByEmail(email) {
     const [rows, fields] = await pool.execute(query, values);
 
     // Log the result to inspect
-    console.log("Database query result:", rows);
 
     return rows; // Returns the rows (user data)
   } catch (error) {
-    console.error("Error getting user:", error);
     throw new Error("Error fetching user.");
   }
 }
@@ -135,30 +127,25 @@ async function getUserByid(id) {
     const [rows, fields] = await pool.execute(query, values);
 
     // Log the result to inspect
-    console.log("Database query result:", rows);
 
     return rows; // Returns the rows (user data)
   } catch (error) {
-    console.error("Error getting user:", error);
     throw new Error("Error fetching user.");
   }
 }
 
 async function getUserByidWithoutPassword(id) {
-  console.log("userid", id);
   const query =
-    "SELECT id, name, nric, email, phonenumber, sex, dob, bankName, bankAccountNo, address, workplace, occupation, driverLicense, firstAid, joinDate, admin, active, role_id, leaves, offs FROM users WHERE id = ?";
+    "SELECT id, name, email, phonenumber, sex, dob, address, workplace, occupation, driverLicense, firstAid, joinDate, admin, active, role_id, leaves, offs FROM users WHERE id = ?";
   const values = [id];
   try {
     // Execute query using promise pool
     const [rows, fields] = await pool.execute(query, values);
 
     // Log the result to inspect
-    console.log("Database query result:", rows);
 
     return rows; // Returns the rows (user data)
   } catch (error) {
-    console.error("Error getting user:", error);
     throw new Error("Error fetching user.");
   }
 }
@@ -213,10 +200,8 @@ async function addUser(
 
   try {
     const [result] = await pool.execute(query, values);
-    console.log("User added successfully", result);
     return result;
   } catch (err) {
-    console.error("Error adding user:", err);
     throw new Error(err);
   }
 }
@@ -260,10 +245,8 @@ async function updatePassword(id, password) {
 
   try {
     const [result] = await pool.execute(query, values);
-    console.log("Password updated successfully", result);
     return result;
   } catch (err) {
-    console.error("Error updating password:", err);
     throw new Error(err);
   }
 }
@@ -301,10 +284,8 @@ async function getWorkinghours(start_date, end_date) {
       start_date,
       end_date,
     ]);
-    console.log("Database query result:", rows);
     return rows;
   } catch (err) {
-    console.log(err);
     throw new Error("Error getting all working hours from users");
   }
 }

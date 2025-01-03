@@ -12,7 +12,6 @@ const getAllUsers = async (req, res) => {
     const allRoles = await db_roles.getAllRoles();
     return res.status(200).json({ rows: allUsers, allRoles: allRoles });
   } catch (err) {
-    console.error(err);
     return res.status(500).json({ message: "Error fetching users." });
   }
 };
@@ -35,7 +34,6 @@ const createNewUser = async (req, res) => {
       return res.status(409).json({ message: "Username already taken." });
     }
   } catch (err) {
-    console.error(err);
     return res
       .status(500)
       .json({ message: "Error checking for duplicated user." });
@@ -49,7 +47,6 @@ const createNewUser = async (req, res) => {
     await db.addUser(username, hashedPwd, role_id);
     return res.status(201).json({ message: `New user ${username} created!` });
   } catch (err) {
-    console.error(err);
     return res.status(500).json({ message: "Error creating new user." });
   }
 };
@@ -91,7 +88,6 @@ const updateUser = async (req, res) => {
       return res.status(404).json({ message: "User not found." });
     }
   } catch (err) {
-    console.error(err);
     return res.status(500).json({ message: "Error checking for user." });
   }
 
@@ -100,7 +96,6 @@ const updateUser = async (req, res) => {
     await db.updateUser(data);
     return res.status(200).json({ message: `User ${data.email} updated!` });
   } catch (err) {
-    console.error(err);
     return res.status(500).json({ message: "Error updating user." });
   }
 };
@@ -124,7 +119,6 @@ const deleteUser = async (req, res) => {
       return res.status(404).json({ message: "User not found." });
     }
   } catch (err) {
-    console.error(err);
     return res.status(500).json({ message: "Error checking for user." });
   }
   // Delete the user
@@ -132,7 +126,6 @@ const deleteUser = async (req, res) => {
     await db.deleteUser(email);
     return res.status(200).json({ message: `User ${email} deleted!` });
   } catch (err) {
-    console.error(err);
     return res.status(500).json({ message: "Error deleting user." });
   }
 };
@@ -143,7 +136,6 @@ const getWorkinghours = async (req, res) => {
     const allWorkingHours = await db.getWorkinghours(startDate, endDate);
     return res.status(200).json({ rows: allWorkingHours });
   } catch (err) {
-    console.error(err);
     return res
       .status(500)
       .json({ message: "Error fetching working hours of users." });
@@ -153,9 +145,6 @@ const resetPassword = async (req, res) => {
   const { id, newPassword, confirmPassword } = req.body;
 
   // Confirm data
-  console.log("resetPassword");
-  console.log(req.body);
-
   if (!id || !newPassword || !confirmPassword) {
     return res.status(400).json({ message: "All fields are required." });
   }
@@ -167,7 +156,6 @@ const resetPassword = async (req, res) => {
     await db.updatePassword(id, hashedPwd);
     return res.status(200).json({ message: "Password updated." });
   } catch (err) {
-    console.error(err);
     return res.status(500).json({ message: "Error updating password." });
   }
 };

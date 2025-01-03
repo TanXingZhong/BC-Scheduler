@@ -38,13 +38,13 @@ const login = async (req, res) => {
       },
     },
     process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: "15m" }
+    { expiresIn: "60m" }
   );
 
   const refreshToken = jwt.sign(
     { email: foundUser[0].email },
     process.env.REFRESH_TOKEN_SECRET,
-    { expiresIn: "7d" }
+    { expiresIn: "30d" }
   );
 
   // Create secure cookie with refresh token
@@ -53,7 +53,7 @@ const login = async (req, res) => {
     secure: true, //https
     sameSite: "None", //cross-site cookie
     // secure: process.env.NODE_ENV === "production", // TO TURN OFF WHEN DEPLOY!!
-    maxAge: 7 * 24 * 60 * 60 * 1000, //cookie expiry: set to match rT
+    maxAge: 30 * 24 * 60 * 60 * 1000, //cookie expiry: set to match rT
   });
 
   // Send accessToken containing username and roles
@@ -64,7 +64,6 @@ const login = async (req, res) => {
 // @route GET /auth/refresh
 // @access Public - because access token has expired
 const refresh = (req, res) => {
-  console.log("Refreshing");
   const cookies = req.cookies;
   if (!cookies?.jwt) return res.status(401).json({ message: "Unauthorized" });
 
@@ -93,7 +92,7 @@ const refresh = (req, res) => {
           },
         },
         process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: "15m" }
+        { expiresIn: "30m" }
       );
       res.json({ accessToken });
     }

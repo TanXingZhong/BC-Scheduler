@@ -20,10 +20,8 @@ import { green } from "@mui/material/colors";
 import PropTypes from "prop-types";
 import Grid from "@mui/material/Grid2";
 import CircularProgress from "@mui/material/CircularProgress";
-import { useCreateSchedule } from "../hooks/Calendar/useCreateSchedule";
-import { useCreateAdd } from "../hooks/Calendar/useCreateAdd";
 
-function Publish({ open, handleClose, names, refresh, handleSetPublishSB }) {
+function Publish({ open, handleContinue, handleClose, names }) {
   const [loading, setLoading] = useState(false);
   const [defaultError, setDefaultError] = useState({
     error: false,
@@ -49,27 +47,14 @@ function Publish({ open, handleClose, names, refresh, handleSetPublishSB }) {
   const [cycleStart, setCycleStart] = useState("");
   const [cycleEnd, setCycleEnd] = useState("");
   const [employee, setEmployee] = useState([]);
-  const { createSchedule, error, isLoading, success } = useCreateSchedule();
-  const {
-    createAdd,
-    error: createAddError,
-    isLoading: createAddLoading,
-    success: createAddSuccess,
-  } = useCreateAdd();
 
   useEffect(() => {
-    if (createAddSuccess || success) {
-      setRepeat("Never");
-      setSelectedDays([]);
-      setCycleStart("");
-      setCycleEnd("");
-      setEmployee([]);
-      setDefaultError({
-        error: false,
-        message: "",
-      });
-    }
-  }, [success, createAddSuccess]);
+    setRepeat("Never");
+    setSelectedDays([]);
+    setCycleStart("");
+    setCycleEnd("");
+    setEmployee;
+  }, []);
 
   const handleChange = (event) => {
     setEmployee(event.target.value);
@@ -137,14 +122,22 @@ function Publish({ open, handleClose, names, refresh, handleSetPublishSB }) {
       if (document.getElementById("vacancy").value <= 0) {
         setError("vacancy", true, "Vacancy should be more then 1.");
         isValid = false;
+      } else {
+        if (document.getElementById("vacancy").value >= 6) {
+          setError("vacancy", true, "Vacancy should not be more then 5.");
+          isValid = false;
+        }
       }
-      if (document.getElementById("vacancy").value < employee.length) {
-        setError(
-          "vacancy",
-          true,
-          "Vacancy should be more than the number of employees assigned."
-        );
-        isValid = false;
+
+      if (employee.length > 0) {
+        if (document.getElementById("vacancy").value < employee.length) {
+          setError(
+            "vacancy",
+            true,
+            "Vacancy should be more than the number of employees assigned."
+          );
+          isValid = false;
+        }
       }
     });
     return isValid;
@@ -152,40 +145,19 @@ function Publish({ open, handleClose, names, refresh, handleSetPublishSB }) {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setLoading(true);
     if (!validateInputs()) {
+      setLoading(false);
       return;
     }
-    setLoading(true);
-    const schedulePromisesArr = [];
+
     const outletName = document.getElementById("outlet_name").value.trim();
     const date = document.getElementById("date").value;
     const startTime = document.getElementById("start_time").value;
     const endTime = document.getElementById("end_time").value;
     const vacancy = parseInt(document.getElementById("vacancy").value);
-
     const dateObj = new Date(date);
     const formattedDate = dateObj.toISOString().split("T")[0];
-    if (employee.length > 0) {
-      schedulePromisesArr.push(
-        createAdd(
-          outletName,
-          `${formattedDate} ${startTime}`,
-          `${formattedDate} ${endTime}`,
-          vacancy,
-          employee
-        )
-      );
-    } else {
-      schedulePromisesArr.push(
-        createSchedule(
-          outletName,
-          `${formattedDate} ${startTime}`,
-          `${formattedDate} ${endTime}`,
-          vacancy
-        )
-      );
-    }
-
     const dayMapping = {
       Sun: 0,
       Mon: 1,
@@ -198,7 +170,6 @@ function Publish({ open, handleClose, names, refresh, handleSetPublishSB }) {
     const validDays = selectedDays.map((day) => dayMapping[day]);
     const startDateObj = new Date(cycleStart);
     const endDateObj = new Date(cycleEnd);
-
     const diffInDays = Math.floor(
       (endDateObj - startDateObj) / (1000 * 60 * 60 * 24)
     );
@@ -210,46 +181,21 @@ function Publish({ open, handleClose, names, refresh, handleSetPublishSB }) {
         : repeat === "Every 3 Weeks"
         ? 21
         : 1;
-    for (let i = 0; i <= diffInDays; i += interval) {
-      for (let j = i; j < i + 7 && j <= diffInDays; j++) {
-        const currentDay = new Date(startDateObj);
-        currentDay.setDate(currentDay.getDate() + j);
-        if (
-          !validDays.includes(currentDay.getDay()) ||
-          currentDay.toISOString() == dateObj.toISOString()
-        ) {
-          continue;
-        }
-        const currentFormattedDate = currentDay.toISOString().split("T")[0];
-        if (employee.length > 0) {
-          schedulePromisesArr.push(
-            createAdd(
-              outletName,
-              `${currentFormattedDate} ${startTime}`,
-              `${currentFormattedDate} ${endTime}`,
-              vacancy,
-              employee
-            )
-          );
-        } else {
-          schedulePromisesArr.push(
-            createSchedule(
-              outletName,
-              `${currentFormattedDate} ${startTime}`,
-              `${currentFormattedDate} ${endTime}`,
-              vacancy
-            )
-          );
-        }
-      }
-    }
 
-    await Promise.all(schedulePromisesArr);
-    await refresh();
+    await handleContinue(
+      outletName,
+      formattedDate,
+      startTime,
+      endTime,
+      vacancy,
+      validDays,
+      startDateObj,
+      endDateObj,
+      diffInDays,
+      interval,
+      employee
+    );
     setLoading(false);
-    const data1 = success ? success : createAddSuccess;
-    const data2 = error ? error : createAddError;
-    handleSetPublishSB(data1, data2);
   };
 
   const formFieldsLeft = [

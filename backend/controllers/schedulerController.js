@@ -16,7 +16,6 @@ const getAllSchedules = async (req, res) => {
       .status(200)
       .json({ rows: allSchedules, rowsplus: scheduleWithUsers });
   } catch (err) {
-    console.error(err);
     return res.status(500).json({ message: "Error fetching schedules." });
   }
 };
@@ -37,10 +36,9 @@ const createSchedules = async (req, res) => {
   try {
     await db_schedule.addSchedule(outlet_name, start_time, end_time, vacancy);
     return res.status(201).json({
-      message: `New schedule at ${outlet_name} from ${start_time} to ${end_time} with ${vacancy} vacancy created!`,
+      message: `New schedule at ${outlet_name} created!`,
     });
   } catch (err) {
-    console.error(err);
     return res.status(500).json({ message: "Error creating new schedule." });
   }
 };
@@ -122,7 +120,6 @@ const updateSchedules = async (req, res) => {
       return res.status(404).json({ message: "Schedule not found." });
     }
   } catch (err) {
-    console.error(err);
     return res
       .status(500)
       .json({ message: "Error checking for schedule when updating." });
@@ -141,8 +138,7 @@ const updateSchedules = async (req, res) => {
       .status(200)
       .json({ message: `Schedule ID ${schedule_id} updated!` });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: "Error updating schedule." });
+    return res.status(500).json({ message: err.message });
   }
 };
 
@@ -163,7 +159,6 @@ const deleteSchedules = async (req, res) => {
       return res.status(404).json({ message: "Schedule ID not found." });
     }
   } catch (err) {
-    console.error(err);
     return res.status(500).json({ message: "Error checking for Schedule ID." });
   }
   // Delete the user
@@ -173,7 +168,6 @@ const deleteSchedules = async (req, res) => {
       .status(200)
       .json({ message: `Schedule ${schedule_id} deleted!` });
   } catch (err) {
-    console.error(err);
     return res.status(500).json({ message: "Error deleting schedule." });
   }
 };
@@ -220,9 +214,8 @@ const addUserToSchedule = async (req, res) => {
       message: `User ${employee_id} added to schedule ${schedule_id}`,
     });
   } catch (err) {
-    console.error("Error in addUserToSchedule:", err);
     return res.status(500).json({
-      message: "Error adding user to schedule.",
+      message: err.message,
     });
   }
 };
@@ -248,7 +241,6 @@ const removeUserFromSchedule = async (req, res) => {
       message: `User ${employee_id} removed from schedule ${schedule_id}`,
     });
   } catch (err) {
-    console.error(err);
     return res
       .status(500)
       .json({ message: "Error removing user from schedule" });
@@ -280,7 +272,6 @@ const changeUserFromSchedule = async (req, res) => {
       message: `User ${employee_id} replace with User ${new_employee_id} in schedule ${schedule_id}`,
     });
   } catch (err) {
-    console.error(err);
     return res
       .status(500)
       .json({ message: "Error replacing user from schedule" });
