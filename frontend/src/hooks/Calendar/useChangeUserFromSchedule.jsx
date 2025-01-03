@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuthContext } from "../useAuthContext";
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 export const useChangeUserFromSchedule = () => {
   const [error, setError] = useState(null);
@@ -12,7 +13,7 @@ export const useChangeUserFromSchedule = () => {
     setError(null);
     setSuccess(null);
 
-    const response = await fetch("http://localhost:8080/schedules/edit", {
+    const response = await fetch(`${BASE_URL}/schedules/edit`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

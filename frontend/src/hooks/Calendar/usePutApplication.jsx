@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuthContext } from "../useAuthContext";
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 export const usePutApplication = () => {
   const [error, setError] = useState(null);
@@ -14,7 +15,7 @@ export const usePutApplication = () => {
     setSuccess(null);
 
     const response = await fetch(
-      "http://localhost:8080/schedules/application",
+      `${BASE_URL}/schedules/application`,
       {
         method: "PUT",
         headers: {

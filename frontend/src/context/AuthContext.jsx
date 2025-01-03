@@ -1,5 +1,6 @@
 import { createContext, useReducer, useEffect } from "react";
 export const AuthContext = createContext();
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 export const authReducer = (state, action) => {
   switch (action.type) {
@@ -18,7 +19,7 @@ export const AuthContextProvider = ({ children }) => {
   });
   const refreshAccessToken = async () => {
     try {
-      const response = await fetch("http://localhost:8080/auth/refresh", {
+      const response = await fetch(`${BASE_URL}/auth/refresh`, {
         method: "GET",
         credentials: "include",
       });

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuthContext } from "../useAuthContext";
+const BASE_URL = import.meta.env.VITE_API_URL;
 export const useGetUserLeaveApplications = () => {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(null);
@@ -9,7 +10,7 @@ export const useGetUserLeaveApplications = () => {
     setIsLoading(true);
     setError(null);
 
-    const response = await fetch("http://localhost:8080/users/appliedleaves", {
+    const response = await fetch(`${BASE_URL}/users/appliedleaves`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

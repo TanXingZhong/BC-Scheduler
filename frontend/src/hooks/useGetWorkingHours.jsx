@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuthContext } from "./useAuthContext";
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 export const useGetWorkingHours = () => {
   const [error, setError] = useState(null);
@@ -13,7 +14,7 @@ export const useGetWorkingHours = () => {
     setSuccess(null);
 
     const response = await fetch(
-      "http://localhost:8080/users/getworkinghours",
+      `${BASE_URL}/users/getworkinghours`,
       {
         method: "POST",
         headers: {

@@ -13,6 +13,7 @@ import EditCalendarIcon from "@mui/icons-material/EditCalendar";
 import AccessibilityIcon from "@mui/icons-material/Accessibility";
 import FreeBreakfastIcon from "@mui/icons-material/FreeBreakfast";
 import PasswordIcon from "@mui/icons-material/Password";
+import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
 import { useUserInfo } from "../hooks/useUserInfo";
 
 import { Link } from "react-router-dom";
@@ -38,6 +39,11 @@ export default function MenuContent() {
           { text: "Users", icon: <PeopleRoundedIcon />, path: "/users" },
           { text: "Create Account", icon: <PersonAddIcon />, path: "/signup" },
           { text: "Roles", icon: <AccessibilityIcon />, path: "/roles" },
+          {
+            text: "AWS Reminder",
+            icon: <NotificationsActiveIcon />,
+            path: "/yearly-countdown",
+          },
         ]
       : []),
   ];

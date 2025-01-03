@@ -82,8 +82,8 @@ export default function MyCalendar() {
             data.start_time
           )} - ${toSGTimeShort(data.end_time)}`,
           outlet_name: data.outlet_name,
-          start: moment(new Date(data.start_time).toDateString()),
-          end: moment(new Date(data.end_time).toDateString()),
+          start: moment(data.start_time).startOf("day"),
+          end: moment(data.end_time).startOf("day"),
           start_time: toSGTimeShort(data.start_time),
           end_time: toSGTimeShort(data.end_time),
           vacancy: data.vacancy,

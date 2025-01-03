@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuthContext } from "../useAuthContext";
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 export const useCreateAdd = () => {
   const [error, setError] = useState(null);
@@ -19,7 +20,7 @@ export const useCreateAdd = () => {
     setError(null);
     setSuccess(null);
 
-    const response = await fetch("http://localhost:8080/schedules/createAdd", {
+    const response = await fetch(`${BASE_URL}/schedules/createAdd`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

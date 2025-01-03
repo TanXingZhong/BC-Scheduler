@@ -15,7 +15,9 @@ import Users from "./pages/Users";
 import HomeGrid from "./components/Home/HomeGrid";
 import Roles from "./pages/Roles";
 import ChangePassword from "./pages/ChangePassword";
+import YearlyCountdown from "./pages/YearlyCountDown";
 import { useUserInfo } from "./hooks/useUserInfo";
+
 // export const Dashboard = lazy(() => import("./Dashboard"));
 // export const SignIn = lazy(() => import("./pages/SignIn"));
 // export const SignUp = lazy(() => import("./pages/SignUp"));
@@ -77,6 +79,14 @@ function App() {
           element={
             <ProtectedRoute user={user} isAdmin={admin}>
               <Roles />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="yearly-countdown"
+          element={
+            <ProtectedRoute user={user} isAdmin={admin}>
+              <YearlyCountdown />
             </ProtectedRoute>
           }
         />

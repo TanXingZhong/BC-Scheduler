@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuthContext } from "../useAuthContext";
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 export const useActionLeaveOffs = () => {
   const [error, setError] = useState(null);
@@ -18,8 +19,7 @@ export const useActionLeaveOffs = () => {
     setError(null);
     setSuccess(null);
 
-    const response = await fetch(
-      "http://localhost:8080/users/leaveoffapprovalaction",
+    const response = await fetch(`${BASE_URL}/users/leaveoffapprovalaction`,
       {
         method: "PUT",
         headers: {

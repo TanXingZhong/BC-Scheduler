@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuthContext } from "../useAuthContext";
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 export const useGetUserApplications = () => {
   const [error, setError] = useState(null);
@@ -10,7 +11,7 @@ export const useGetUserApplications = () => {
     setIsLoading(true);
     setError(null);
 
-    const response = await fetch("http://localhost:8080/schedules/user", {
+    const response = await fetch(`${BASE_URL}/schedules/user`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

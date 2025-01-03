@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuthContext } from "./useAuthContext";
 import { useUserContext } from "./useUserContext";
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 export const useGetUsersInfo = () => {
   const [error, setError] = useState(null);
@@ -12,7 +13,7 @@ export const useGetUsersInfo = () => {
     setIsLoading(true);
     setError(null);
 
-    const response = await fetch("http://localhost:8080/users", {
+    const response = await fetch(`${BASE_URL}/users`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

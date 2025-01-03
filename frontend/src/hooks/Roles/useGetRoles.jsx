@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuthContext } from "../useAuthContext";
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 export const useGetRoles = () => {
   const [error, setError] = useState(null);
@@ -7,7 +8,7 @@ export const useGetRoles = () => {
   const { user } = useAuthContext();
 
   const fetchRoles = async () => {
-    const response = await fetch("http://localhost:8080/roles", {
+    const response = await fetch(`${BASE_URL}/roles`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
