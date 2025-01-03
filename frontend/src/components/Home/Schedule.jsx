@@ -71,7 +71,14 @@ export default function Schedule() {
                 >
                   <CalendarMonthIcon />
                   <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                    {item.date}
+                    {new Date(
+                      item.date.split("/").reverse().join("-")
+                    ).toLocaleDateString("en-GB", {
+                      weekday: "long",
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })}
                   </Typography>
                 </Box>
                 <Box
