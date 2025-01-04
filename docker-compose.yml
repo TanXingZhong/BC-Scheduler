@@ -1,0 +1,44 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80" # Map host port 3000 to container's NGINX port 80
+    depends_on:
+      - backend
+    environment:
+      VITE_API_URL: "http://3.27.125.152:80"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      - TZ=Asia/Singapore
+      - NODE_ENV=development
+      - ACCESS_TOKEN_SECRET=b62884505304b047c8523a4a41b41d7ee4a302cfbeb0ec937d81b6af172151b680f1c44726df591aa6716720b39c0eaef1284012c9471fbc0fb31423e477c252
+      - REFRESH_TOKEN_SECRET=e72516d614eb5edf86c0178fda62861aa9dd7a4aa8f80bbb0be59a20b5f372eb31f3dc8cc2ad4028ade6b8c5d8d40aa5123fe85e8c5bdc828905396bb85828f0
+      - DB_HOST=172.17.0.4
+      - DB_USER=root
+      - DB_PASS=example
+      - DB_DATABASE=my_database
+    ports:
+      - "8080:8080" # Map host port 8080 to container's backend port 8080
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+      MYSQL_DATABASE: my_database
+    ports:
+      - "3306:3306"  # Map MySQL directly
+    volumes:
+      - /data/mysql:/var/lib/mysql  # Use a host path
+
+volumes:
+  mysql_data:

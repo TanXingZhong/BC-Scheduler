@@ -115,6 +115,7 @@ async function getUserByEmail(email) {
 
     return rows; // Returns the rows (user data)
   } catch (error) {
+    console.log("Error fetching user: ", error)
     throw new Error("Error fetching user.");
   }
 }

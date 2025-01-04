@@ -224,7 +224,7 @@ export default function AdminCalendar() {
     }
 
     // Merge data and temp
-    const mergedData = [...temp, ...data];
+    const mergedData = [...data, ...temp];
 
     setTransformedDataArray(mergedData);
     setFilteredData(mergedData);

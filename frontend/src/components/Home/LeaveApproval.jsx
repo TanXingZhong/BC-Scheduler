@@ -6,7 +6,7 @@ import "../../index.css";
 import { useGetPendingLeavesAndOffs } from "../../hooks/Home/useGetPendingLeavesAndOffs";
 import { toSGDate } from "../../../config/convertTimeToSGT";
 import { useActionLeaveOffs } from "../../hooks/Home/useActionLeaveOffs";
-import CheckIcon from "@mui/icons-material/check";
+import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
 
 export default function LeaveApproval() {

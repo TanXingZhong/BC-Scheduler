@@ -4,7 +4,7 @@ import { IconButton, Box } from "@mui/material";
 import { useGetAllApplications } from "../../hooks/Home/useGetAllApplications";
 import { toSGDate, toSGTimeShort } from "../../../config/convertTimeToSGT";
 import { usePutApplication } from "../../hooks/Calendar/usePutApplication";
-import CheckIcon from "@mui/icons-material/check";
+import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
 export default function ScheduleApproval() {
   const { allApplications, isLoading, error } = useGetAllApplications();

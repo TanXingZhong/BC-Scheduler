@@ -21,6 +21,7 @@ async function findDefaultRoleId() {
 
 //Get all roles from SQL
 async function getAllRoles() {
+
   const query = `
   SELECT r.id AS id, r.role_name, r.color, COUNT(u.id) AS user_count, GROUP_CONCAT(u.name) AS user_names
   FROM roles r
@@ -28,12 +29,15 @@ async function getAllRoles() {
   GROUP BY r.id, r.role_name
   `;
   try {
+
+    console.log("getAllRoles query: ", query);
     // Execute query using promise pool
     const [rows, fields] = await pool.execute(query);
 
     // log the result to inspect
     return rows;
   } catch (err) {
+    console.log("Error fetching roles: ", err);
     throw new Error(err);
   }
 }

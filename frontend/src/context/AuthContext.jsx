@@ -14,6 +14,8 @@ export const authReducer = (state, action) => {
 };
 
 export const AuthContextProvider = ({ children }) => {
+  console.log("BASE_URL", BASE_URL);
+
   const [state, dispatch] = useReducer(authReducer, {
     user: null,
   });
