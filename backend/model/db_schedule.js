@@ -45,15 +45,16 @@ async function checkVacantSchedule(schedule_id) {
   }
 }
 
-async function addSchedule(outlet_name, start_time, end_time, vacancy) {
+async function addSchedule(outlet_name, start_time, end_time, vacancy, show) {
   const query =
-    "INSERT INTO schedule (outlet_name, start_time, end_time, vacancy) VALUES (?, ?, ?, ?)";
+    "INSERT INTO schedule (outlet_name, start_time, end_time, vacancy, published) VALUES (?, ?, ?, ?, ?)";
   try {
     const [rows, fields] = await pool.execute(query, [
       outlet_name,
       start_time,
       end_time,
       vacancy,
+      show,
     ]);
     return rows;
   } catch (err) {
@@ -85,7 +86,7 @@ async function getAllSchedulesAndUsers(start_date) {
 
 async function getAllShiftsByUser(user_id) {
   const query =
-    "SELECT s.schedule_id, s.vacancy, s.start_time, s.end_time, s.outlet_name, u.id, u.name FROM schedule s, confirmed_slots c, users u WHERE s.schedule_id = c.schedule_id AND u.id = c.user_id AND u.id=?";
+    "SELECT s.schedule_id, s.vacancy, s.start_time, s.end_time, s.outlet_name, u.id, u.name FROM schedule s, confirmed_slots c, users u WHERE s.schedule_id = c.schedule_id AND u.id = c.user_id AND u.id=? AND s.published = 1";
   try {
     const [rows, fields] = await pool.execute(query, [user_id]);
     return rows;
@@ -120,10 +121,12 @@ async function updateSchedule(
   outlet_name,
   start_time,
   end_time,
-  vacancy
+  vacancy,
+  published
 ) {
   const query =
-    "UPDATE schedule SET outlet_name = ?, start_time = ?, end_time = ?, vacancy = ? WHERE schedule_id = ?";
+    "UPDATE schedule SET outlet_name = ?, start_time = ?, end_time = ?, vacancy = ?, published = ? WHERE schedule_id = ?";
+
   try {
     const schedule = await getScheduleById(schedule_id);
     if (
@@ -150,6 +153,7 @@ async function updateSchedule(
       start_time,
       end_time,
       vacancy,
+      published,
       schedule_id,
     ]);
     return rows;

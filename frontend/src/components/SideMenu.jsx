@@ -44,7 +44,7 @@ export default function SideMenu() {
         }}
       >
         <h1 style={{ marginRight: "1px" }}>Burnt Cones</h1>
-        <img src={logo2} alt="logo" style={{ width: "50px" }} />
+        <img src={logo2} alt="logo" style={{ width: "40px" }} />
       </Box>
 
       <Divider />

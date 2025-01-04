@@ -14,7 +14,9 @@ import {
   OutlinedInput,
   Select,
   TextField,
+  Switch,
   Box,
+  Typography,
 } from "@mui/material";
 import { green } from "@mui/material/colors";
 import PropTypes from "prop-types";
@@ -47,6 +49,7 @@ function Publish({ open, handleContinue, handleClose, names }) {
   const [cycleStart, setCycleStart] = useState("");
   const [cycleEnd, setCycleEnd] = useState("");
   const [employee, setEmployee] = useState([]);
+  const [show, setShow] = useState(false);
 
   useEffect(() => {
     setRepeat("Never");
@@ -193,7 +196,8 @@ function Publish({ open, handleContinue, handleClose, names }) {
       endDateObj,
       diffInDays,
       interval,
-      employee
+      employee,
+      show
     );
     setLoading(false);
   };
@@ -262,7 +266,32 @@ function Publish({ open, handleContinue, handleClose, names }) {
         sx: { backgroundImage: "none" },
       }}
     >
-      <DialogTitle id="create-role-dialog-title">Create Schedule</DialogTitle>
+      <DialogTitle id="create-role-dialog-title">
+        Create Schedule{" "}
+        <Box
+          sx={{
+            position: "absolute",
+            right: 16,
+            top: 16,
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <Typography sx={{ marginRight: 1 }}>Show</Typography>
+          <Switch
+            name="goat"
+            onChange={(x) => setShow(x.target.checked)}
+            sx={{
+              "& .MuiSwitch-switchBase": { color: "gray" }, // Default color
+              "& .MuiSwitch-switchBase.Mui-checked": { color: "blue" }, // Checked color
+              "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                backgroundColor: "blue",
+              }, // Checked track color
+              "& .MuiSwitch-track": { backgroundColor: "gray" }, // Default track color
+            }}
+          />
+        </Box>
+      </DialogTitle>
       <DialogContent sx={{ gap: 2 }}>
         <Grid container spacing={5}>
           <Grid

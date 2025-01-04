@@ -13,7 +13,8 @@ export const useEditSchedule = () => {
     outlet_name,
     start_time,
     end_time,
-    vacancy
+    vacancy,
+    published
   ) => {
     setIsLoading(true);
     setError(null);
@@ -31,6 +32,7 @@ export const useEditSchedule = () => {
         start_time,
         end_time,
         vacancy,
+        published,
       }),
     });
 

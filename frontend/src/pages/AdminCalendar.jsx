@@ -19,18 +19,20 @@ import { useGetNames } from "../hooks/Calendar/useGetNames";
 import { useGetMonthLeaveOffs } from "../hooks/useGetMonthLeaveOffs";
 import ViewLeaves from "../components/ViewLeaves";
 import { toSGTimeShort } from "../../config/convertTimeToSGT";
-import { dateTimeToDBDate } from "../../config/convertDateToDB";
+import { dateTimeToDBDate, dateToDBDate } from "../../config/convertDateToDB";
 import AllocateSchedule from "../components/AllocateSchedule";
 import { useDeleteSchedule } from "../hooks/Calendar/useDeleteSchedule";
 import { useChangeUserFromSchedule } from "../hooks/Calendar/useChangeUserFromSchedule";
 import { useRemoveUserFromSchedule } from "../hooks/Calendar/useRemoveUserFromSchedule";
 import CloseIcon from "@mui/icons-material/Close";
 import { useCreateAdd } from "../hooks/Calendar/useCreateAdd";
+import { useEditSchedule } from "../hooks/Calendar/useEditSchedule";
 import { useCreateSchedule } from "../hooks/Calendar/useCreateSchedule";
 
 export default function AdminCalendar() {
   const localizer = momentLocalizer(moment);
   const { fetchNames } = useGetNames();
+  const { editSchedule } = useEditSchedule();
   const { monthLeaveOffs, error: LeaveOffsErrror } = useGetMonthLeaveOffs();
   const [monthLeaveOffsData, setmonthLeaveOffsData] = useState([]);
   const { fetchSchedule } = useGetCalendar();
@@ -46,6 +48,7 @@ export default function AdminCalendar() {
   } = useDeleteSchedule();
   const selectedSlotsRef = useRef([]);
   const [isDeleteButtonVisible, setDeleteButtonVisible] = useState(false);
+  const [isPublishVisible, setPublishVisible] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState([]);
   const [transformedDataArray, setTransformedDataArray] = useState([]);
   const [filteredDataArray, setFilteredData] = useState([]);
@@ -203,6 +206,7 @@ export default function AdminCalendar() {
           end_time: toSGTimeShort(data.end_time),
           vacancy: data.vacancy,
           array: combinedSlots,
+          published: data.published,
           type: "work",
         };
       });
@@ -224,7 +228,7 @@ export default function AdminCalendar() {
     }
 
     // Merge data and temp
-    const mergedData = [...temp, ...data];
+    const mergedData = [...data, ...temp];
 
     setTransformedDataArray(mergedData);
     setFilteredData(mergedData);
@@ -262,7 +266,8 @@ export default function AdminCalendar() {
     endDateObj,
     diffInDays,
     interval,
-    employee
+    employee,
+    show
   ) => {
     const schedulePromisesArr = [];
     if (employee.length > 0) {
@@ -272,7 +277,8 @@ export default function AdminCalendar() {
           `${formattedDate} ${startTime}`,
           `${formattedDate} ${endTime}`,
           vacancy,
-          employee
+          employee,
+          show
         )
       );
     } else {
@@ -281,7 +287,8 @@ export default function AdminCalendar() {
           outletName,
           `${formattedDate} ${startTime}`,
           `${formattedDate} ${endTime}`,
-          vacancy
+          vacancy,
+          show
         )
       );
     }
@@ -305,7 +312,8 @@ export default function AdminCalendar() {
               `${currentFormattedDate} ${startTime}`,
               `${currentFormattedDate} ${endTime}`,
               vacancy,
-              employee
+              employee,
+              show
             )
           );
         } else {
@@ -314,7 +322,8 @@ export default function AdminCalendar() {
               outletName,
               `${currentFormattedDate} ${startTime}`,
               `${currentFormattedDate} ${endTime}`,
-              vacancy
+              vacancy,
+              show
             )
           );
         }
@@ -510,6 +519,26 @@ export default function AdminCalendar() {
     onLoad(getMonthRange(currentDate));
   };
 
+  const handleShowPublish = async () => {
+    const showPromise = selectedSlotsRef.current.map((x) => {
+      return editSchedule(
+        x.schedule_id,
+        x.outlet_name,
+        dateToDBDate(x.start) + " " + x.start_time,
+        dateToDBDate(x.start) + " " + x.end_time,
+        x.vacancy,
+        1
+      );
+    });
+
+    await Promise.all(showPromise);
+    selectedSlotsRef.current = [];
+    if (isPublishVisible) {
+      setPublishVisible(false);
+    }
+    onLoad(getMonthRange(currentDate));
+  };
+
   const [openLeave, setOpenLeave] = useState(false);
   const [leaveData, setLeaveData] = useState("");
   const [leaveDataDate, setLeaveDataDate] = useState("");
@@ -542,18 +571,24 @@ export default function AdminCalendar() {
     setOpenLeave(false);
   };
 
-  const handleNavigate = useCallback((newDate) => {
-    handleClearFilters();
-    setmonthLeaveOffsData([]);
-    setSchedule([]);
-    setScheduleAndUsers([]);
-    setSelectedSlot([]);
-    selectedSlotsRef.current = [];
-    setCurrentDate(newDate);
-    if (isDeleteButtonVisible) {
-      setDeleteButtonVisible(false);
-    }
-  }, []);
+  const handleNavigate = useCallback(
+    (newDate) => {
+      handleClearFilters();
+      setmonthLeaveOffsData([]);
+      setSchedule([]);
+      setScheduleAndUsers([]);
+      setSelectedSlot([]);
+      selectedSlotsRef.current = [];
+      setCurrentDate(newDate);
+      if (isDeleteButtonVisible) {
+        setDeleteButtonVisible(false);
+      }
+      if (isPublishVisible) {
+        setPublishVisible(false);
+      }
+    },
+    [isPublishVisible, isDeleteButtonVisible]
+  );
 
   const handleRefresh = () => {
     onLoad(getMonthRange(currentDate));
@@ -580,6 +615,7 @@ export default function AdminCalendar() {
                 alignItems: "center",
                 justifyContent: "center",
                 backgroundColor: x.color,
+                border: event.published === 0 ? "2px dotted blue" : "none",
                 transition: "all 0.3s ease",
                 "&:hover": {
                   backgroundColor: "grey",
@@ -664,16 +700,52 @@ export default function AdminCalendar() {
 
         <Grid2 sx={{ marginLeft: "auto" }}>
           {isDeleteButtonVisible && (
-            <Button onClick={handleDelete} variant="outlined">
+            <Button
+              onClick={handleDelete}
+              variant="outlined"
+              sx={{
+                borderColor: "#E57373", // Softer red color for border
+                color: "#E57373", // Softer red text color
+                "&:hover": {
+                  borderColor: "#EF5350", // Slightly darker red on hover
+                  color: "#EF5350", // Darker red text color on hover
+                },
+              }}
+            >
               Delete
+            </Button>
+          )}
+          {isPublishVisible && (
+            <Button
+              onClick={handleShowPublish}
+              variant="outlined"
+              sx={{
+                marginLeft: "10px",
+                borderColor: "#64B5F6", // Softer blue color for border
+                color: "#64B5F6", // Softer blue text color
+                "&:hover": {
+                  borderColor: "#42A5F5", // Slightly darker blue on hover
+                  color: "#42A5F5", // Darker blue text color on hover
+                },
+              }}
+            >
+              Publish
             </Button>
           )}
           <Button
             onClick={handleClickOpenPublish}
             variant="outlined"
-            sx={{ marginLeft: "10px" }} // Adds space between buttons
+            sx={{
+              marginLeft: "10px", // Adds space between buttons
+              borderColor: "#81C784", // Softer green color for border
+              color: "#81C784", // Softer green text color
+              "&:hover": {
+                borderColor: "#66BB6A", // Slightly darker green on hover
+                color: "#66BB6A", // Darker green text color on hover
+              },
+            }}
           >
-            Publish
+            Create Shifts
           </Button>
         </Grid2>
       </Grid2>
@@ -812,13 +884,17 @@ export default function AdminCalendar() {
               new Date(event.end) <= new Date(end)
           );
           setSelectedSlot(slots);
-          selectedSlotsRef.current = selectedEvents.filter(
-            (event) => event.type === "work"
-          );
+          selectedSlotsRef.current = selectedEvents.filter((event) => {
+            if (event.published === 0) {
+              setPublishVisible(true);
+            }
+            return event.type === "work" || event.published === 0;
+          });
           if (selectedSlotsRef.current.length > 0) {
             setDeleteButtonVisible(true);
           } else {
             setDeleteButtonVisible(false);
+            setPublishVisible(false);
           }
         }}
         dayPropGetter={(date) => {

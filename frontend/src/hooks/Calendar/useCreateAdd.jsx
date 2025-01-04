@@ -14,7 +14,8 @@ export const useCreateAdd = () => {
     start_time,
     end_time,
     vacancy,
-    user_id
+    user_id,
+    show
   ) => {
     setIsLoading(true);
     setError(null);
@@ -32,6 +33,7 @@ export const useCreateAdd = () => {
         end_time,
         vacancy,
         user_id,
+        show,
       }),
     });
 

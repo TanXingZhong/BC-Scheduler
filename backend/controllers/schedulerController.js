@@ -24,7 +24,7 @@ const getAllSchedules = async (req, res) => {
 // @route POST /schedule
 // @access Private
 const createSchedules = async (req, res) => {
-  const { outlet_name, start_time, end_time, vacancy } = req.body;
+  const { outlet_name, start_time, end_time, vacancy, show } = req.body;
 
   // Confirm data
   if (!outlet_name || !start_time || !end_time || !vacancy) {
@@ -34,7 +34,13 @@ const createSchedules = async (req, res) => {
   }
   // Create and store new schedule
   try {
-    await db_schedule.addSchedule(outlet_name, start_time, end_time, vacancy);
+    await db_schedule.addSchedule(
+      outlet_name,
+      start_time,
+      end_time,
+      vacancy,
+      show
+    );
     return res.status(201).json({
       message: `New schedule at ${outlet_name} created!`,
     });
@@ -44,7 +50,8 @@ const createSchedules = async (req, res) => {
 };
 
 const createSchedulesAddUser = async (req, res) => {
-  const { outlet_name, start_time, end_time, vacancy, user_id } = req.body;
+  const { outlet_name, start_time, end_time, vacancy, user_id, show } =
+    req.body;
 
   // Confirm data
   if (!outlet_name || !start_time || !end_time || !vacancy) {
@@ -79,7 +86,8 @@ const createSchedulesAddUser = async (req, res) => {
         outlet_name,
         start_time,
         end_time,
-        vacancy
+        vacancy,
+        show
       );
       const schedule_id = rows.insertId;
       for (let user of accepted) {
@@ -104,8 +112,10 @@ const createSchedulesAddUser = async (req, res) => {
 // @route PATCH /schedule
 // @access Private
 const updateSchedules = async (req, res) => {
-  const { schedule_id, outlet_name, start_time, end_time, vacancy } = req.body;
+  const { schedule_id, outlet_name, start_time, end_time, vacancy, published } =
+    req.body;
 
+  console.log(req.body);
   // Confirm data
   if (!schedule_id || !outlet_name || !start_time || !end_time || vacancy < 0) {
     return res
@@ -132,7 +142,8 @@ const updateSchedules = async (req, res) => {
       outlet_name,
       start_time,
       end_time,
-      vacancy
+      vacancy,
+      published
     );
     return res
       .status(200)

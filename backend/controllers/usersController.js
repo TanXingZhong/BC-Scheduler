@@ -59,14 +59,9 @@ const updateUser = async (req, res) => {
   // Confirm data
   if (
     !data.name ||
-    !data.nric ||
     !data.email ||
-    !data.phonenumber ||
     !data.sex ||
     !data.dob ||
-    !data.bankName ||
-    !data.bankAccountNo ||
-    !data.address ||
     !data.workplace ||
     !data.occupation ||
     data.driverLicense == null ||

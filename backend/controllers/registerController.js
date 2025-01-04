@@ -20,18 +20,7 @@ const handleNewUser = async (req, res) => {
   } = req.body; // Ensure username, password are passed if required
 
   // Ensure the required fields are present
-  if (
-    !name ||
-    !nric ||
-    !email ||
-    !password ||
-    !phonenumber ||
-    !sex ||
-    !dob ||
-    !bankName ||
-    !bankAccountNo ||
-    !address
-  ) {
+  if (!name || !email || !password || !sex || !dob) {
     return res.status(400).json({
       message: "Missing Informations",
     });

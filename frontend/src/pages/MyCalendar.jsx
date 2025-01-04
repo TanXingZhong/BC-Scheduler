@@ -54,6 +54,9 @@ export default function MyCalendar() {
     if (schedule) {
       data = schedule.map((data) => {
         // Find all users scheduled for this slot
+        if (data.published === 0) {
+          return;
+        }
         const filledSlots = scheduleAndUsers
           .filter((x) => x.schedule_id === data.schedule_id)
           .map((slot) => ({
@@ -88,6 +91,7 @@ export default function MyCalendar() {
           end_time: toSGTimeShort(data.end_time),
           vacancy: data.vacancy,
           array: combinedSlots,
+          published: data.published,
           type: "work",
         };
       });
@@ -110,7 +114,7 @@ export default function MyCalendar() {
     }
 
     // Merge data and temp
-    const mergedData = [...temp, ...data];
+    const mergedData = [...data, ...temp];
 
     setTransformedDataArray(mergedData);
     setFilteredData(mergedData);

@@ -8,6 +8,9 @@ import {
   TextField,
   Snackbar,
   IconButton,
+  Typography,
+  Box,
+  Switch,
   MenuItem,
 } from "@mui/material";
 import PropTypes from "prop-types";
@@ -115,7 +118,8 @@ function EditSchedule({ open, handleClose, scheduleInfo, refresh }) {
       formData.outlet_name,
       dateToDBDate(formData.start) + " " + formData.start_time,
       dateToDBDate(formData.start) + " " + formData.end_time,
-      formData.vacancy
+      formData.vacancy,
+      formData.published
     );
     setOpenEditSB(true);
     refresh();
@@ -189,6 +193,35 @@ function EditSchedule({ open, handleClose, scheduleInfo, refresh }) {
         }}
       >
         Edit Shift
+        <Box
+          sx={{
+            position: "absolute",
+            right: 16,
+            top: 16,
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <Typography sx={{ marginRight: 1 }}>Show</Typography>
+          <Switch
+            name="Show"
+            onChange={(event) =>
+              setFormData((prevState) => ({
+                ...prevState,
+                published: event.target.checked ? 1 : 0,
+              }))
+            }
+            checked={formData.published === 1}
+            sx={{
+              "& .MuiSwitch-switchBase": { color: "gray" }, // Default color
+              "& .MuiSwitch-switchBase.Mui-checked": { color: "blue" }, // Checked color
+              "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                backgroundColor: "blue",
+              }, // Checked track color
+              "& .MuiSwitch-track": { backgroundColor: "gray" }, // Default track color
+            }}
+          />
+        </Box>
       </DialogTitle>
       <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
         <Grid container spacing={5}>

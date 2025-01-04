@@ -8,7 +8,13 @@ export const useCreateSchedule = () => {
   const [success, setSuccess] = useState(null);
   const { user } = useAuthContext();
 
-  const createSchedule = async (outlet_name, start_time, end_time, vacancy) => {
+  const createSchedule = async (
+    outlet_name,
+    start_time,
+    end_time,
+    vacancy,
+    show
+  ) => {
     setIsLoading(true);
     setError(null);
     setSuccess(null);
@@ -24,6 +30,7 @@ export const useCreateSchedule = () => {
         start_time,
         end_time,
         vacancy,
+        show,
       }),
     });
 

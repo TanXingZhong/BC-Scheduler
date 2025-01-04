@@ -100,21 +100,26 @@ export default function SignUp(props) {
     }
 
     // Validate NRIC
-    if (!nric.value) {
-      setError("nric", true, "NRIC is required.");
-      isValid = false;
-    } else if (nric.value.length !== 9) {
+    if (nric.value && nric.value.length !== 9) {
       setError("nric", true, "NRIC length must be 9.");
       isValid = false;
     } else {
       setError("nric", false, "");
     }
 
-    // Validate Phone Number
-    if (!phonenumber.value) {
-      setError("phonenumber", true, "Phone Number is required.");
-      isValid = false;
-    } else if (!/^\d+$/.test(phonenumber.value)) {
+    // // Validate Phone Number
+    // if (!phonenumber.value) {
+    //   setError("phonenumber", true, "Phone Number is required.");
+    //   isValid = false;
+    // } else if (!/^\d+$/.test(phonenumber.value)) {
+    //   // Check if the input is numeric
+    //   setError("phonenumber", true, "Phone Number must be a valid number.");
+    //   isValid = false;
+    // } else {
+    //   setError("phonenumber", false, "");
+    // }
+
+    if (phonenumber.value.length > 0 && !/^\d+$/.test(phonenumber.value)) {
       // Check if the input is numeric
       setError("phonenumber", true, "Phone Number must be a valid number.");
       isValid = false;
@@ -151,28 +156,28 @@ export default function SignUp(props) {
     }
 
     // Validate Bank Name
-    if (!bankName.value || bankName.value.length < 1) {
-      setError("bankName", true, "Bank Name is required.");
-      isValid = false;
-    } else {
-      setError("bankName", false, "");
-    }
+    // if (!bankName.value || bankName.value.length < 1) {
+    //   setError("bankName", true, "Bank Name is required.");
+    //   isValid = false;
+    // } else {
+    //   setError("bankName", false, "");
+    // }
 
-    // Validate Bank Account No
-    if (!bankAccountNo.value || bankAccountNo.value.length < 1) {
-      setError("bankAccountNo", true, "Bank Account No is required.");
-      isValid = false;
-    } else {
-      setError("bankAccountNo", false, "");
-    }
+    // // Validate Bank Account No
+    // if (!bankAccountNo.value || bankAccountNo.value.length < 1) {
+    //   setError("bankAccountNo", true, "Bank Account No is required.");
+    //   isValid = false;
+    // } else {
+    //   setError("bankAccountNo", false, "");
+    // }
 
     // Validate Address
-    if (!address.value || address.value.length < 1) {
-      setError("address", true, "Address is required.");
-      isValid = false;
-    } else {
-      setError("address", false, "");
-    }
+    // if (!address.value || address.value.length < 1) {
+    //   setError("address", true, "Address is required.");
+    //   isValid = false;
+    // } else {
+    //   setError("address", false, "");
+    // }
     return isValid;
   };
 
