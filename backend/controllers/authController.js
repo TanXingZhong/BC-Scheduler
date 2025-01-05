@@ -92,7 +92,7 @@ const refresh = (req, res) => {
           },
         },
         process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: "30m" }
+        { expiresIn: "60m" }
       );
       res.json({ accessToken });
     }
