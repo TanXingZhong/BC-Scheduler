@@ -633,11 +633,7 @@ export default function AdminCalendar() {
                 textAlign: "center",
               }}
             >
-              {`${
-                event.slot.employee === "EMPTY"
-                  ? "Vacant Slot"
-                  : event.slot.employee
-              } - ${title}`}{" "}
+              {`${event.slot.employee} - ${title}`}{" "}
             </Typography>
           </Box>
         ) : (
