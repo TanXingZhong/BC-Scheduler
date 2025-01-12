@@ -346,7 +346,9 @@ export default function MyCalendar() {
                 textAlign: "center",
               }}
             >
-              {`${event.slot.employee} - ${title}`}{" "}
+              {`${
+                event.slot.employee == "EMPTY" ? "Vacant" : event.slot.employee
+              }  - ${title}`}{" "}
               {/* Combine title with each item */}
             </Typography>
           </Box>
