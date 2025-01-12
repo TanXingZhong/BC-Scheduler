@@ -107,30 +107,41 @@ const Roles = () => {
       width: 100,
       headerAlign: "center",
       align: "center",
-      renderCell: (params) => (
-        <Box>
-          <IconButton
-            sx={{
-              border: "none",
-              borderRadius: "50%",
-            }}
-            aria-label="edit"
-            onClick={() => handleClickOpenEditRole(params.row)}
-          >
-            <EditIcon fontSize="small" sx={{ color: "blue" }} />
-          </IconButton>
-          <IconButton
-            sx={{
-              border: "none",
-              borderRadius: "50%",
-            }}
-            aria-label="delete"
-            onClick={() => handleClickOpenRoleDelete(params.row.role_name)}
-          >
-            <DeleteIcon fontSize="small" sx={{ color: "red" }} />
-          </IconButton>
-        </Box>
-      ),
+      renderCell: (params) => {
+        const role_name = params.row.role_name;
+        return (
+          <div>
+            {role_name !== "User" ? (
+              <Box>
+                <IconButton
+                  sx={{
+                    border: "none",
+                    borderRadius: "50%",
+                  }}
+                  aria-label="edit"
+                  onClick={() => handleClickOpenEditRole(params.row)}
+                >
+                  <EditIcon fontSize="small" sx={{ color: "blue" }} />
+                </IconButton>
+                <IconButton
+                  sx={{
+                    border: "none",
+                    borderRadius: "50%",
+                  }}
+                  aria-label="delete"
+                  onClick={() =>
+                    handleClickOpenRoleDelete(params.row.role_name)
+                  }
+                >
+                  <DeleteIcon fontSize="small" sx={{ color: "red" }} />
+                </IconButton>
+              </Box>
+            ) : (
+              <span>No actions</span>
+            )}
+          </div>
+        );
+      },
     },
   ];
 

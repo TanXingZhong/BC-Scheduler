@@ -170,7 +170,7 @@ export default function AdminCalendar() {
   useEffect(() => {
     var data = [];
     if (schedule) {
-      data = schedule.map((data) => {
+      data = schedule.flatMap((data) => {
         // Find all users scheduled for this slot
         const filledSlots = scheduleAndUsers
           .filter((x) => x.schedule_id === data.schedule_id)
@@ -179,22 +179,25 @@ export default function AdminCalendar() {
             employee: slot.name,
             role: slot.role_name,
             color: slot.color,
+            type: "filled", // Mark as a filled slot
           }));
 
-        // Calculate the number of empty slots based on vacancie
+        // Calculate the number of empty slots based on vacancies
         const emptySlots = Array(data.vacancy)
           .fill()
           .map(() => ({
             id: "",
             employee: "EMPTY",
             role: "NONE",
-            color: "#FF5733",
+            color: "#FF5733", // Placeholder color for empty slots
+            type: "empty", // Mark as an empty slot
           }));
 
-        // Combine filled and empty slots
-        const combinedSlots = [...filledSlots, ...emptySlots];
+        // Combine filled and empty slots into individual slots
+        const allSlots = [...filledSlots, ...emptySlots];
 
-        return {
+        // Structure each individual slot separately
+        const individualSlots = allSlots.map((slot) => ({
           schedule_id: data.schedule_id,
           title: `${data.outlet_name}, ${toSGTimeShort(
             data.start_time
@@ -205,13 +208,15 @@ export default function AdminCalendar() {
           start_time: toSGTimeShort(data.start_time),
           end_time: toSGTimeShort(data.end_time),
           vacancy: data.vacancy,
-          array: combinedSlots,
+          slot: slot,
+          array: allSlots,
           published: data.published,
           type: "work",
-        };
+        }));
+
+        return individualSlots;
       });
     }
-
     var temp = [];
 
     // Update temp structure to match data's format
@@ -514,6 +519,7 @@ export default function AdminCalendar() {
     selectedSlotsRef.current = [];
     if (isDeleteButtonVisible) {
       setDeleteButtonVisible(false);
+      setPublishVisible(false);
     }
     setOpenDeleteSB(true);
     onLoad(getMonthRange(currentDate));
@@ -556,7 +562,7 @@ export default function AdminCalendar() {
     onLoad(getMonthRange(currentDate));
     setOpenChangeSB(true);
   };
-  const handleCardClick = useCallback((event, x) => {
+  const handleCardClick = useCallback((event) => {
     setScheduleInfo(event);
     setOpenAllocateSchedule(true);
   }, []);
@@ -596,46 +602,44 @@ export default function AdminCalendar() {
 
   const CustomEventWrapper = ({ event, onCardClick, onLeaveClick }) => {
     const title = event.title;
-    const arr = event.array;
     const isWorkType = event.type === "work";
     const userLeaveData = event.people;
     const leaveDataDate = event.start;
-
     return (
       <div>
         {isWorkType ? (
-          arr.map((x, index) => (
-            <Box
-              key={index}
-              variant="outlined"
+          <Box
+            variant="outlined"
+            sx={{
+              fontSize: "10px",
+              cursor: "pointer",
+              marginBottom: "1px",
+
+              backgroundColor: event.slot.color,
+              border: event.published === 0 ? "2px dotted blue" : "none",
+              transition: "all 0.3s ease",
+              "&:hover": {
+                backgroundColor: "grey",
+                transform: "scale(1.05)",
+                boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)",
+              },
+            }}
+            onClick={() => onCardClick(event)}
+          >
+            <Typography
               sx={{
                 fontSize: "10px",
-                cursor: "pointer",
-                marginBottom: "1px",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: x.color,
-                border: event.published === 0 ? "2px dotted blue" : "none",
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  backgroundColor: "grey",
-                  transform: "scale(1.05)",
-                  boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)",
-                },
+                color: "white",
+                textAlign: "center",
               }}
-              onClick={() => onCardClick(event, x)}
             >
-              <Typography
-                sx={{
-                  fontSize: "10px",
-                  color: "white",
-                  textAlign: "center",
-                }}
-              >
-                {`${x.employee} - ${title}`}{" "}
-              </Typography>
-            </Box>
-          ))
+              {`${
+                event.slot.employee === "EMPTY"
+                  ? "Vacant Slot"
+                  : event.slot.employee
+              } - ${title}`}{" "}
+            </Typography>
+          </Box>
         ) : (
           <Box
             variant="outlined"
@@ -868,9 +872,45 @@ export default function AdminCalendar() {
       <Calendar
         localizer={localizer}
         events={filteredDataArray.sort((a, b) => {
-          if (a.type === "work" && b.type === "work") {
-            return a.outlet_name.localeCompare(b.outlet_name);
+          function parseTime(timeString) {
+            const [hours, minutes] = timeString.split(":").map(Number);
+            return hours * 60 + minutes; // Convert time to total minutes
           }
+
+          if (a.type === "work" && b.type === "work") {
+            // First, compare by outlet name
+            const outletComparison = a.outlet_name.localeCompare(b.outlet_name);
+            if (outletComparison !== 0) {
+              return outletComparison;
+            }
+
+            // Then, compare by start time
+            const startComparison =
+              parseTime(a.start_time) - parseTime(b.start_time);
+            if (startComparison !== 0) {
+              return startComparison;
+            }
+
+            // If start times are the same, compare by end time
+            const endComparison = parseTime(a.end_time) - parseTime(b.end_time);
+            if (endComparison !== 0) {
+              return endComparison;
+            }
+
+            // Finally, compare by slot employee, with "EMPTY" coming first
+            if (a.slot.employee === "EMPTY" && b.slot.employee !== "EMPTY") {
+              return -1; // a comes before b
+            } else if (
+              a.slot.employee !== "EMPTY" &&
+              b.slot.employee === "EMPTY"
+            ) {
+              return 1; // b comes before a
+            }
+
+            // If both are "EMPTY" or neither are "EMPTY", no further sorting is needed
+            return 0;
+          }
+
           return 0;
         })}
         defaultView="month"
@@ -878,10 +918,12 @@ export default function AdminCalendar() {
         views={["month"]}
         onSelectSlot={(slotInfo) => {
           const { start, end, slots } = slotInfo;
+          const modifiedEnd = new Date(end);
+          modifiedEnd.setDate(modifiedEnd.getDate() - 1);
           const selectedEvents = filteredDataArray.filter(
             (event) =>
               new Date(event.start) >= new Date(start) &&
-              new Date(event.end) <= new Date(end)
+              new Date(event.end) <= new Date(modifiedEnd)
           );
           setSelectedSlot(slots);
           selectedSlotsRef.current = selectedEvents.filter((event) => {
