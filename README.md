@@ -76,145 +76,147 @@ Your frontend should now be running. The application will usually be accessible 
 
 Follow these steps to set up the MySQL database for the Scheduler Web Application.
 
-1. **Install MySQL**
+1. **Install MySQL**:
 
-Ensure that MySQL is installed on your system. If not, download and install it from [here](https://dev.mysql.com/downloads/installer/).
+   Ensure that MySQL is installed on your system. If not, download and install it from [here](https://dev.mysql.com/downloads/installer/).
 
-2. **Create the Database**
+2. **Create the Database**:
 
-Open MySQL command-line client or any MySQL GUI tool such as MySQL Workbench.
-Create a new database by running the following command:
+   Open MySQL command-line client or any MySQL GUI tool such as MySQL Workbench.
+   Create a new database by running the following command:
 
    ```sql
    CREATE DATABASE burntcones;
    ```
 
-Switch to the newly created database:
+   Switch to the newly created database:
    ```sql
    USE scheduler_app;
    ```
 
-3. **Set Up Tables**
+3. **Set Up Tables**:
 
-Run the following SQL script to create the necessary tables:
+   Run the following SQL script to create the necessary tables:
 
-```sql
--- Delete existing tables if they exist
-DROP TABLE IF EXISTS leave_offs;
-DROP TABLE IF EXISTS shift_applications;
-DROP TABLE IF EXISTS confirmed_slots;
-DROP TABLE IF EXISTS schedule;
-DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS roles;
+   ```sql
+   -- Delete existing tables if they exist
+   DROP TABLE IF EXISTS leave_offs;
+   DROP TABLE IF EXISTS shift_applications;
+   DROP TABLE IF EXISTS confirmed_slots;
+   DROP TABLE IF EXISTS schedule;
+   DROP TABLE IF EXISTS users;
+   DROP TABLE IF EXISTS roles;
 
--- Create roles table
-CREATE TABLE IF NOT EXISTS roles (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  role_name VARCHAR(255) UNIQUE NOT NULL,
-  color VARCHAR(255) DEFAULT '#212121',
-  permanent BOOLEAN DEFAULT FALSE
-);
+   -- Create roles table
+   CREATE TABLE IF NOT EXISTS roles (
+   id INT AUTO_INCREMENT PRIMARY KEY,
+   role_name VARCHAR(255) UNIQUE NOT NULL,
+   color VARCHAR(255) DEFAULT '#212121',
+   permanent BOOLEAN DEFAULT FALSE
+   );
 
--- Create users table
-CREATE TABLE IF NOT EXISTS users (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  nric VARCHAR(20),
-  email VARCHAR(255) NOT NULL UNIQUE,
-  password VARCHAR(255) NOT NULL,
-  phonenumber VARCHAR(20),
-  sex ENUM('Male', 'Female') NOT NULL,
-  dob DATETIME NOT NULL,
-  bankName VARCHAR(255),
-  bankAccountNo VARCHAR(255),
-  address VARCHAR(255),
-  workplace VARCHAR(255) DEFAULT 'NA',
-  occupation VARCHAR(255) DEFAULT 'NA',
-  driverLicense BOOLEAN DEFAULT FALSE,
-  firstAid BOOLEAN DEFAULT FALSE,
-  joinDate DATETIME DEFAULT CURRENT_TIMESTAMP,
-  admin BOOLEAN DEFAULT FALSE,
-  active BOOLEAN DEFAULT TRUE,
-  role_id INT,
-  leaves DECIMAL(5,1) DEFAULT 0,
-  offs DECIMAL(5,1) DEFAULT 0,
-  FOREIGN KEY (role_id) REFERENCES roles(id)
-);
+   -- Create users table
+   CREATE TABLE IF NOT EXISTS users (
+   id INT AUTO_INCREMENT PRIMARY KEY,
+   name VARCHAR(255) NOT NULL,
+   nric VARCHAR(20),
+   email VARCHAR(255) NOT NULL UNIQUE,
+   password VARCHAR(255) NOT NULL,
+   phonenumber VARCHAR(20),
+   sex ENUM('Male', 'Female') NOT NULL,
+   dob DATETIME NOT NULL,
+   bankName VARCHAR(255),
+   bankAccountNo VARCHAR(255),
+   address VARCHAR(255),
+   workplace VARCHAR(255) DEFAULT 'NA',
+   occupation VARCHAR(255) DEFAULT 'NA',
+   driverLicense BOOLEAN DEFAULT FALSE,
+   firstAid BOOLEAN DEFAULT FALSE,
+   joinDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+   admin BOOLEAN DEFAULT FALSE,
+   active BOOLEAN DEFAULT TRUE,
+   role_id INT,
+   leaves DECIMAL(5,1) DEFAULT 0,
+   offs DECIMAL(5,1) DEFAULT 0,
+   FOREIGN KEY (role_id) REFERENCES roles(id)
+   );
 
--- Create schedule table
-CREATE TABLE IF NOT EXISTS schedule (
-  schedule_id INT AUTO_INCREMENT PRIMARY KEY,
-  outlet_name VARCHAR(255) NOT NULL,
-  start_time DATETIME NOT NULL,
-  end_time DATETIME NOT NULL,
-  vacancy INT CHECK (vacancy >= 0),
-  published BOOLEAN DEFAULT FALSE
-);
+   -- Create schedule table
+   CREATE TABLE IF NOT EXISTS schedule (
+   schedule_id INT AUTO_INCREMENT PRIMARY KEY,
+   outlet_name VARCHAR(255) NOT NULL,
+   start_time DATETIME NOT NULL,
+   end_time DATETIME NOT NULL,
+   vacancy INT CHECK (vacancy >= 0),
+   published BOOLEAN DEFAULT FALSE
+   );
 
--- Create shift_applications table
-CREATE TABLE IF NOT EXISTS shift_applications (
-  application_id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL,
-  schedule_id INT NOT NULL,
-  status ENUM('pending', 'accepted', 'rejected') DEFAULT 'pending',
-  application_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id),
-  FOREIGN KEY (schedule_id) REFERENCES schedule(schedule_id) ON DELETE CASCADE
-);
+   -- Create shift_applications table
+   CREATE TABLE IF NOT EXISTS shift_applications (
+   application_id INT AUTO_INCREMENT PRIMARY KEY,
+   user_id INT NOT NULL,
+   schedule_id INT NOT NULL,
+   status ENUM('pending', 'accepted', 'rejected') DEFAULT 'pending',
+   application_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+   FOREIGN KEY (user_id) REFERENCES users(id),
+   FOREIGN KEY (schedule_id) REFERENCES schedule(schedule_id) ON DELETE CASCADE
+   );
 
--- Create confirmed_slots table
-CREATE TABLE IF NOT EXISTS confirmed_slots (
-  schedule_id INT,
-  user_id INT,
-  FOREIGN KEY (user_id) REFERENCES users(id),
-  FOREIGN KEY (schedule_id) REFERENCES schedule(schedule_id) ON DELETE CASCADE
-);
+   -- Create confirmed_slots table
+   CREATE TABLE IF NOT EXISTS confirmed_slots (
+   schedule_id INT,
+   user_id INT,
+   FOREIGN KEY (user_id) REFERENCES users(id),
+   FOREIGN KEY (schedule_id) REFERENCES schedule(schedule_id) ON DELETE CASCADE
+   );
 
--- Create leave_offs table
-CREATE TABLE IF NOT EXISTS leave_offs (
-  leave_offs_id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL,
-  type VARCHAR(5) NOT NULL,
-  start_date DATETIME NOT NULL,
-  end_date DATETIME NOT NULL,
-  duration VARCHAR(20) NOT NULL,
-  amt_used DECIMAL(5,1) NOT NULL,
-  status VARCHAR(10) DEFAULT 'pending' NOT NULL,
-  FOREIGN KEY (user_id) REFERENCES users(id)
-);
-```
+   -- Create leave_offs table
+   CREATE TABLE IF NOT EXISTS leave_offs (
+   leave_offs_id INT AUTO_INCREMENT PRIMARY KEY,
+   user_id INT NOT NULL,
+   type VARCHAR(5) NOT NULL,
+   start_date DATETIME NOT NULL,
+   end_date DATETIME NOT NULL,
+   duration VARCHAR(20) NOT NULL,
+   amt_used DECIMAL(5,1) NOT NULL,
+   status VARCHAR(10) DEFAULT 'pending' NOT NULL,
+   FOREIGN KEY (user_id) REFERENCES users(id)
+   );
+   ```
 
-4. **Insert Default Data**
+4. **Insert Default Data**:
 
-Run the following commands to insert initial data into the database:
+   Run the following commands to insert initial data into the database:
 
-```sql
--- Insert default roles
-INSERT INTO roles (role_name, color, permanent) 
-VALUES 
-('User', '#333333', TRUE),
-('Owner', '#4A90E2', FALSE),
-('Operational Manager', '#50E3C2', FALSE),
-('Gelato Chef', '#D0021B', FALSE),
-('Full Timer', '#8B5BFF', FALSE),
-('Shift Leader', '#7ED321', FALSE),
-('Part Timer', '#d1c00b', FALSE);
+   ```sql
+   -- Insert default roles
+   INSERT INTO roles (role_name, color, permanent) 
+   VALUES 
+   ('User', '#333333', TRUE),
+   ('Owner', '#4A90E2', FALSE),
+   ('Operational Manager', '#50E3C2', FALSE),
+   ('Gelato Chef', '#D0021B', FALSE),
+   ('Full Timer', '#8B5BFF', FALSE),
+   ('Shift Leader', '#7ED321', FALSE),
+   ('Part Timer', '#d1c00b', FALSE);
 
--- Insert main user
-INSERT INTO users (name, nric, email, password, phonenumber, sex, dob, bankName, bankAccountNo, address, workplace, occupation, 
-driverLicense, firstAid, admin, role_id) 
-VALUES ( 'Administrator', 'S1234567A', 'masteracc@gmail.com', '$2b$10$Rr/mIoHFZyR3/F9xTUF6wuo6s3GwMvbmoTE3yeqjtRKZAY90eZYsm', '9876543210', 'Male', '1990-05-15 00:00:00', 'Bank ABC', '1234567890123456', '123 Main St, Hometown', 'Headquarters', 'Administrator', TRUE, TRUE, TRUE, 1 );
-```
+   -- Insert main user
+   INSERT INTO users (name, nric, email, password, phonenumber, sex, dob, bankName, bankAccountNo, address,
+   workplace, occupation, driverLicense, firstAid, admin, role_id) 
+   VALUES ( 'Administrator', 'S1234567A', 'masteracc@gmail.com', '$2b$10$Rr/mIoHFZyR3/F9xTUF6wuo6s3GwMvbmoTE3yeqjtRKZAY90eZYsm', 
+   '9876543210', 'Male', '1990-05-15 00:00:00', 'Bank ABC', '1234567890123456', '123 Main St, Hometown', 
+   'Headquarters', 'Administrator', TRUE, TRUE, TRUE, 1 );
+   ```
 
-5. **Verify the Setup**
+5. **Verify the Setup**:
 
-To check if everything is set up correctly, run the following query:
+   To check if everything is set up correctly, run the following query:
 
-```sql
-SHOW TABLES;
-```
+   ```sql
+   SHOW TABLES;
+   ```
 
-You should see all the created tables listed.
+   You should see all the created tables listed.
 
 ### Backend Setup
 
