@@ -72,14 +72,16 @@ Replace `<repository-url>` with the URL of your Git repository.
 
 Your frontend should now be running. The application will usually be accessible at [http://localhost:5173](http://localhost:5173) by default.
 
-## Database Setup
+### Database Setup
 
 Follow these steps to set up the MySQL database for the Scheduler Web Application.
 
 1. **Install MySQL**
+
 Ensure that MySQL is installed on your system. If not, download and install it from [here](https://dev.mysql.com/downloads/installer/).
 
 2. **Create the Database**
+
 Open MySQL command-line client or any MySQL GUI tool such as MySQL Workbench.
 Create a new database by running the following command:
 
@@ -93,6 +95,7 @@ Switch to the newly created database:
    ```
 
 3. **Set Up Tables**
+
 Run the following SQL script to create the necessary tables:
 
 ```sql
@@ -182,6 +185,7 @@ CREATE TABLE IF NOT EXISTS leave_offs (
 ```
 
 4. **Insert Default Data**
+
 Run the following commands to insert initial data into the database:
 
 ```sql
@@ -203,6 +207,7 @@ VALUES ( 'Administrator', 'S1234567A', 'masteracc@gmail.com', '$2b$10$Rr/mIoHFZy
 ```
 
 5. **Verify the Setup**
+
 To check if everything is set up correctly, run the following query:
 
 ```sql
