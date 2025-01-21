@@ -52,19 +52,24 @@ Replace `<repository-url>` with the URL of your Git repository.
    cd frontend
    ```
 
-2. **Install the required dependencies**:
+2. **Copy the example environment file**:
+   ```bash
+   cp .env.example .env
+   ```
+
+3. **Install the required dependencies**:
 
    ```bash
    npm install
    ```
 
-3. **Build the frontend project**:
+4. **Build the frontend project**:
 
    ```bash
    npm run build
    ```
 
-4. **Start the frontend development server**:
+5. **Start the frontend development server**:
 
    ```bash
    npm run
